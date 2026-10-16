@@ -61,9 +61,12 @@ The machine-readable contract lives under
 installed package inventory is archived. The separate Nutrimouse R lock
 covers MOFA2, basilisk and mixOmics. Python dependencies provisioned by
 MOFA2/basilisk are audited by
-`multiomics-engine/environment/audit_mofa_python.R`, and its observed
-Basilisk closure must be pinned before claiming strict end-to-end MOFA
-reproducibility.
+`multiomics-engine/environment/audit_mofa_python.R`, and its observed Basilisk closure is now locked to Python **3.12.12**,
+**mofapy2 0.7.3**, and **18 installed distributions** (SHA-256 verified
+in genuine Nutrimouse CI and additionally challenged with 10 tampered
+synthetic evidence examples). This is version-locked scientific execution,
+not an offline Python package mirror or a guarantee of numerically identical
+fits on different hardware.
 
 An immutable image locks its original OS/R contents. **Installing
 previously missing R packages from moving CRAN/Bioconductor indexes is
