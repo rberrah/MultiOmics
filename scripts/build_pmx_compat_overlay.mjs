@@ -27,8 +27,8 @@ async function existsFile(path) {
 for (const path of required) {
   assert(await existsFile(join(built, path)), 'required prerendered page missing: ' + path);
   const html = await readFile(join(built, path), 'utf8');
-  assert(html.includes(expectedBase + '/_multiomics_app/'),
-    'page lacks namespaced standalone assets: ' + path);
+  assert(html.includes('_multiomics_app/'),
+    'page lacks a namespaced standalone asset reference (relative or absolute): ' + path);
   assert(!html.includes(expectedBase + '/_app/'),
     'PMx shared app assets would be overwritten: ' + path);
 }
