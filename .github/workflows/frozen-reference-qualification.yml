@@ -50,8 +50,8 @@ jobs:
             stopifnot(all(vapply(c(required_cran,required_bioc),
                                  requireNamespace,logical(1),quietly=TRUE)))
           '
-      - name: Capture actual scientific package versions and enforce declared lock
-        run: Rscript multiomics-engine/environment/check_reference_runtime.R probe
+      - name: Verify exact recorded versions of all pinned reference packages (fail closed)
+        run: Rscript multiomics-engine/environment/check_reference_runtime.R verify
       - name: Run real global-null DESeq2, edgeR-QL and limma-voom checks
         run: Rscript multiomics-engine/tests/bioconductor_null_calibration.R
       - name: Run independent mixed-truth FDR, power and effect-direction checks
