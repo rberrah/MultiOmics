@@ -26,6 +26,7 @@ jobs:
     container:
       image: bioconductor/bioconductor_docker:RELEASE_3_22-r-4.5.2@sha256:e34177896c1579f66d48b756e4229b58237499183a089da084af72d7aba1d40a
     env:
+      QUALIFIED_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
       MULTIOMICS_RAW_MS_OUTPUT: tmp/sacurine-zenodo-qc-output
     steps:
       - uses: actions/checkout@v5
