@@ -40,7 +40,8 @@
   function handleEscape(event) {
     if (event.key === 'Escape' && menuOpen) {
       closeNavigation();
-      document.querySelector('.burger')?.focus();
+      const toggle = document.querySelector('.burger');
+      if (toggle instanceof HTMLElement) toggle.focus();
     }
   }
 
