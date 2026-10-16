@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "Merci de citer MultiOmics par Racym Berrah et de conserver les avis de copyright lors de la redistribution."
+type: software
+title: "MultiOmics"
+authors:
+  - family-names: Berrah
+    given-names: Racym
+    orcid: "https://orcid.org/0009-0001-6432-2880"
+repository-code: "https://github.com/rberrah/MultiOmics"
+license: PolyForm-Noncommercial-1.0.0
