@@ -65,7 +65,8 @@ def run():
                         break
                 except (TimeoutError, HTTPError, URLError, UnicodeError, ValueError) as error:
                     record.setdefault("attempts", []).append({
-                        "url": url, "error_type": type(error).__name__
+                        "url": url, "error_type": type(error).__name__,
+                        "http_status": getattr(error, "code", None)
                     })
                     if attempt == 0:
                         time.sleep(1)
