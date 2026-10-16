@@ -10,7 +10,8 @@
     "prepare": "svelte-kit sync",
     "check": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json",
     "test:multiomics": "node scripts/test_multiomics.mjs && node scripts/test_multiomics_single_omic.mjs && node scripts/test_multiomics_identifiers.mjs && node scripts/test_multiomics_diagnostics.mjs && node scripts/test_multiomics_portable_project.mjs && node scripts/test_multiomics_mofa_contract.mjs && node scripts/test_multiomics_prediction_foldsafe.mjs && node scripts/test_multiomics_statistical_calibration.mjs && node scripts/test_multiomics_pathway_fdr.mjs && node scripts/test_multiomics_design_stress.mjs",
-    "test:e2e": "playwright test --config playwright.multiomics.config.js"
+    "test:e2e": "playwright test --config playwright.multiomics.config.js",
+    "test:migration": "node scripts/test_standalone_migration.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
