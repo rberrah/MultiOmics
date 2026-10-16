@@ -46,6 +46,8 @@ jobs:
           apt-get install -y -qq libglpk40
           Rscript -e 'if(!requireNamespace("jsonlite",quietly=TRUE)) install.packages("jsonlite",repos="https://cloud.r-project.org")'
           Rscript -e 'if(!requireNamespace("BiocManager",quietly=TRUE)) install.packages("BiocManager",repos="https://cloud.r-project.org"); BiocManager::install("mixOmics",version="3.22",ask=FALSE,update=FALSE); stopifnot(requireNamespace("mixOmics",quietly=TRUE))'
+      - name: Reject unpinned DIABLO package version or R/Bioconductor drift
+        run: Rscript multiomics-engine/environment/verify_nutrimouse_runtime.R diablo verify
       - name: Run genuine paired multi-omic DIABLO with untouched subjects and negative controls
         run: |
           Rscript multiomics-engine/tests/test_diablo_real_nutrimouse.R \
