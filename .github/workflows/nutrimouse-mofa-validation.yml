@@ -30,7 +30,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: r-lib/actions/setup-r@v2
         with:
-          r-version: 'release'
+          r-version: '4.5.2'
           use-public-rspm: true
       - name: Test factor identity, conditional partial R2 and stratified permutations in base R
         run: Rscript multiomics-engine/tests/test_mofa_real_nutrimouse_audit.R
@@ -52,14 +52,14 @@ jobs:
             data/nutrimouse.rda
       - uses: r-lib/actions/setup-r@v2
         with:
-          r-version: 'release'
+          r-version: '4.5.2'
           use-public-rspm: true
       - name: Install authentic MOFA2, Basilisk and python/HDF5 requirements
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq libhdf5-dev libglpk40
           Rscript -e 'if(!requireNamespace("jsonlite",quietly=TRUE)) install.packages("jsonlite",repos="https://cloud.r-project.org")'
-          Rscript -e 'if(!requireNamespace("BiocManager",quietly=TRUE)) install.packages("BiocManager",repos="https://cloud.r-project.org"); BiocManager::install(c("MOFA2","basilisk"),ask=FALSE,update=FALSE); stopifnot(requireNamespace("MOFA2",quietly=TRUE),requireNamespace("basilisk",quietly=TRUE))'
+          Rscript -e 'if(!requireNamespace("BiocManager",quietly=TRUE)) install.packages("BiocManager",repos="https://cloud.r-project.org"); BiocManager::install(c("MOFA2","basilisk"),version="3.22",ask=FALSE,update=FALSE); stopifnot(requireNamespace("MOFA2",quietly=TRUE),requireNamespace("basilisk",quietly=TRUE))'
       - name: Fit genuine MOFA2 on real Nutrimouse and audit genotype/diet separately
         run: |
           Rscript multiomics-engine/tests/test_mofa_real_nutrimouse.R \
