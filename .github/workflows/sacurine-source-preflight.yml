@@ -19,16 +19,24 @@ permissions:
   contents: read
 
 jobs:
+  offline-safety-contracts:
+    name: Sacurine ZIP/role provenance contracts (offline, source not yet acquired)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - name: Falsify unsafe ZIP and source role claims without network
+        run: |
+          python3 -m py_compile scripts/sacurine_source_preflight.py scripts/test_sacurine_source_preflight.py
+          PYTHONPATH=scripts python3 scripts/test_sacurine_source_preflight.py
+
   source-integrity:
+    if: github.event_name == 'workflow_dispatch'
     name: Independent Sacurine source provenance, 36 sample roles and ZIP integrity
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v5
-      - name: Compile preflight and falsify unsafe ZIP/sample metadata (offline)
-        run: |
-          python3 -m py_compile scripts/sacurine_source_preflight.py scripts/test_sacurine_source_preflight.py
-          PYTHONPATH=scripts python3 scripts/test_sacurine_source_preflight.py
       - name: Download and audit the official 188 MB raw mzXML source
         run: python3 scripts/sacurine_source_preflight.py --output tmp/sacurine-preflight
       - name: Preserve source hashes, scientific limitations and failure evidence only
