@@ -3,7 +3,7 @@
   import '@fontsource-variable/inter';
   import '@fontsource-variable/source-serif-4';
   import '@fontsource-variable/jetbrains-mono';
-  import { BookOpen, ChartNoAxesCombined, Library, ChevronDown, Blocks } from '@lucide/svelte';
+  import { BookOpen, ChartNoAxesCombined, Library, ChevronDown } from '@lucide/svelte';
   import { base } from '$app/paths';
   import { page } from '$app/stores';
   import { afterNavigate } from '$app/navigation';
@@ -40,7 +40,7 @@
   let groups = $derived([
     {key:'learn',label:t('Apprendre','Learn'),icon:BookOpen,keys:['learn','design']},
     {key:'analyze',label:t('Analyser','Analyze'),icon:ChartNoAxesCombined,keys:['tool','workflow']},
-    {key:'disciplines',label:t('Autres disciplines','Other disciplines'),icon:Blocks,keys:['disciplines','pmx','omics2pk']},
+    {key:'disciplines',label:t('Autres disciplines','Other disciplines'),icon:Library,keys:['disciplines','pmx','omics2pk']},
     {key:'resources',label:t('Ressources','Resources'),icon:Library,keys:['resources','glossary','references','source','main-site']}
   ]);
   /** @param {string} href */
