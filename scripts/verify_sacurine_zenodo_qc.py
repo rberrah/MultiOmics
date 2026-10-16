@@ -82,7 +82,7 @@ def main():
                 record_url=BASE+"/records/"+RECORD,
                 source="Galaxy Training Network LC-MS tutorial",
                 expected_real_biological=6,expected_real_pooled_qc=3,expected_blanks=0,
-                source_sha=os.getenv("GITHUB_SHA","local"),
+                source_sha=os.getenv("QUALIFIED_SOURCE_SHA",os.getenv("GITHUB_SHA","local")),
                 raw_processing_completed=False,
                 data_provenance_verified=False,
                 file_evidence=[])
