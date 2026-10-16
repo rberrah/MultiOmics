@@ -6,6 +6,10 @@ on:
       - '.github/workflows/nutrimouse-diablo-validation.yml'
       - 'multiomics-engine/tests/test_diablo_real_nutrimouse.R'
       - 'multiomics-engine/tests/test_diablo_real_nutrimouse_ablation.R'
+      - 'multiomics-engine/tests/test_real_nutrimouse_frozen_individual_score.R'
+      - 'scripts/export_real_nutrimouse_frozen_score.mjs'
+      - 'scripts/validate_multiomics_exchange.py'
+      - 'src/lib/multiomics/downstream-exchange.js'
       - 'multiomics-engine/advanced_methods.R'
       - 'multiomics-engine/validation_benchmarks.R'
       - 'multiomics-engine/environment/**'
@@ -55,6 +59,28 @@ jobs:
         run: |
           Rscript multiomics-engine/tests/test_diablo_real_nutrimouse_ablation.R \
             external/mixOmics tmp/multiomics/real-nutrimouse-diablo
+      - name: Compute actual predeclared train-frozen per-animal liver gene scores in R
+        run: |
+          Rscript multiomics-engine/tests/test_real_nutrimouse_frozen_individual_score.R \
+            external/mixOmics tmp/multiomics/real-nutrimouse-frozen-score
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Independently recompute heldout scores, validate frozen hashes and export original assays
+        run: |
+          node scripts/export_real_nutrimouse_frozen_score.mjs \
+            tmp/multiomics/real-nutrimouse-frozen-score
+      - name: Strictly validate actual study exchange archive with independent Python parser
+        run: |
+          python3 scripts/validate_multiomics_exchange.py \
+            tmp/multiomics/real-nutrimouse-frozen-score/exchange
+      - name: Preserve genuine frozen-score model, full source and negative result
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: nutrimouse-public-real-frozen-assay-score-not-pk-validated
+          path: tmp/multiomics/real-nutrimouse-frozen-score/
+          if-no-files-found: warn
       - name: Archive ALL outcomes even if observed model performs poorly
         if: always()
         uses: actions/upload-artifact@v6
