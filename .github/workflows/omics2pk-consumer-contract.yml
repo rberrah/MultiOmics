@@ -1,0 +1,68 @@
+name: Omics2PK consumer contract - native MultiOmics synthetic ZIP
+on:
+  push:
+    branches: [fix/issue-20-exchange-time-provenance-20261016]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          path: multiomics
+      - uses: actions/checkout@v5
+        with:
+          repository: rberrah/Omics2PK
+          ref: 1155c274376b4ec5ea1ddf3db63b0fd7d49da107
+          path: consumer
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - name: Produce actual native MultiOmics research ZIP from bundled synthetic demos
+        run: |
+          mkdir -p consumer/upstream
+          ln -s "$GITHUB_WORKSPACE/multiomics" consumer/upstream/multiomics
+          node consumer/scripts/build_native_multiomics_research_zip.mjs "$RUNNER_TEMP/omics.zip"
+          mkdir -p "$RUNNER_TEMP/unpacked"
+          python3 -m zipfile -e "$RUNNER_TEMP/omics.zip" "$RUNNER_TEMP/unpacked"
+      - name: Validate exported ZIP against pinned independent Omics2PK consumer
+        env:
+          PYTHONPATH: ${{ github.workspace }}/consumer/src
+        run: |
+          python3 multiomics/scripts/validate_multiomics_exchange.py "$RUNNER_TEMP/unpacked/exchange"
+          python3 - <<'PY'
+          import csv, json, os
+          from pathlib import Path
+          from omics2pk.exchange import inspect_exchange, ExchangeError, prepare_sweet
+          from omics2pk.multiomics_pk_readiness import inspect_pk_readiness
+          p=Path(os.environ['RUNNER_TEMP'])/'unpacked'/'exchange'
+          report=inspect_exchange(p)
+          pk=inspect_pk_readiness(p)
+          assert (report['subjects'],report['assays'])==(8,49),report
+          assert set(report['matrices'])=={'transcriptomics','proteomics','metabolomics'}
+          with (p/'samples.csv').open(newline='',encoding='utf-8') as f:
+              rows=list(csv.DictReader(f))
+          assert len(rows)==49
+          assert {x['timepoint'] for x in rows}=={'T0','T12'}
+          assert all(not x['collection_time'] and not x['collection_time_unit'] for x in rows)
+          assert sum(bool(x['technical_replicate_id']) for x in rows)>=1
+          assert len({x['sample_id'] for x in rows})==16
+          assert pk['has_categorical_timepoint_column'] is True
+          assert pk['temporal_numeric_metadata_ready'] is False
+          assert pk['n_omic_assays_missing_collection_time']==49
+          assert pk['n_extra_technical_repeat_assays_not_independent_biology']==1
+          assert 'PRESERVE_CATEGORICAL_TIMEPOINT_FROM_ORIGINAL_MULTIOMICS_SOURCE' not in pk['missing_for_E3_and_E4']
+          try:
+              prepare_sweet(p,p.parent/'forbidden-sweet')
+          except ExchangeError as err:
+              assert 'normalized/transformed' in str(err)
+          else:
+              raise AssertionError('Raw RNA counts must never be treated as normalized SWEET inputs')
+          assert not (p.parent/'forbidden-sweet').exists()
+          print('PASS: original ZIP -> Omics2PK reader, exact T0/T12, sample cardinality, no invented PK or SWEET claims')
+          PY
