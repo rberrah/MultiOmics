@@ -37,13 +37,10 @@
     "d3-scale": "^4.0.2",
     "d3-selection": "^3.0.0",
     "d3-shape": "^3.2.0",
-    "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.0",
     "jsep": "^1.4.0",
-    "katex": "^0.16.28",
     "layercake": "^10.0.2",
     "markdown-it": "^14.1.0",
-    "svelte-scroller": "^1.2.2",
     "zod": "^3.23.8"
   },
   "description": "Reproducible single- and multi-omics research environment"
