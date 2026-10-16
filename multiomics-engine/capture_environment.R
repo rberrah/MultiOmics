@@ -26,10 +26,22 @@ info <- list(
   package_versions = pkg_versions,
   installed_package_table = local({
     installed <- utils::installed.packages()
-    lapply(seq_len(nrow(installed)), function(i)
-      list(package = installed[i, "Package"], version = installed[i, "Version"],
-           repository = installed[i, "Repository"], built = installed[i, "Built"]))
+    fields <- colnames(installed)
+    # The installed.packages() matrix does not guarantee a Repository field.
+    # Never assign a fictitious source for locally compiled/installed packages.
+    get_field <- function(i,name) {
+      if(name %in% fields) as.character(installed[i,name]) else NA_character_
+    }
+    lapply(seq_len(nrow(installed)), function(i) list(
+      package = get_field(i,"Package"),
+      version = get_field(i,"Version"),
+      repository = get_field(i,"Repository"),
+      built = get_field(i,"Built")
+    ))
   }),
+  installed_inventory_available_columns = colnames(utils::installed.packages()),
+  installed_repository_metadata_available =
+    "Repository" %in% colnames(utils::installed.packages()),
   renv_lockfile_present = file.exists("renv.lock") ||
     file.exists("multiomics-engine/renv.lock"),
   note = "Inventory only. This is not a reproducible renv.lock and does not guarantee reinstall."
