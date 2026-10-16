@@ -80,7 +80,7 @@ if(!requireNamespace("jsonlite",quietly=TRUE))stop("jsonlite required for real s
 jsonlite::write_json(list(
  schema="multiomics.sacurine-toy-real-blank-evidence.v1",
  source="Zenodo 1346742 published LC-MS mzXML",
- source_sha=Sys.getenv("GITHUB_SHA","local"),
+ source_sha=Sys.getenv("QUALIFIED_SOURCE_SHA",Sys.getenv("GITHUB_SHA","local")),
  real_chromatograms=4L,
  real_biological_urine=2L,
  real_solvent_blanks=2L,
