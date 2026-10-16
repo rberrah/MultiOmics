@@ -1,0 +1,70 @@
+name: Independent public LC-MS peak-area and QC external evidence
+
+on:
+  pull_request:
+    paths:
+      - 'multiomics-engine/ms_quantitative_assurance.R'
+      - 'multiomics-engine/tests/external_hubert_peak_area.R'
+      - 'multiomics-engine/tests/test_ms_quantitative_assurance.R'
+      - '.github/workflows/external-public-ms-qualification.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'multiomics-engine/ms_quantitative_assurance.R'
+      - 'multiomics-engine/tests/external_hubert_peak_area.R'
+      - 'multiomics-engine/tests/test_ms_quantitative_assurance.R'
+      - '.github/workflows/external-public-ms-qualification.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  published-peak-areas:
+    name: Genuine independent public Drosophila LC-MS QC study (2 experiments)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      EXTERNAL_ORIGIN_COMMIT: 7c1649ab8093e2175e1683d4ee88af6ab1aa4fea
+    steps:
+      - uses: actions/checkout@v5
+      - name: Freeze external source before any analysis (commit and Git blob hashes)
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p tmp/external-source
+          base="https://raw.githubusercontent.com/hubertdl/Metabolomics_sampling_project_D.melanogaster/${EXTERNAL_ORIGIN_COMMIT}"
+          curl -fLsS --retry 3 --max-time 50 "$base/Experiment%201/Normalization/Data_raw.csv" -o tmp/external-source/exp1-data.csv
+          curl -fLsS --retry 3 --max-time 50 "$base/Experiment%201/Normalization/Meta.csv" -o tmp/external-source/exp1-meta.csv
+          curl -fLsS --retry 3 --max-time 50 "$base/Experiment%202/Normalization/Data_raw.csv" -o tmp/external-source/exp2-data.csv
+          curl -fLsS --retry 3 --max-time 50 "$base/Experiment%202/Normalization/Meta.csv" -o tmp/external-source/exp2-meta.csv
+          test "$(git hash-object tmp/external-source/exp1-data.csv)" = "5e47c48e7327d0f67cc416876251b65cd8a77e6e"
+          test "$(git hash-object tmp/external-source/exp1-meta.csv)" = "4e0cc9d22ca5ebad26785c21e49b3c6730884c9e"
+          test "$(git hash-object tmp/external-source/exp2-data.csv)" = "9c1aca63b51144e7bd24e0b79278a1430c19fa3f"
+          test "$(git hash-object tmp/external-source/exp2-meta.csv)" = "3e716f4ff039c96c07af40f516e0a9e2bb5289b5"
+          (cd tmp/external-source && sha256sum *.csv > source-file-sha256.txt)
+          printf '%s\n' "$EXTERNAL_ORIGIN_COMMIT" > tmp/external-source/upstream-source-commit.txt
+      - name: Install fixed R 4.5.2 for descriptive method comparison
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.5.2'
+          use-public-rspm: true
+      - name: Test existing MS QA contrasts, real blanks and missingness guards
+        run: Rscript multiomics-engine/tests/test_ms_quantitative_assurance.R
+      - name: Audit the genuine public measured LC-MS peak areas (no invented injection order)
+        run: |
+          Rscript multiomics-engine/tests/external_hubert_peak_area.R \
+            tmp/external-source/exp1-data.csv tmp/external-source/exp1-meta.csv \
+            tmp/external-source/exp2-data.csv tmp/external-source/exp2-meta.csv \
+            tmp/external-public-results
+      - name: Preserve external observations, source hashes and scientific limitations
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: measured-public-drosophila-external-QC-evidence
+          path: |
+            tmp/external-source/source-file-sha256.txt
+            tmp/external-source/upstream-source-commit.txt
+            tmp/external-public-results/
+          if-no-files-found: warn
+          retention-days: 60

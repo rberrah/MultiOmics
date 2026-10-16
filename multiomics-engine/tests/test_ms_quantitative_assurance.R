@@ -149,4 +149,31 @@ report_csv<-utils::read.csv(file.path(out_path,"ms_quantitative_qc_features.csv"
 stopifnot(nrow(report_csv)==4L,any(report_csv$flag_group_missingness))
 unlink(temp,recursive=TRUE)
 
+# Actual public processed-peak tables may not contain documented QC injection
+# order. Never treat arbitrary row position as measured temporal drift.
+unverified<-meta
+unverified$injection_order_verified<-rep(FALSE,nrow(unverified))
+no_order<-ms_quantitative_assurance(x,unverified)
+stopifnot(!no_order$coverage$pooled_qc_injection_order_verified,
+ !no_order$coverage$pooled_qc_drift_screen_evaluable,
+ all(is.na(no_order$features$pooled_qc_order_spearman)),
+ all(no_order$features$pooled_qc_drift_status=="injection_order_not_verified"),
+ all(!no_order$features$flag_qc_drift_screen),
+ "pooled_qc_injection_order_not_verified"%in%no_order$alerts,
+ !no_order$scientific_certified)
+known_order<-meta
+known_order$injection_order_verified<-rep(TRUE,nrow(known_order))
+known<-ms_quantitative_assurance(x,known_order)
+stopifnot(known$coverage$pooled_qc_injection_order_verified,
+ known$coverage$pooled_qc_drift_screen_evaluable)
+mixed<-unverified
+mixed$injection_order_verified[1]<-TRUE
+stopifnot(reject(x,mixed))
+na_flag<-unverified
+na_flag$injection_order_verified[1]<-NA
+stopifnot(reject(x,na_flag))
+text_flag<-unverified
+text_flag$injection_order_verified<-rep("false",nrow(text_flag))
+stopifnot(reject(x,text_flag))
+
 cat("MS QUANTITATIVE QA: pooled QC, blanks, MNAR caution, group missingness, batch and fail-closed IDs PASS\n")
