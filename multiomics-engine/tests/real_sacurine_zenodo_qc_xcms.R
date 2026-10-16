@@ -65,7 +65,7 @@ jsonlite::write_json(list(
   blank_contamination_evaluable=FALSE,
   biological_group_statistic_performed=FALSE,
   scientific_certified=FALSE,
-  source_sha=Sys.getenv("GITHUB_SHA","local"),
+  source_sha=Sys.getenv("QUALIFIED_SOURCE_SHA",Sys.getenv("GITHUB_SHA","local")),
   limitation="Original six urine plus three pooled QCs, no blanks or verified injection order. QC precision is descriptive, not an independent clinical/FDR validation."
 ),file.path(out,"real_sacurine_qc_evidence.json"),pretty=TRUE,auto_unbox=TRUE)
 cat("PASS real original QC mzML: ",res$summary$chromatographic_peaks,
