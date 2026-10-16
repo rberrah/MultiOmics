@@ -1,7 +1,7 @@
 name: Omics2PK consumer contract - native MultiOmics synthetic ZIP
 on:
   push:
-    branches: [fix/issue-20-exchange-time-provenance-20261016]
+    branches: [main]
   pull_request:
   workflow_dispatch:
 permissions:
