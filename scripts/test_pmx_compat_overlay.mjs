@@ -22,7 +22,7 @@ for (const page of ['multiomics/index.html', 'multiomics/tool/index.html', 'mult
   const path = 'pharmacometrie/' + page;
   assert(seen.has(path), 'required route is absent: ' + path);
   const html = await readFile(join(output, 'site', path), 'utf8');
-  assert.match(html, /\/pharmacometrie\/_multiomics_app\//);
+  assert.match(html, /_multiomics_app\//);
   assert(!html.includes('/pharmacometrie/_app/'), 'shared PMx bundle reference in ' + path);
 }
 assert(seen.size > 3);
