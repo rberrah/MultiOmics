@@ -65,17 +65,36 @@ jobs:
             build/index.html \
             build/multiomics/index.html \
             build/multiomics/tool/index.html \
-            build/multiomics/learn/index.html
+            build/multiomics/learn/index.html \
+            build/multiomics/disciplines/index.html \
+            build/multiomics/resources/index.html
           do
             if [[ ! -s "$required" ]]; then
               echo "::error::Missing prerendered standalone page $required"
               exit 1
             fi
           done
-          if grep -q 'https://rberrah.github.io/pharmacometrie/' build/index.html; then
-            echo "::error::Standalone root still links to the original PMx application"
-            exit 1
-          fi
+          node <<'NODE'
+          const fs = require('fs');
+          const root = fs.readFileSync('build/index.html', 'utf8');
+          const disciplines = fs.readFileSync('build/multiomics/disciplines/index.html', 'utf8');
+          const automaticPmxRedirect =
+            /http-equiv=["']refresh["'][^>]*rberrah\.github\.io\/pharmacometrie/i.test(root) ||
+            /window\.location(?:\.replace|\.assign)?\s*\([^)]*rberrah\.github\.io\/pharmacometrie/i.test(root);
+          if (automaticPmxRedirect) {
+            console.error('::error::Standalone MultiOmics must not automatically redirect to PMx');
+            process.exit(1);
+          }
+          if (!root.includes('https://rberrah.github.io/')) {
+            console.error('::error::Standalone shell must retain a link to the main website');
+            process.exit(1);
+          }
+          if (!disciplines.includes('https://rberrah.github.io/pharmacometrie/')) {
+            console.error('::error::Other disciplines must present PMx Explain');
+            process.exit(1);
+          }
+          console.log('PASS: standalone navigation links to the ecosystem without depending on or redirecting to PMx.');
+          NODE
 
   r-contract:
     name: Independent R package-free reference contracts
