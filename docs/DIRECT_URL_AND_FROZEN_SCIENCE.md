@@ -55,13 +55,15 @@ Canonical R validation baseline:
   `bioconductor/bioconductor_docker:RELEASE_3_22-r-4.5.2@sha256:e34177896c1579f66d48b756e4229b58237499183a089da084af72d7aba1d40a`
 
 The machine-readable contract lives under
-`multiomics-engine/environment/reference-runtime.json`. The verifier
-checks R/Bioconductor versions, required packages and, once populated
-from actual CI package installation, **exact installed package
-versions**. The entire installed package inventory is saved with each
-scientific job to detect otherwise invisible dependency drift. It is
-not appropriate to invent package versions: the contract is populated
-from an actual reproducible CI environment and then enforced fail-closed.
+`multiomics-engine/environment/reference-runtime.json`. It now validates
+11 directly measured R package versions and the SHA-256 fingerprint of the
+**171 installed R packages** collected from real reference CI. The entire
+installed package inventory is archived. The separate Nutrimouse R lock
+covers MOFA2, basilisk and mixOmics. Python dependencies provisioned by
+MOFA2/basilisk are audited by
+`multiomics-engine/environment/audit_mofa_python.R`, and its observed
+Basilisk closure must be pinned before claiming strict end-to-end MOFA
+reproducibility.
 
 An immutable image locks its original OS/R contents. **Installing
 previously missing R packages from moving CRAN/Bioconductor indexes is

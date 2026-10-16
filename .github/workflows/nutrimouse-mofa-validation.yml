@@ -66,6 +66,8 @@ jobs:
         run: |
           Rscript multiomics-engine/tests/test_mofa_real_nutrimouse.R \
             external/mixOmics tmp/multiomics/mofa-nutrimouse-real
+      - name: Audit actual isolated basilisk Python environment used by MOFA2
+        run: Rscript multiomics-engine/environment/audit_mofa_python.R probe
       - name: Preserve all model factors, source provenance, permutations and failures
         if: always()
         uses: actions/upload-artifact@v6
