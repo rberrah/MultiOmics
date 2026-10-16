@@ -11,8 +11,12 @@ test('standalone shell keeps navigation, margins and ecosystem links coherent', 
   const box = await shell.boundingBox();
   const viewport = page.viewportSize();
   if (!box || !viewport) throw new Error('Missing shell geometry');
-  expect(box.x).toBeGreaterThanOrEqual(15);
-  expect(viewport.width - (box.x + box.width)).toBeGreaterThanOrEqual(15);
+  const edges = await shell.evaluate(node => {
+    const s = getComputedStyle(node);
+    return { left: parseFloat(s.paddingLeft), right: parseFloat(s.paddingRight) };
+  });
+  expect(box.x + edges.left).toBeGreaterThanOrEqual(15);
+  expect(viewport.width - (box.x + box.width) + edges.right).toBeGreaterThanOrEqual(15);
 });
 
 test('language and theme controls share PMx conventions and persist', async ({ page }) => {
@@ -41,7 +45,7 @@ test('Other disciplines presents PMx and Resources remains a first-class page', 
 
   await page.goto('/multiomics/resources/');
   await expect(page.getByRole('heading', { name: /Retrouver les méthodes|Find methods/ })).toBeVisible();
-  await expect(page.getByRole('link', { name: /GitHub/ })).toHaveAttribute('href', 'https://github.com/rberrah/MultiOmics');
+  await expect(page.getByRole('main').getByRole('link', { name: /GitHub/ })).toHaveAttribute('href', 'https://github.com/rberrah/MultiOmics');
   await expect(page.getByRole('link', { name: /Retour au site|Back to main site/ })).toHaveAttribute('href', 'https://rberrah.github.io/');
 });
 
