@@ -40,7 +40,9 @@ jobs:
         run: |
           npm run build
           echo "Generated standalone Pages tree:"
-          find build -maxdepth 5 -type f -name 'index.html' -print | sort
+          find build -maxdepth 8 -type f \( -name '*.html' -o -name '*.json' \) -print | sort | head -100
+          echo "SvelteKit generated route manifest:"
+          find .svelte-kit/output -maxdepth 7 -type f -name '*page*' -print | head -45
           for required in \
             build/index.html \
             build/multiomics/index.html \
