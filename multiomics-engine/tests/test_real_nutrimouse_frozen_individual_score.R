@@ -86,12 +86,16 @@ write_json <- function(value,path) {
 # LC-MS ion intensities or plasma drug concentrations.
 rna_assays <- paste0("RNA_",sprintf("%03d",seq_len(40L)))
 lipid_assays <- paste0("LIPID_",sprintf("%03d",seq_len(40L)))
+# Physical aliquots were not uniquely documented in the original source.
+# Keep separate specimen IDs across RNA/lipid assays, paired by animal only.
+rna_specimens <- paste0("SPEC_RNA_",sprintf("%03d",seq_len(40L)))
+lipid_specimens <- paste0("SPEC_LIPID_",sprintf("%03d",seq_len(40L)))
 metadata <- rbind(
-  data.frame(assay_id=rna_assays,sample_id=ids,subject_id=ids,
+  data.frame(assay_id=rna_assays,sample_id=rna_specimens,subject_id=ids,
              omic="transcriptomics",tissue="liver",timepoint="",
              condition=genotype,source_dataset_id="mixOmics_nutrimouse",
              stringsAsFactors=FALSE),
-  data.frame(assay_id=lipid_assays,sample_id=ids,subject_id=ids,
+  data.frame(assay_id=lipid_assays,sample_id=lipid_specimens,subject_id=ids,
              omic="metabolomics",tissue="liver",timepoint="",
              condition=genotype,source_dataset_id="mixOmics_nutrimouse",
              stringsAsFactors=FALSE)
@@ -144,7 +148,7 @@ model_sha <- sha(model_file)
 feature_sha <- sha(definition_file)
 analysis_id <- paste0("source-",substr(sha(file.path(dest,"metadata.csv")),1L,16L))
 scores <- data.frame(
-  subject_id=ids[test_index],sample_id=ids[test_index],
+  subject_id=ids[test_index],sample_id=rna_specimens[test_index],
   assay_id=rna_assays[test_index],omic="transcriptomics",
   signature_id="nutrimouse_liver_Cyp3a11_trainonly_z",
   score=as.numeric(heldout_z),score_scale="training_centered_z_score",
