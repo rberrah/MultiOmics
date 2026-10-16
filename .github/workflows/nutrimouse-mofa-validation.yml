@@ -5,6 +5,9 @@ on:
     paths:
       - '.github/workflows/nutrimouse-mofa-validation.yml'
       - 'multiomics-engine/advanced_methods.R'
+      - 'multiomics-engine/environment/**'
+      - 'scripts/verify_mofa_basilisk_evidence.py'
+      - 'scripts/test_mofa_python_lock.py'
       - 'multiomics-engine/mofa_real_metadata_audit.R'
       - 'multiomics-engine/tests/test_mofa_real_nutrimouse_audit.R'
       - 'multiomics-engine/tests/test_mofa_real_nutrimouse.R'
@@ -13,6 +16,9 @@ on:
     paths:
       - '.github/workflows/nutrimouse-mofa-validation.yml'
       - 'multiomics-engine/advanced_methods.R'
+      - 'multiomics-engine/environment/**'
+      - 'scripts/verify_mofa_basilisk_evidence.py'
+      - 'scripts/test_mofa_python_lock.py'
       - 'multiomics-engine/mofa_real_metadata_audit.R'
       - 'multiomics-engine/tests/test_mofa_real_nutrimouse_audit.R'
       - 'multiomics-engine/tests/test_mofa_real_nutrimouse.R'
@@ -67,7 +73,9 @@ jobs:
           Rscript multiomics-engine/tests/test_mofa_real_nutrimouse.R \
             external/mixOmics tmp/multiomics/mofa-nutrimouse-real
       - name: Audit actual isolated basilisk Python environment used by MOFA2
-        run: Rscript multiomics-engine/environment/audit_mofa_python.R probe
+        run: Rscript multiomics-engine/environment/audit_mofa_python.R verify
+      - name: Independently verify Basilisk evidence and pinned source SHA
+        run: python3 scripts/verify_mofa_basilisk_evidence.py tmp/multiomics/mofa-nutrimouse-real/basilisk_python_environment.json
       - name: Preserve all model factors, source provenance, permutations and failures
         if: always()
         uses: actions/upload-artifact@v6
