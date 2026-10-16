@@ -24,6 +24,28 @@ function parseCsv(text){
   if(rows.slice(1).some(x=>x.length!==rows[0].length))throw Error('Ragged CSV');
   return {header:rows[0],rows:rows.slice(1)};
 }
+/** Read explicitly pre-computed per-assay signatures; never calculate
+ * scores, impute or promote group tests. Full scientific checks happen at ZIP.
+ * @param {string} content
+ */
+export function parseIndividualSignatureCsv(content){
+  if(typeof content!=='string'||new TextEncoder().encode(content).byteLength>5_000_000)
+    throw Error('Individual signature CSV must be text under 5 MB');
+  const parsed=parseCsv(content);
+  const required=['subject_id','sample_id','assay_id','omic','signature_id','score',
+    'score_scale','fit_scope','reference_model_sha256','feature_definition_sha256',
+    'source_exchange_analysis_id','score_provenance'];
+  if(required.some(k=>!parsed.header.includes(k)))
+    throw Error('Individual score CSV missing required identity, fold or provenance columns');
+  if(parsed.rows.length<1||parsed.rows.length>100000)
+    throw Error('Individual score CSV must contain 1-100000 genuine assay scores');
+  return parsed.rows.map(row=>{
+    const data=Object.fromEntries(parsed.header.map((key,i)=>[key,row[i]]));
+    if(!data.score?.trim()||!Number.isFinite(Number(data.score)))
+      throw Error('Each imported individual score must be numeric and finite');
+    return {...data,score:Number(data.score)};
+  });
+}
 function csvCell(v){
   const s=String(v??'');
   return /[",\r\n]/.test(s)?'"'+s.replaceAll('"','""')+'"':s;
