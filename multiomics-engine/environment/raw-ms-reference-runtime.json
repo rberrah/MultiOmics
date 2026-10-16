@@ -1,0 +1,31 @@
+{
+  "schema": "multiomics.raw-ms-reference-runtime.v1",
+  "rVersion": "4.5.2",
+  "bioconductorVersion": "3.22",
+  "container": "bioconductor/bioconductor_docker:RELEASE_3_22-r-4.5.2@sha256:e34177896c1579f66d48b756e4229b58237499183a089da084af72d7aba1d40a",
+  "requiredPackageVersions": {
+    "xcms": "4.8.0",
+    "MsExperiment": "1.12.0",
+    "Spectra": "1.20.1",
+    "mzR": "2.44.0",
+    "faahKO": "1.50.0",
+    "BiocParallel": "1.44.0",
+    "BiocManager": "1.30.27",
+    "jsonlite": "2.0.0",
+    "digest": "0.6.39",
+    "ncdf4": "1.24",
+    "MSnbase": "2.36.0",
+    "MetaboCoreUtils": "1.18.1"
+  },
+  "fullInstalledLibrary": {
+    "packageCount": 206,
+    "sha256SortedPackageVersionLines": "908e8574b4635669e136dbd4b6fb9686279943d5b27f974a7b3086fb64df7e7d"
+  },
+  "strictLockReady": true,
+  "source": "Measured in successful actual faahKO xcms GitHub run 38913534547, artifact 12051317608; full 206-package installed library captured by capture_environment.R, independently hashed from sorted Package=Version UTF-8 lines including final LF.",
+  "limitations": [
+    "Exact observed dependency fingerprints detect drift but do not make a moving CRAN/apt source reproducible offline.",
+    "Four real faahKO samples lack genuine pooled QC and blank measurements.",
+    "MS chromatographic peak area is not concentration-time pharmacokinetic AUC."
+  ]
+}
