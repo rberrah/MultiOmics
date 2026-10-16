@@ -26,6 +26,8 @@ jobs:
         run: npm run check
       - name: Exercise real deterministic JS and method guardrails
         run: npm run test:multiomics
+      - name: Reject forged MOFA2 Python environment evidence (10 negative controls)
+        run: python3 scripts/test_mofa_python_lock.py
       - name: Build app with no PMx portal
         run: npm run build
       - name: Install Chromium
