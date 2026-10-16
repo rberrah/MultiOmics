@@ -72,6 +72,7 @@ def verify_copy(url,destination,md5):
 def main():
     parser=argparse.ArgumentParser()
     parser.add_argument("--output",type=Path,default=Path("tmp/sacurine-zenodo-qc-source"))
+    parser.add_argument("--metadata-only",action="store_true",help="Only query official published raw file sizes/checksums; do not download any spectra")
     args=parser.parse_args()
     out=args.output
     out.mkdir(parents=True,exist_ok=True)
@@ -88,6 +89,17 @@ def main():
                 file_evidence=[])
     try:
         entries=remote_record()
+        if args.metadata_only:
+            originals=[]
+            for name in RAW_NAMES:
+                e=entries[name]
+                originals.append(dict(name=name,reported_bytes=e.get("size"),published_checksum=e.get("checksum")))
+            report["published_file_inventory"]=originals
+            report["reported_total_bytes"]=sum(int(e["reported_bytes"]) for e in originals)
+            report["status"]="zenodo_api_original_file_metadata_verified_only"
+            print(json.dumps({"total_source_bytes":report["reported_total_bytes"],
+                              "file_sizes":originals},indent=2),flush=True)
+            return
         for name in RAW_NAMES:
             entry=entries[name]
             check=entry.get("checksum","")
