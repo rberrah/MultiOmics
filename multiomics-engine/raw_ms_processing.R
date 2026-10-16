@@ -209,6 +209,33 @@ raw_ms_package_manifest <- function() {
   list(r = R.version.string, platform = R.version$platform, packages = versions)
 }
 
+# xcms featureDefinitions() includes structured peakidx/list columns.
+# CSV cannot store list objects directly. Serialize each cell as JSON, and
+# ALWAYS save original R data (including exact classes and peak indices) as RDS.
+# Empty lists and missing observations must stay distinguishable; no silent
+# flattening, arbitrary string casting, or loss of raw native data.
+raw_ms_feature_definitions_csv <- function(definitions) {
+  if(!is.data.frame(definitions))
+    stop("xcms feature definitions must be a data frame.",call.=FALSE)
+  out <- definitions
+  list_columns <- names(definitions)[vapply(definitions,is.list,logical(1))]
+  if(length(list_columns) && !requireNamespace("jsonlite",quietly=TRUE))
+    stop("Install jsonlite to export nested xcms feature identifiers without information loss.",call.=FALSE)
+  for(column in list_columns) {
+    out[[column]] <- vapply(definitions[[column]],function(cell) {
+      # Only genuine atomic vectors (such as integer chromatographic peak
+      # indices) are directly supported in CSV JSON; native RDS is exact.
+      if(is.null(cell)) return("null")
+      if(!is.atomic(cell) && !is.list(cell))
+        stop(paste("Unsupported xcms list-cell data:",column),call.=FALSE)
+      as.character(jsonlite::toJSON(cell,auto_unbox=FALSE,null="null",
+                                     na="null",digits=NA))
+    },character(1))
+  }
+  attr(out,"json_encoded_list_columns") <- list_columns
+  out
+}
+
 run_xcms_raw_pipeline <- function(
   files,
   sample_data,
@@ -301,7 +328,11 @@ run_xcms_raw_pipeline <- function(
 
   intensity_table <- data.frame(feature_id = feature_ids, values, check.names = FALSE, row.names = NULL)
   utils::write.csv(intensity_table, file.path(output_dir, "metabolomics_peak_area.csv"), row.names = FALSE, na = "")
-  utils::write.csv(feature_defs, file.path(output_dir, "metabolomics_feature_definitions.csv"), row.names = FALSE, na = "")
+  # Keep a human-readable CSV plus lossless native original (including the
+  # peakidx list column). The CSV represents every list cell as JSON.
+  feature_defs_csv <- raw_ms_feature_definitions_csv(feature_defs)
+  utils::write.csv(feature_defs_csv, file.path(output_dir, "metabolomics_feature_definitions.csv"), row.names = FALSE, na = "")
+  saveRDS(feature_defs,file.path(output_dir,"metabolomics_feature_definitions.rds"))
   utils::write.csv(sample_data, file.path(output_dir, "raw_ms_sample_sheet.csv"), row.names = FALSE, na = "")
 
   peaks <- xcms::chromPeaks(xdata)
@@ -337,6 +368,8 @@ run_xcms_raw_pipeline <- function(
     outputs = list(
       matrix = "metabolomics_peak_area.csv",
       feature_definitions = "metabolomics_feature_definitions.csv",
+      feature_definitions_lossless = "metabolomics_feature_definitions.rds",
+      list_column_encoding = "json_in_csv_cells",
       sample_sheet = "raw_ms_sample_sheet.csv"
     ),
     interpretation = paste(
