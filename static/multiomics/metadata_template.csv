@@ -1,0 +1,9 @@
+subject_id,sample_id,assay_id,omic,condition,timepoint,batch,technical_replicate,outcome,survival_time,survival_event,sample_type,injection_order,covariate_1
+SUBJ001,SUBJ001_T0,RNA001,transcriptomics,control,T0,RNA_batch1,1,,,,biological,,
+SUBJ001,SUBJ001_T0,PROT001,proteomics,control,T0,PROT_batch1,1,,,,biological,,
+SUBJ001,SUBJ001_T0,MET001,metabolomics,control,T0,MET_batch1,1,,,,biological,1,
+QC_POOL,QC_POOL,MET_QC01,metabolomics,,,MET_batch1,1,,,,pooled_qc,2,
+SUBJ002,SUBJ002_T0,RNA002,transcriptomics,treatment,T0,RNA_batch1,1,,,,biological,,
+SUBJ002,SUBJ002_T0,PROT002,proteomics,treatment,T0,PROT_batch1,1,,,,biological,,
+SUBJ002,SUBJ002_T0,MET002,metabolomics,treatment,T0,MET_batch1,1,,,,biological,3,
+BLANK,BLANK,MET_BLANK01,metabolomics,,,MET_batch1,1,,,,blank,4,
