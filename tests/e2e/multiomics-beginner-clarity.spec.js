@@ -66,3 +66,19 @@ test('Readiness text derived from visible metadata is escaped, never injected as
   await expect(readiness).toContainText('<img src=x onerror=alert(1)>');
   await expect(readiness.locator('img')).toHaveCount(0);
 });
+
+test('expert signature upload refuses invalid untraceable scores without affecting default demo', async ({page}) => {
+  await page.goto('/multiomics/tool/?lang=en');
+  await page.getByTestId('multiomics-load-demo').click();
+  await expect(page.getByTestId('multiomics-results')).toBeVisible({timeout:30_000});
+  await page.getByText('Other downloads', {exact:true}).click();
+  const upload=page.getByTestId('multiomics-signature-upload');
+  await expect(upload).toBeVisible();
+  await upload.setInputFiles({
+    name:'unverified_group_effect.csv',mimeType:'text/csv',
+    buffer:Buffer.from('subject_id,sample_id,assay_id,omic,signature_id,score\\nP01,S01,RNA1,transcriptomics,group_logfc,2.4\\n')
+  });
+  await expect(page.getByTestId('multiomics-signature-error')).toContainText('missing required');
+  await page.getByTestId('multiomics-research-bundle-download').click();
+  await expect(page.getByTestId('multiomics-research-bundle-error')).toContainText('Individual signature import is invalid');
+});
