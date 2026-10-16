@@ -1,0 +1,57 @@
+name: Multi-omics publisher-heldout TCGA reference validation
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/multiomics-tcga-heldout.yml'
+      - 'scripts/benchmark_tcga_heldout_reference.R'
+      - 'multiomics-engine/external_validation.R'
+      - 'multiomics-engine/run_external_validation.R'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/multiomics-tcga-heldout.yml'
+      - 'scripts/benchmark_tcga_heldout_reference.R'
+      - 'multiomics-engine/external_validation.R'
+      - 'multiomics-engine/run_external_validation.R'
+  schedule:
+    - cron: '11 6 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tcga-heldout:
+    name: Train-only reference + official TCGA holdout metric evaluator
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - name: Checkout immutable publisher data
+        uses: actions/checkout@v5
+        with:
+          repository: mixOmics-org/mixOmics
+          ref: ef3e760526623d9e91e945e4b50be48d764efc40
+          path: external/mixOmics
+          sparse-checkout: |
+            data/breast.TCGA.rda
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: 'release'
+          use-public-rspm: true
+      - name: Install JSON report writer
+        run: Rscript -e 'if(!requireNamespace("jsonlite",quietly=TRUE)) install.packages("jsonlite",repos="https://cloud.r-project.org")'
+      - name: Freeze training-only model and independently score publisher holdout
+        run: |
+          Rscript scripts/benchmark_tcga_heldout_reference.R \
+            external/mixOmics tmp/multiomics/tcga-heldout
+      - name: Preserve frozen predictions and complete evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: multiomics-tcga-publisher-heldout
+          path: |
+            tmp/multiomics/tcga-heldout/heldout-frozen-predictions.csv
+            tmp/multiomics/tcga-heldout/tcga-heldout-report.json
+          if-no-files-found: warn
