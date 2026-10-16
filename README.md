@@ -2,7 +2,7 @@
 
 A public, source-available research environment for reproducible **single- and multi-omics research**, with an optional local R reference engine.
 
-**Release status:** independent source repository, with authenticated standalone CI and a validated PMx hosting integration. The deployed research tool remains at [rberrah.github.io/pharmacometrie/multiomics/tool](https://rberrah.github.io/multiomics/tool/). This is **not** a claim of universal confirmatory statistical validity, clinical use, or a remote hosted R service.
+**Release status:** independent source repository with standalone scientific/browser CI and version-pinned overlay artifacts intended for PMx hosting. The preferred public route is [`/multiomics/`](https://rberrah.github.io/multiomics/) and its [analysis tool](https://rberrah.github.io/multiomics/tool/); the older `/pharmacometrie/multiomics/` routes must be retained during migration. **Deployment of a particular source SHA must be verified on the PMx Pages artifact separately from MultiOmics CI.** This is **not** a claim of universal confirmatory statistical validity, clinical use, or a hosted R service.
 
 ## Download and use independently
 
@@ -42,6 +42,16 @@ This additional packaging command uses Python 3's **standard library** to produc
 
 The browser package supports exploratory workflows and research exports. **It does not package or emulate a native R backend.** For reference analyses install the packages under `multiomics-engine/`, and make a deliberate local/authorized backend connection.
 
+## Relation to PMx Explain
+
+MultiOmics shares PMx Explain's editorial design system (Source Serif 4,
+Inter, terracotta mark, responsive margins, FR/EN and light/dark preferences)
+but remains a **smaller research tool devoted to omics and PK/PD hypothesis
+generation**, not a second copy of PMx. The header includes direct resources,
+cross-disciplinary links, PMx Explain and the main website. Scientific
+hypotheses from omics are **not automatically PK/PD covariates or validated
+pharmacokinetic models**.
+
 ## Analyse in a browser
 
 MultiOmics supports transcriptomics, proteomics and metabolomics (one, two or three layers). Import sample metadata and measurement matrices, or try the four built-in synthetic demos. The three individual-omics buttons sit above a wider multi-omics button.
@@ -67,7 +77,7 @@ npx playwright install chromium
 npx playwright test --config playwright.multiomics.config.js tests/e2e/multiomics-methods-learning.spec.js
 ```
 
-**The public MultiOmics URLs stay on rberrah.github.io under `/pharmacometrie/multiomics/`, `/tool/` and `/learn/`.** The standalone project produces a namespaced static compatibility payload instead of redirecting users to GitHub project Pages:
+**The canonical destination is `/multiomics/` with `/tool/`, `/learn/`, `/resources/` and `/disciplines/`; the legacy `/pharmacometrie/multiomics/` remains a supported compatibility URL.** The standalone project produces a namespaced static compatibility payload instead of redirecting users to GitHub project Pages:
 
 ```bash
 BASE_PATH=/pharmacometrie npm run build
