@@ -1,0 +1,43 @@
+name: MultiOmics DESeq2 size-factor oracle mechanism audit
+
+on:
+  pull_request:
+    paths:
+      - 'multiomics-engine/validation/rnaseq_normalization_oracle_audit.R'
+      - 'docs/multiomics/RNASEQ_ORACLE_NORMALIZATION_PROTOCOL.md'
+      - '.github/workflows/multiomics-rnaseq-oracle-normalization.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  genuine-reference-comparison:
+    name: Two by forty matched null datasets - estimated versus known size factors
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    env:
+      PMX_RNASEQ_ORACLE_REPS: '40'
+    steps:
+      - uses: actions/checkout@v5
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.5.2'
+          use-public-rspm: true
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: |
+            bioc::DESeq2
+            any::jsonlite
+      - name: Execute genuine paired comparisons using known simulation factors
+        run: |
+          Rscript multiomics-engine/validation/rnaseq_normalization_oracle_audit.R \
+            tmp/multiomics-oracle-normalization
+      - name: Keep results and adverse evidence, including failed cases
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: multiomics-null-oracle-size-factor-comparison
+          path: tmp/multiomics-oracle-normalization/
+          retention-days: 90
+          if-no-files-found: warn

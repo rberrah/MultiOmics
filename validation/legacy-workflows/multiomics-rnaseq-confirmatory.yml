@@ -1,0 +1,52 @@
+name: Multi-omics R1 strict RNA-seq confirmatory input contract
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/multiomics-rnaseq-confirmatory.yml'
+      - 'multiomics-engine/advanced_methods.R'
+      - 'multiomics-engine/server.R'
+      - 'multiomics-engine/tests/test_rnaseq_confirmatory_preflight.R'
+      - 'multiomics-engine/null_reference_metrics.R'
+      - 'multiomics-engine/tests/test_null_reference_metrics.R'
+      - 'multiomics-engine/mixed_truth_reference_metrics.R'
+      - 'multiomics-engine/tests/test_mixed_truth_reference_metrics.R'
+      - 'src/lib/multiomics/scientific-assurance.js'
+      - 'scripts/test_multiomics_diagnostics.mjs'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/multiomics-rnaseq-confirmatory.yml'
+      - 'multiomics-engine/advanced_methods.R'
+      - 'multiomics-engine/server.R'
+      - 'multiomics-engine/tests/test_rnaseq_confirmatory_preflight.R'
+      - 'src/lib/multiomics/scientific-assurance.js'
+      - 'scripts/test_multiomics_diagnostics.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  rnaseq-strict-preflight:
+    name: Reject pseudoreplication, missing subjects, malformed raw counts and nonidentifiable designs
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v5
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+      - name: Verify global-null Monte Carlo confidence bounds in base R
+        run: Rscript multiomics-engine/tests/test_null_reference_metrics.R
+      - name: Check known-truth FDR, power and false-positive accounting
+        run: Rscript multiomics-engine/tests/test_mixed_truth_reference_metrics.R
+      - name: Run executable strict RNA-seq preflight regression
+        run: Rscript multiomics-engine/tests/test_rnaseq_confirmatory_preflight.R
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Verify browser never upgrades R reference fitting to confirmatory status without strict input contract
+        run: node scripts/test_multiomics_diagnostics.mjs

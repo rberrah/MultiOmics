@@ -1,0 +1,109 @@
+name: MultiOmics P0 scientific and research-output qualification
+
+on:
+  pull_request:
+    paths:
+      - 'tests/e2e/multiomics-research-output-acceptance.spec.js'
+      - 'multiomics-engine/validation/tcga_two_view_research_validation.R'
+      - 'multiomics-engine/validation/rnaseq_wald_mixed_truth_independent.R'
+      - 'docs/multiomics-research-paper-prerequisites-2026.md'
+      - '.github/workflows/multiomics-research-use-cases.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  researcher-output:
+    name: Real browser analysis, raw exports, hashes and reproducible rerun
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      CI: 'true'
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npx playwright install chromium --with-deps
+      - name: Validate publication-grade actual browser output with four real examples
+        run: npx playwright test --config playwright.multiomics.config.js tests/e2e/multiomics-research-output-acceptance.spec.js --workers=1
+      - name: Save browser traces if unsuccessful
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scientific-output-browser-traces
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: ignore
+          retention-days: 30
+
+  biological-tcga:
+    name: Real TCGA matched-subject transcriptome and protein ablations
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    steps:
+      - uses: actions/checkout@v5
+      - name: Pin independent biological public input source
+        uses: actions/checkout@v5
+        with:
+          repository: mixOmics-org/mixOmics
+          ref: ef3e760526623d9e91e945e4b50be48d764efc40
+          path: external/mixOmics
+          sparse-checkout: |
+            data/breast.TCGA.rda
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.5.2'
+          use-public-rspm: true
+      - name: Genuine mixOmics dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libglpk40
+          Rscript -e 'if(!requireNamespace("BiocManager",quietly=TRUE)) install.packages("BiocManager",repos="https://cloud.r-project.org"); BiocManager::install("mixOmics",ask=FALSE,update=FALSE); if(!requireNamespace("jsonlite",quietly=TRUE))install.packages("jsonlite",repos="https://cloud.r-project.org"); stopifnot(requireNamespace("mixOmics",quietly=TRUE))'
+      - name: Evaluate actual DIABLO, both genuine single-omic arms and invalid-pairing negative control
+        run: |
+          Rscript multiomics-engine/validation/tcga_two_view_research_validation.R \
+            external/mixOmics tmp/omics-tcga
+      - name: Preserve all biological evidence even if the model underperforms
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: multiomics-tcga-real-cohort-paired-omics-baselines
+          path: tmp/omics-tcga/
+          retention-days: 90
+          if-no-files-found: warn
+
+  independent-fdr-and-power:
+    name: Independent null and mixed-truth Wald FDR-power evaluation
+    runs-on: ubuntu-latest
+    timeout-minutes: 85
+    env:
+      PMX_RNASEQ_WALD_PAIRS: '60'
+    steps:
+      - uses: actions/checkout@v5
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.5.2'
+          use-public-rspm: true
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: |
+            bioc::DESeq2
+            any::jsonlite
+      - name: Compare genuine Wald normal and t with false discoveries AND power on held-out simulation truth
+        run: |
+          Rscript multiomics-engine/validation/rnaseq_wald_mixed_truth_independent.R \
+            tmp/omics-rnaseq-wald-calibration
+      - name: Keep all numerical and adverse simulation outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: multiomics-rnaseq-independent-paired-wald-fdr-and-power
+          path: tmp/omics-rnaseq-wald-calibration/
+          retention-days: 90
+          if-no-files-found: warn

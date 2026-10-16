@@ -1,0 +1,33 @@
+name: MultiOmics public researcher journey — live MS AUC and signed ZIP
+
+# First qualify changes to the public browser-smoke contract against the actual
+# deployed site, independently of Vite's local preview. A successful PR gate
+# is necessary, but only the post-deploy smoke verifies the newly published SHA.
+on:
+  pull_request:
+    paths:
+      - 'scripts/check_live_multiomics.mjs'
+      - '.github/workflows/multiomics-public-research-flow-contract.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  public-research-workflow:
+    name: Public real CSV upload, analysis, SHA-256 ZIP, no external submission
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Syntax-check actual public smoke before browser launch
+        run: node --check scripts/check_live_multiomics.mjs
+      - name: Install genuine Playwright Chromium
+        run: npx playwright install chromium --with-deps
+      - name: Exercise deployed GitHub Pages with 300 generated LC-MS AUC measurements
+        run: node scripts/check_live_multiomics.mjs
