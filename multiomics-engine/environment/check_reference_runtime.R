@@ -32,6 +32,28 @@ if(identical(mode,"verify")){
 }
 dir.create("tmp/reference-runtime",recursive=TRUE,showWarnings=FALSE)
 installed<-utils::installed.packages()
+all_version_names<-installed[,"Package"]
+if(anyDuplicated(all_version_names))stop("Ambiguous duplicate installed R package names")
+all_versions<-setNames(as.character(installed[,"Version"]),all_version_names)
+sorted_names<-sort(names(all_versions),method="radix")
+canonical_inventory<-paste0(
+  paste(paste0(sorted_names,"=",unname(all_versions[sorted_names])),collapse="\n"),
+  "\n")
+if(!requireNamespace("digest",quietly=TRUE))
+  stop("digest required for SHA-256 of the actual R package closure")
+inventory_hash<-digest::digest(canonical_inventory,algo="sha256",serialize=FALSE)
+if(identical(mode,"verify")){
+  info<-config$fullInstalledLibrary
+  if(is.null(info)||!identical(as.integer(info$packageCount),
+       as.integer(length(all_versions)))||
+     !identical(inventory_hash,info$sha256SortedPackageVersionLines))
+    stop("Frozen transitive R library drift: expected SHA-256 ",
+         info$sha256SortedPackageVersionLines,
+         ", observed ",inventory_hash,
+         ", packages ",length(all_versions))
+}
+cat("MULTIOMICS_R_LIBRARY_SHA256=",inventory_hash,
+    " COUNT=",length(all_versions),"\n",sep="")
 all_packages<-setNames(as.list(installed[,"Version"]),installed[,"Package"])
 report<-list(
   schema="multiomics.r-reference-report.v1",
@@ -42,6 +64,7 @@ report<-list(
   image=config$container,
   required_package_versions=as.list(versions),
   all_installed_versions=all_packages,
+  full_installed_library_sha256=inventory_hash,
   strict_lock_verified=identical(mode,"verify") && isTRUE(config$strictLockReady),
   github_sha=Sys.getenv("GITHUB_SHA","local"),
   limitations=c("R package versions pinned for declared reference packages only",
