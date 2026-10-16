@@ -60,6 +60,8 @@ jobs:
           apt-get install -y -qq libhdf5-dev libglpk40
           Rscript -e 'if(!requireNamespace("jsonlite",quietly=TRUE)) install.packages("jsonlite",repos="https://cloud.r-project.org")'
           Rscript -e 'if(!requireNamespace("BiocManager",quietly=TRUE)) install.packages("BiocManager",repos="https://cloud.r-project.org"); BiocManager::install(c("MOFA2","basilisk"),version="3.22",ask=FALSE,update=FALSE); stopifnot(requireNamespace("MOFA2",quietly=TRUE),requireNamespace("basilisk",quietly=TRUE))'
+      - name: Capture actual MOFA2 and basilisk versions before locking next release
+        run: Rscript multiomics-engine/environment/verify_nutrimouse_runtime.R mofa probe
       - name: Fit genuine MOFA2 on real Nutrimouse and audit genotype/diet separately
         run: |
           Rscript multiomics-engine/tests/test_mofa_real_nutrimouse.R \
