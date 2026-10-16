@@ -27,8 +27,20 @@ stopifnot(res$summary$samples==9L,res$summary$features>0L,
  res$summary$chromatographic_peaks>0L,
  ncol(res$matrix)==9L,nrow(res$matrix)==res$summary$features,
  !anyDuplicated(rownames(res$matrix)))
+# xcms::featureValues may label chromatogram columns as "sample1" etc.
+# Verify the original MsExperiment source sheet ordering, then use the
+# authoritative assay_id rather than inventing study identities from labels.
+stopifnot(ncol(res$matrix)==nrow(metadata),
+          identical(as.character(res$sample_data$assay_id),as.character(metadata$assay_id)),
+          identical(as.character(res$sample_data$raw_file),basename(files)),
+          identical(as.character(res$sample_data$sample_type),role))
 native<-t(res$matrix)
-rownames(native)<-as.character(colnames(res$matrix))
+rownames(native)<-as.character(metadata$assay_id)
+if(any(!is.finite(native) & !is.na(native)) || any(native<0,na.rm=TRUE))
+  stop("Genuine xcms LC-MS feature areas contain infinite or negative values; inspect native artifact, do not clip.")
+stopifnot(identical(rownames(native),as.character(metadata$assay_id)),
+          !anyDuplicated(colnames(native)),all(nzchar(colnames(native))))
+cat("Native xcms 9 raw assays aligned by audited source sheet; features:",ncol(native),"\\n")
 qa<-ms_quantitative_assurance(native,metadata)
 stopifnot(qa$coverage$biological_assays==6L,
  qa$coverage$pooled_qc_assays==3L,
