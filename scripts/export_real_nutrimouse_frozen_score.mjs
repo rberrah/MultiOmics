@@ -78,7 +78,8 @@ assert(Math.abs(mean-model.training_mean)<1e-10,'Frozen R training mean mismatch
 assert(Math.abs(sd-model.training_sample_sd)<1e-10,'Frozen R training SD mismatch');
 for(const item of signatures){
   assert(model.heldout_subject_ids.includes(item.subject_id));
-  assert.equal(item.subject_id,item.sample_id);
+  // Biological identity is the animal; do not claim shared RNA/lipid aliquot.
+  assert.equal(item.sample_id,'SPEC_RNA_'+item.subject_id.replace('NUTRIMOUSE_',''));
   assert.equal(item.omic,'transcriptomics');
   assert.equal(item.assay_id,'RNA_'+item.subject_id.replace('NUTRIMOUSE_',''));
   assert.equal(item.score_scale,'training_centered_z_score');
