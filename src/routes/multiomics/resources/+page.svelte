@@ -27,6 +27,16 @@
       <a href={base + '/multiomics/README.txt'} target="_blank">{t('Voir les formats','View formats')} ↗</a>
     </article>
     <article class="card">
+      <h2>{t('Glossaire scientifique','Scientific glossary')}</h2>
+      <p>{t('Définitions des omiques, statistiques et liens PK/PD, avec limites méthodologiques.', 'Clear terminology for omics, statistics and PK/PD with methodological caveats.')}</p>
+      <a href={base + '/multiomics/glossary/'} data-testid="resource-glossary">{t('Ouvrir le glossaire','Open glossary')} →</a>
+    </article>
+    <article class="card">
+      <h2>{t('Références scientifiques','Scientific references')}</h2>
+      <p>{t('Articles de référence des méthodes réellement proposées et données de citation du logiciel.', 'Original methodological references and software citation information.')}</p>
+      <a href={base + '/multiomics/references/'} data-testid="resource-references">{t('Voir les références','View references')} →</a>
+    </article>
+    <article class="card">
       <h2>{t('Code et versions','Code and releases')}</h2>
       <p>{t('Dépôt autonome, historique de développement et workflows de qualification.', 'Standalone repository, development history and qualification workflows.')}</p>
       <a href="https://github.com/rberrah/MultiOmics">GitHub ↗</a>
