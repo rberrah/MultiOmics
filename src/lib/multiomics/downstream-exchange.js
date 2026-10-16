@@ -144,7 +144,7 @@ export async function buildDownstreamExchange(portableProject,{individualSignatu
     const columns=[
       'subject_id','sample_id','assay_id','omic','signature_id','score',
       'score_scale','fit_scope','reference_model_sha256',
-      'feature_definition_sha256','source_exchange_analysis_id'
+      'feature_definition_sha256','source_exchange_analysis_id','score_provenance'
     ];
     const byAssay=new Map(sampleRows.map(s=>[s.omic+'\\u0000'+s.assay_id,s]));
     const seen=new Set();
