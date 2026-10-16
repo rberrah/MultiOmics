@@ -1,3 +1,7 @@
+**Historical validation record (before the 16 October merge).** The code was later merged into standalone `MultiOmics/main` and the source scientific workflows passed. Fixed-URL publication was integrated in PMx Explain PR #116. Follow the current README and standalone distribution audit, not the original pending migration gates below.
+
+---
+
 # Standalone migration status
 
 Source pinned: `rberrah/rberrah.github.io@dbe503f98cfde460f95a60617f3d743adb6b915b`.
