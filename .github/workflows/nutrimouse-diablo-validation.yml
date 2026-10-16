@@ -9,15 +9,12 @@ on:
       - 'multiomics-engine/advanced_methods.R'
       - 'multiomics-engine/validation_benchmarks.R'
       - 'multiomics-engine/environment/**'
+  # The release assembler requires an independently reproducible passing
+  # scientific result on the *exact* immutable published SHA, even when a
+  # commit changes only JS/UI/other methods. Path-filtered main pushes gave
+  # a permanently stale source pin and prevented visible header updates.
   push:
     branches: [main]
-    paths:
-      - '.github/workflows/nutrimouse-diablo-validation.yml'
-      - 'multiomics-engine/tests/test_diablo_real_nutrimouse.R'
-      - 'multiomics-engine/tests/test_diablo_real_nutrimouse_ablation.R'
-      - 'multiomics-engine/advanced_methods.R'
-      - 'multiomics-engine/validation_benchmarks.R'
-      - 'multiomics-engine/environment/**'
   workflow_dispatch:
 
 permissions:
