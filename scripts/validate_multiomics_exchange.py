@@ -65,14 +65,14 @@ def validate(root):
                 errors.append("One sample_id assigned to multiple biological subjects")
             specimen_owners[sid] = subject
             previous = specimen_context.get(sid, {})
-            for field in ('tissue', 'collection_time', 'collection_time_unit'):
+            for field in ('tissue', 'collection_time', 'collection_time_unit', 'timepoint', 'timepoint_unit', 'time_origin'):
                 current_value = sample.get(field, '') or ''
                 previous_value = previous.get(field, '')
                 if current_value and previous_value and current_value != previous_value:
                     errors.append('Conflicting ' + field + ' for shared specimen ' + sid)
             specimen_context[sid] = {
                 field: sample.get(field, '') or previous.get(field, '')
-                for field in ('tissue', 'collection_time', 'collection_time_unit')
+                for field in ('tissue', 'collection_time', 'collection_time_unit', 'timepoint', 'timepoint_unit', 'time_origin')
             }
         assay_keys = [(r["omic"], r["assay_id"]) for r in samples]
         feature_keys = [(r["omic"], r["feature_id"]) for r in features]
