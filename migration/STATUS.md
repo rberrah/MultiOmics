@@ -26,6 +26,25 @@
 
 The previous 38 GitHub Actions workflows are preserved under `migration/legacy-workflows/` **not** under `.github/workflows/`. They have not been activated because many still assume the PMx parent site, its deploy paths, environment and unrelated laboratory modules.
 
+## Autonomous adaptation now underway (16 October 2026)
+
+The migration branch now has a standalone SvelteKit shell (`package.json`,
+npm lockfile, routes, local bilingual theme and navigation) and its **own**
+GitHub Actions checks, not inherited PMx workflows.
+
+- `npm ci`, `npm run check`, deterministic JavaScript guardrails,
+  a fresh static build and beginner Playwright demo tests completed on the
+  first independent CI attempt.
+- Native R package-independent backend/safety tests also passed.
+- The remaining web release gate discovered a **GitHub Pages base-path
+  prerendering issue** under `/MultiOmics/`; diagnostic and explicit
+  route-prerender changes are being checked, with no release asserted.
+- A separate authentic public Bioconductor Airway 17k-gene and Rmd/HTML
+  workflow is running. It must pass before the migration is labeled scientifically
+  replayable in this new environment.
+- The migration remains a **draft PR**; `main` and the original public
+  Pages site have not been switched.
+
 ## Required before independent release
 
 1. **Standalone SvelteKit shell**. Create a minimal `package.json`, lockfile, application layout, theme/language store, Vite/Svelte config and root entry. Do not copy the entire PMx portal into this repository. Ensure `/multiomics/`, `/multiomics/tool/` and `/multiomics/learn/` work.

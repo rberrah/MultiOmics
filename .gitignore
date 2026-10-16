@@ -1,0 +1,24 @@
+# Standalone MultiOmics local artifacts — never commit patient workspaces
+node_modules/
+.svelte-kit/
+build/
+dist/
+coverage/
+playwright-report/
+test-results/
+tmp/
+.cache/
+.DS_Store
+.env
+.env.*
+!.env.example
+.Rhistory
+.RData
+.Rproj.user/
+*.Rcheck/
+# Local generated researcher archives and reports (source templates remain tracked)
+analyse_reproductible.html
+research_reproduction_status.json
+r_numeric_comparison_report.json
+*.zip
+# Do NOT ignore public benchmark CSV source fixtures by default.
