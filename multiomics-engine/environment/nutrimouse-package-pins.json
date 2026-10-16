@@ -18,9 +18,12 @@
         "MOFA2",
         "basilisk"
       ],
-      "versionLock": {},
-      "strictLockReady": false
+      "versionLock": {
+        "MOFA2": "1.20.2",
+        "basilisk": "1.22.0"
+      },
+      "strictLockReady": true
     }
   },
-  "note": "mixOmics was downloaded as version 6.34.0 in successful real Nutrimouse validation run 38902770148. MOFA2/basilisk versions must be captured from actual CI before enabling strict mode."
+  "note": "DIABLO mixOmics 6.34.0 observed from successful pinned R4.5.2/Bioc3.22 real Nutrimouse run 38902770148. MOFA2 1.20.2 and basilisk 1.22.0 sourced from official Bioconductor 3.22 package metadata; CI must verify these are the ACTUAL installed versions and fail otherwise. Python mofapy2 environment is separate and must be captured for full low-level restoration."
 }
