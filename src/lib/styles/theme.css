@@ -1,0 +1,318 @@
+/* Pharmacométrie Pratique — système de design.
+ *
+ * Registre : ÉDITORIAL SCIENTIFIQUE. Un titrage en serif, un corps en sans humaniste,
+ * du blanc, des filets fins plutôt que des ombres. Le registre d'une revue, pas d'une app.
+ *
+ * Les polices sont AUTO-HÉBERGÉES (paquets @fontsource-variable, importés dans +layout.svelte).
+ * Pas de Google Fonts : cela enverrait l'adresse IP de chaque lecteur à un tiers, ce qui
+ * contredirait la promesse « aucun tracking » du site.
+ *
+ * TOUTES les couleurs de texte ont été calculées pour tenir le seuil WCAG AA (4,5:1 pour le
+ * corps, 3:1 pour les grands titres), en clair COMME en sombre. L'ancienne palette était sous
+ * le seuil : --text-muted plafonnait à 3,77:1.
+ */
+
+:root {
+  /* ── Typographie ────────────────────────────────────────────────────────── */
+  --font-heading: 'Source Serif 4 Variable', 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --font-body: 'Inter Variable', Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, Consolas, monospace;
+
+  /* Échelle FLUIDE : le titre s'adapte à la largeur au lieu d'écraser l'écran du téléphone.
+     L'ancienne échelle imposait 3,25rem à un h1, y compris sur 360 px de large. */
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base: 1.0625rem;
+  --text-lg: clamp(1.125rem, 0.4vw + 1.05rem, 1.25rem);
+  --text-xl: clamp(1.3rem, 0.8vw + 1.15rem, 1.6rem);
+  --text-2xl: clamp(1.6rem, 1.6vw + 1.25rem, 2.1rem);
+  --text-3xl: clamp(2rem, 2.8vw + 1.4rem, 2.9rem);
+  --text-4xl: clamp(2.4rem, 4.4vw + 1.5rem, 3.9rem);
+  --line-height-body: 1.7;
+
+  /* ── Couleurs : papier & encre (clair) ──────────────────────────────────── */
+  --bg-primary: #fbfaf8;   /* le papier */
+  --bg-secondary: #f1eee9; /* un ton en dessous */
+  --bg-tertiary: #ffffff;  /* les surfaces posées dessus */
+  --text-primary: #14171a; /* 17,3:1 */
+  --text-secondary: #4b5157; /* 7,7:1 */
+  --text-muted: #666d73;   /* 5,0:1 — était #7a8084 à 3,8:1, sous le seuil */
+
+  /* L'accent existe en DEUX tons : un lisible pour le texte, un vif pour les aplats,
+     les courbes et les grands titres. Confondre les deux, c'est le lien illisible. */
+  --accent-pk: #a4441f;       /* 5,9:1 — liens, surtitres, tout ce qui est du texte */
+  --accent-pk-vivid: #b85c38; /* la terracotta d'origine — remplissages, tracés, hover */
+  --accent-pd: #3d5a1e;       /* 7,5:1 */
+  --accent-ai: #1f4b8f;       /* 8,2:1 */
+
+  --border-subtle: #e4dfd7;
+  --border-strong: #b8b0a6;
+  --hairline: #ddd7cd;
+
+  --disclaimer-bg: #21201e;
+  --disclaimer-text: #f1ece5;
+  --quiz-success-bg: #e4efe6;
+  --quiz-success-text: #1c4523;
+  --quiz-error-bg: #fbe7e3;
+  --quiz-error-text: #6c1e16;
+  --focus-ring: #a4441f;
+
+  --shadow-soft: 0 1px 2px rgba(20, 23, 26, 0.04), 0 4px 16px -8px rgba(20, 23, 26, 0.10);
+  --shadow-lift: 0 2px 4px rgba(20, 23, 26, 0.05), 0 16px 32px -12px rgba(20, 23, 26, 0.16);
+
+  /* ── Rythme ─────────────────────────────────────────────────────────────── */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-7: 2rem;
+  --space-8: 2.5rem;
+  --space-10: 3.5rem;
+  --space-12: 4rem;
+  --space-16: 5.5rem;
+  --space-24: 7rem;
+  --space-32: 9rem;
+
+  --radius: 5px;      /* net, pas arrondi : registre éditorial */
+  --radius-lg: 10px;
+  --maxw: 1280px;
+  --measure: 68ch;    /* la longueur de ligne au-delà de laquelle on ne lit plus */
+  /* Hauteur du header collant. Tout ce qui colle EN DESSOUS s'y réfère (barre de progression,
+     panneau de viz) : sans cette variable, un `top: 56px` codé en dur passait sous un header
+     de 59 px et la barre de progression restait invisible pendant toute la lecture. */
+  --header-h: 59px;
+
+  color-scheme: light;
+}
+
+/* ── Thème sombre ─────────────────────────────────────────────────────────────
+   Aucun des trois sites n'en avait. Pour un public qui révise le soir, c'est
+   l'attente par défaut. On suit le réglage du système, et un attribut data-theme
+   permet de forcer l'un ou l'autre. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg-primary: #14161a;
+    --bg-secondary: #1c1f24;
+    --bg-tertiary: #1a1d22;
+    --text-primary: #e8e6e1;   /* 14,5:1 */
+    --text-secondary: #a8adb3; /* 8,0:1 */
+    --text-muted: #878d94;     /* 5,4:1 */
+    --accent-pk: #e8845c;      /* 6,8:1 — la terracotta doit s'éclaircir sur fond sombre */
+    --accent-pk-vivid: #f09a75;
+    --accent-pd: #9dbd6a;
+    --accent-ai: #7aa8e6;
+    --border-subtle: #2a2e35;
+    --border-strong: #4a5058;
+    --hairline: #262a30;
+    --disclaimer-bg: #0e1013;
+    --disclaimer-text: #d6d3cd;
+    --quiz-success-bg: #14301c;
+    --quiz-success-text: #a9d9b6;
+    --quiz-error-bg: #3a1a16;
+    --quiz-error-text: #f0b4ab;
+    --focus-ring: #e8845c;
+    --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 16px -8px rgba(0, 0, 0, 0.5);
+    --shadow-lift: 0 2px 4px rgba(0, 0, 0, 0.35), 0 16px 32px -12px rgba(0, 0, 0, 0.6);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'] {
+  --bg-primary: #14161a;
+  --bg-secondary: #1c1f24;
+  --bg-tertiary: #1a1d22;
+  --text-primary: #e8e6e1;
+  --text-secondary: #a8adb3;
+  --text-muted: #878d94;
+  --accent-pk: #e8845c;
+  --accent-pk-vivid: #f09a75;
+  --accent-pd: #9dbd6a;
+  --accent-ai: #7aa8e6;
+  --border-subtle: #2a2e35;
+  --border-strong: #4a5058;
+  --hairline: #262a30;
+  --disclaimer-bg: #0e1013;
+  --disclaimer-text: #d6d3cd;
+  --quiz-success-bg: #14301c;
+  --quiz-success-text: #a9d9b6;
+  --quiz-error-bg: #3a1a16;
+  --quiz-error-text: #f0b4ab;
+  --focus-ring: #e8845c;
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 16px -8px rgba(0, 0, 0, 0.5);
+  --shadow-lift: 0 2px 4px rgba(0, 0, 0, 0.35), 0 16px 32px -12px rgba(0, 0, 0, 0.6);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+/* Une animation peut déclencher un malaise vestibulaire. Respecter le réglage n'est pas
+   une option de confort, c'est une condition d'accès. */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--line-height-body);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-synthesis-weight: none;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  line-height: 1.14;
+  letter-spacing: -0.012em;
+  text-wrap: balance; /* évite le mot orphelin sur la dernière ligne d'un titre */
+  color: var(--text-primary);
+}
+h1 { font-size: var(--text-3xl); }
+h2 { font-size: var(--text-2xl); }
+h3 { font-size: var(--text-xl); }
+
+p { text-wrap: pretty; }
+
+a {
+  color: var(--accent-pk);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+code, kbd {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  background: var(--bg-secondary);
+  padding: 0.1em 0.4em;
+  border-radius: 4px;
+}
+
+/* --- boutons --- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-6);
+  font-family: var(--font-body);
+  font-weight: 550;
+  font-size: var(--text-base);
+  letter-spacing: -0.005em;
+  border-radius: var(--radius);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.18s ease, border-color 0.18s ease, transform 0.18s ease, color 0.18s ease;
+  border: 1px solid transparent;
+}
+.btn-primary { background: var(--text-primary); color: var(--bg-primary); border-color: var(--text-primary); }
+.btn-primary:hover { background: var(--accent-pk); border-color: var(--accent-pk); transform: translateY(-1px); }
+.btn-outline { background: transparent; color: var(--text-primary); border-color: var(--border-strong); }
+.btn-outline:hover { background: var(--bg-secondary); border-color: var(--text-primary); }
+
+/* --- cartes ---
+   Un filet et du blanc, pas une ombre portée. L'ombre n'apparaît qu'au survol, pour dire
+   « ceci est cliquable » — pas pour décorer. */
+.card {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  padding: var(--space-6);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lift);
+  border-color: var(--border-strong);
+}
+
+/* --- curseurs (globaux, pour que les composants héritent du thème) --- */
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 3px;
+  background: var(--border-subtle);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent-pk-vivid);
+  border: 3px solid var(--bg-primary);
+  box-shadow: 0 0 0 1px var(--accent-pk-vivid), var(--shadow-soft);
+  transition: transform 0.12s ease;
+}
+input[type='range']::-webkit-slider-thumb:hover { transform: scale(1.15); }
+input[type='range']:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px var(--focus-ring); }
+input[type='range']::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent-pk-vivid);
+  border: 3px solid var(--bg-primary);
+  box-shadow: 0 0 0 1px var(--accent-pk-vivid);
+}
+
+/* --- KaTeX ---
+   Une formule longue doit pouvoir défiler seule : sans ceci, elle pousse toute la page
+   en débordement horizontal sur téléphone. */
+.katex { font-size: 1.05em; }
+.katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: var(--space-2) 0;
+}
+
+/* utilitaires */
+.eyebrow {
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+  font-size: var(--text-xs);
+  color: var(--accent-pk);
+  font-weight: 600;
+}
+.muted { color: var(--text-muted); }
+.measure { max-width: var(--measure); }
+
+/* Lien d'évitement : caché jusqu'à ce qu'il reçoive le focus (première tabulation).
+   Permet à un utilisateur au clavier de sauter la navigation et d'atteindre le contenu. */
+.skip-link {
+  position: absolute;
+  left: 8px;
+  top: -60px;
+  z-index: 1000;
+  padding: var(--space-3) var(--space-4);
+  background: var(--text-primary);
+  color: var(--bg-primary);
+  border-radius: var(--radius);
+  font-weight: 600;
+  text-decoration: none;
+  transition: top 0.15s ease;
+}
+.skip-link:focus { top: 8px; }

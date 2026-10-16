@@ -1,0 +1,46 @@
+{
+  "name": "multiomics",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "prepare": "svelte-kit sync",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json",
+    "test:multiomics": "node scripts/test_multiomics.mjs && node scripts/test_multiomics_single_omic.mjs && node scripts/test_multiomics_identifiers.mjs && node scripts/test_multiomics_diagnostics.mjs && node scripts/test_multiomics_portable_project.mjs && node scripts/test_multiomics_mofa_contract.mjs && node scripts/test_multiomics_prediction_foldsafe.mjs && node scripts/test_multiomics_statistical_calibration.mjs && node scripts/test_multiomics_pathway_fdr.mjs && node scripts/test_multiomics_design_stress.mjs",
+    "test:e2e": "playwright test --config playwright.multiomics.config.js"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.62.1",
+    "@sveltejs/adapter-auto": "^7.0.0",
+    "@sveltejs/kit": "^2.50.2",
+    "@sveltejs/vite-plugin-svelte": "^6.2.4",
+    "svelte": "^5.49.2",
+    "svelte-check": "^4.3.6",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1"
+  },
+  "dependencies": {
+    "@fontsource-variable/inter": "^5.2.8",
+    "@fontsource-variable/jetbrains-mono": "^5.2.8",
+    "@fontsource-variable/source-serif-4": "^5.2.9",
+    "@lucide/svelte": "^1.45.0",
+    "@sveltejs/adapter-static": "^3.0.10",
+    "d3": "^7.9.0",
+    "d3-scale": "^4.0.2",
+    "d3-selection": "^3.0.0",
+    "d3-shape": "^3.2.0",
+    "gray-matter": "^4.0.3",
+    "js-yaml": "^4.1.0",
+    "jsep": "^1.4.0",
+    "katex": "^0.16.28",
+    "layercake": "^10.0.2",
+    "markdown-it": "^14.1.0",
+    "svelte-scroller": "^1.2.2",
+    "zod": "^3.23.8"
+  },
+  "description": "Reproducible single- and multi-omics research environment"
+}
