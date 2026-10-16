@@ -97,9 +97,14 @@ metadata <- rbind(
              stringsAsFactors=FALSE)
 )
 write.csv(metadata,file.path(dest,"metadata.csv"),row.names=FALSE,na="NA")
-write.csv(data.frame(feature_id=colnames(gene),t(gene),check.names=FALSE),
+# Matrix columns are ASSAY IDs, not biological sample or row index aliases.
+rna_values <- t(gene)
+lipid_values <- t(lipid)
+colnames(rna_values) <- rna_assays
+colnames(lipid_values) <- lipid_assays
+write.csv(data.frame(feature_id=colnames(gene),rna_values,check.names=FALSE),
           file.path(dest,"transcriptomics.csv"),row.names=FALSE,na="NA")
-write.csv(data.frame(feature_id=colnames(lipid),t(lipid),check.names=FALSE),
+write.csv(data.frame(feature_id=colnames(lipid),lipid_values,check.names=FALSE),
           file.path(dest,"metabolomics.csv"),row.names=FALSE,na="NA")
 train_measurements <- data.frame(subject_id=ids[train_index],
                                  feature_id=marker,value=values[train_index])
