@@ -36,6 +36,47 @@ the selected archive includes actual blank and pooled QC acquisitions.
   and subsequently pinned fail-closed** before the raw scientific
   processing workflow can be called reproducible.
 
+## Observed public-source availability (16 October 2026)
+
+This is a recorded infrastructure blocker, **not** a failure of `xcms`:
+
+- Workflow4Metabolomics download server:
+  [real run 38924316667](https://github.com/rberrah/MultiOmics/actions/runs/38924316667)
+  could not connect to its official `sacurine-neg_sampleMetadata.tsv`
+  after three attempts (network timeouts); it never fetched the 188-MB
+  archive or processed chromatograms.
+- EMBL-EBI primary metadata check:
+  [run 38925713284](https://github.com/rberrah/MultiOmics/actions/runs/38925713284)
+  returned HTTP **404** for the two documented `s_sacurine.txt`
+  paths tried; these endpoints cannot be treated as authenticated
+  scientific input without new official information.
+- Offline archive role/path attacks and the **local archive preflight**
+  are tested separately and may pass; those results do not imply a
+  successful download or external laboratory validation.
+- Network jobs now require explicit `workflow_dispatch`, so temporary
+  external-repository outages cannot turn routine standalone software
+  CI red or encourage silently substituting incompatible data.
+
+### Running preflight with a genuinely acquired local research archive
+
+If the primary research provider becomes accessible through a browser,
+a laboratory workstation, or an institutional data transfer route, use
+the original source files **locally** rather than committing them:
+
+```bash
+python3 scripts/sacurine_source_preflight.py \
+  --local-archive /path/to/sacurine-neg-subset_mzXML.zip \
+  --local-metadata /path/to/sacurine-neg_sampleMetadata.tsv \
+  --output /path/to/empty/sacurine-preflight-evidence
+```
+
+This path verifies complete 36-file ZIP structure, expected provisionally
+classified 20/10/6 roles, archive SHA-256, source metadata checksum,
+original sample identifier candidates, and ZIP traversal safety.
+The command **does not delete the two source inputs**. Its compact
+reports are not a replacement for checking source-provided sample
+classes and injection-order fields before the full R native run.
+
 ## Phase B: scientific raw processing (next gated PR)
 
 After Phase A passes and source roles are reconciled to original metadata:
