@@ -83,6 +83,7 @@ test('PMx compact editorial header preserves ecosystem navigation and theme', as
   const metrics = await header.evaluate((node) => {
     const style = getComputedStyle(node);
     const badge = node.querySelector('.mark');
+    if (!(badge instanceof Element)) throw new Error('Missing PMx-style monogram');
     const markStyle = getComputedStyle(badge);
     return { sticky: style.position, font: markStyle.fontFamily,
       background: markStyle.backgroundColor, minHeight: parseFloat(style.minHeight) };
