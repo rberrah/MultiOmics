@@ -19,7 +19,28 @@ permissions:
   contents: read
 
 jobs:
+  official-source-budget:
+    name: Verify 9 public Zenodo original mzML file sizes and fingerprints
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - name: Read public Zenodo per-file original checksums and download budgets
+        run: |
+          python3 -m py_compile scripts/verify_sacurine_zenodo_qc.py
+          python3 scripts/verify_sacurine_zenodo_qc.py \
+            --output tmp/zenodo-qc-official-index --metadata-only
+      - name: Archive only public source hashes and reported sizes
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: zenodo-galaxy-pooled-QC-original-source-sizes
+          path: tmp/zenodo-qc-official-index/zenodo_galaxy_true_qc_source_manifest.json
+          if-no-files-found: warn
+          retention-days: 45
+
   measured-real-pooled-qc:
+    if: github.event_name == 'workflow_dispatch'
     name: Nine published human urine / pooled-QC raw mzML and genuine QC RSD
     runs-on: ubuntu-latest
     timeout-minutes: 100
