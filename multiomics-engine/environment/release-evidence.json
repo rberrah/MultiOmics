@@ -1,0 +1,8 @@
+{
+  "schema": "multiomics-release-evidence.v1",
+  "purpose": "Trigger the complete same-SHA scientific and packaging qualification set for the coherent standalone shell release.",
+  "sourceCommit": "e26adcd386b2ebc01cc102564a95162d368f18a3",
+  "releaseDate": "2026-10-16",
+  "intendedConsumer": "rberrah.github.io /multiomics/",
+  "note": "No scientific parameter, dataset, model or method is changed by this marker."
+}
