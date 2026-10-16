@@ -1,0 +1,47 @@
+name: MultiOmics MS AUC import — first-attempt stability
+
+on:
+  pull_request:
+    paths:
+      - 'src/routes/multiomics/tool/+page.svelte'
+      - 'src/lib/multiomics/ms-auc-import.js'
+      - 'tests/e2e/multiomics-visualizations.spec.js'
+      - '.github/workflows/multiomics-ms-auc-stability.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  repeat-without-retry:
+    name: MS AUC two flows repeated 20 times without retries
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      CI: 'true'
+      LABS_E2E_PREBUILT: '1'
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: npm run build
+      - run: npx playwright install chromium --with-deps
+      - name: Twenty clean attempts, without retry or parallel contention
+        run: >-
+          npx playwright test --config playwright.multiomics.config.js tests/e2e/multiomics-visualizations.spec.js
+          --grep "MS peak-AUC"
+          --repeat-each=20 --retries=0 --workers=1
+      - name: Save failed browser traces
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: multiomics-ms-auc-first-attempt-failure
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: ignore
+          retention-days: 30
