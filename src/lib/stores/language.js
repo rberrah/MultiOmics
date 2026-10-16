@@ -1,18 +1,27 @@
 import {browser} from '$app/environment';
 import {writable} from 'svelte/store';
-const key='multiomics-language';
+const sharedKey='pharmacometrie-language';
+const legacyKey='multiomics-language';
 const supported=new Set(['fr','en']);
 function initial() {
   if(!browser)return 'fr';
   const fromUrl=new URLSearchParams(window.location.search).get('lang');
   if(fromUrl!==null && supported.has(fromUrl))return fromUrl;
-  try {const local=localStorage.getItem(key);if(local!==null && supported.has(local))return local;}catch{}
+  try {
+    const shared=localStorage.getItem(sharedKey);
+    if(shared!==null && supported.has(shared))return shared;
+    const legacy=localStorage.getItem(legacyKey);
+    if(legacy!==null && supported.has(legacy))return legacy;
+  } catch {}
   return 'fr';
 }
 const source=writable(initial());
 if(browser)source.subscribe(value=>{
   const normalized=supported.has(value)?value:'fr';
-  try{localStorage.setItem(key,normalized);}catch{}
+  try {
+    localStorage.setItem(sharedKey,normalized);
+    localStorage.setItem(legacyKey,normalized);
+  } catch {}
   document.documentElement.lang=normalized;
 });
 export const language={

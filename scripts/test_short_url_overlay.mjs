@@ -7,7 +7,8 @@ const x=JSON.parse(await readFile(join(root,'manifest.json'),'utf8'));
 assert.equal(x.schema,'multiomics.root-short-url-overlay.v1');
 assert.equal(x.basePath,'');
 assert.deepEqual(x.directories,['multiomics','_multiomics_app']);
-assert.deepEqual(x.routes,['/multiomics/','/multiomics/tool/','/multiomics/learn/']);
+assert.deepEqual(x.routes,['/multiomics/','/multiomics/tool/','/multiomics/learn/',
+  '/multiomics/disciplines/','/multiomics/resources/']);
 const paths=new Set();
 for(const f of x.files){
   assert(/^(?:multiomics|_multiomics_app)\//.test(f.path));
@@ -18,7 +19,8 @@ for(const f of x.files){
   assert.equal(createHash('sha256').update(bytes).digest('hex'),f.sha256);
 }
 for(const p of ['multiomics/index.html','multiomics/tool/index.html',
-'multiomics/learn/index.html']){
+'multiomics/learn/index.html','multiomics/disciplines/index.html',
+'multiomics/resources/index.html']){
   assert(paths.has(p));
   const h=await readFile(join(root,'site',p),'utf8');
   assert(h.includes('_multiomics_app/'));
