@@ -40,7 +40,6 @@ jobs:
           retention-days: 45
 
   measured-real-pooled-qc:
-    if: github.event_name == 'workflow_dispatch'
     name: Nine published human urine / pooled-QC raw mzML and genuine QC RSD
     runs-on: ubuntu-latest
     timeout-minutes: 100
