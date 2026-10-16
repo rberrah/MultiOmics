@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - fix/npm-audit-14-advisories-20261016
+      - experiment/sveltekit3-audit-free-20261016
   workflow_dispatch:
 
 permissions:
@@ -71,4 +72,4 @@ jobs:
           path: npm-audit-*.json
           if-no-files-found: warn
       - name: Reject unresolved high or critical advisories
-        run: npm audit --audit-level=moderate
+        run: npm audit --audit-level=low
