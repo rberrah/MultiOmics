@@ -21,8 +21,20 @@ RAW_NAMES=[
  "HU_neg_157.mzML","HU_neg_173.mzML","HU_neg_192.mzML",
  "QC1_002.mzML","QC1_008.mzML","QC1_014.mzML",
 ]
+PUBLISHED_ORIGINALS={
+    "HU_neg_048.mzML": (114002512, "cb133446f5137d0cf50ad9709f9c55f7"),
+    "HU_neg_090.mzML": (115957101, "881d4e94b0de1f6aa7ae931e897348c8"),
+    "HU_neg_123.mzML": (108583258, "77cff3c9ed4a9c00d05ec83308f69d6e"),
+    "HU_neg_157.mzML": (104480256, "e1e50308e9c440d885e8530302a1e2a2"),
+    "HU_neg_173.mzML": (101181101, "5a23e8996d4cb5d020c3399f9fad044e"),
+    "HU_neg_192.mzML": (102280024, "5f60b7526c5dbf93972cfe1941739c2c"),
+    "QC1_002.mzML": (113450383, "79b4ca15faab323ebd6608c5427b5448"),
+    "QC1_008.mzML": (109541801, "b609cb66b0cd926a833d63cf5c529622"),
+    "QC1_014.mzML": (95995682, "9e093906811d11c0b14de7a9c2171a75"),
+}
 MAX_JSON=2_000_000
-MAX_FILE=60_000_000
+MAX_FILE=160_000_000
+MAX_TOTAL_SOURCE_BYTES=1_100_000_000
 
 def remote_record():
     url=f"{BASE}/api/records/{RECORD}"
@@ -42,6 +54,15 @@ def remote_record():
             continue
         if name in by_key:raise ValueError("Duplicate Zenodo record file name")
         by_key[name]=entry
+    for name,(required_size,required_md5) in PUBLISHED_ORIGINALS.items():
+        existing=by_key.get(name)
+        if existing is None:
+            raise ValueError("Official Zenodo source lacks required exact sample "+name)
+        if existing.get("size")!=required_size or existing.get("checksum")!="md5:"+required_md5:
+            raise ValueError("Changed original Zenodo file size or checksum "+name)
+    total=sum(by_key[n]["size"] for n in RAW_NAMES)
+    if total>MAX_TOTAL_SOURCE_BYTES:
+        raise ValueError("Zenodo source exceeds validated study-wide download budget")
     missing=sorted(set(RAW_NAMES)-set(by_key))
     if missing:
         raise ValueError("Galaxy training public file absent from Zenodo record: "+",".join(missing))
