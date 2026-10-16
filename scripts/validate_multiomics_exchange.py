@@ -74,6 +74,47 @@ def validate(root):
                 field: sample.get(field, '') or previous.get(field, '')
                 for field in ('tissue', 'collection_time', 'collection_time_unit', 'timepoint', 'timepoint_unit', 'time_origin')
             }
+        # Optional individual signatures are never inferred from group q-values.
+        # Validate measured assay identity and declared score/model provenance.
+        # SHA syntax is not proof of an independently reproduced frozen fit.
+        if "individual_signatures" in files:
+            _, signatures = read_csv(files["individual_signatures"])
+            mandatory = ("subject_id", "sample_id", "assay_id", "omic",
+                         "signature_id", "score", "score_scale", "fit_scope",
+                         "reference_model_sha256", "feature_definition_sha256",
+                         "source_exchange_analysis_id", "score_provenance")
+            if not signatures:
+                errors.append("Empty optional individual signatures file")
+            by_assay = {(s["omic"], s["assay_id"]): s for s in samples}
+            duplicates = set()
+            for score in signatures:
+                if any(not score.get(field, "").strip() for field in mandatory):
+                    errors.append("Incomplete individual signature row")
+                    continue
+                assay = by_assay.get((score["omic"], score["assay_id"]))
+                if not assay or score["subject_id"] != assay["subject_id"] or score["sample_id"] != assay["sample_id"]:
+                    errors.append("Signature assay/specimen/subject mismatch")
+                try:
+                    if not math.isfinite(float(score["score"])):
+                        errors.append("Nonfinite individual signature")
+                except (ValueError, TypeError):
+                    errors.append("Nonnumeric individual signature")
+                if score["score_scale"].lower() in ("raw_counts", "group_logfc", "log2foldchange", "p_value", "q_value", "unknown"):
+                    errors.append("Group or raw counts cannot be declared individual signature scale")
+                if score["fit_scope"] not in ("training_frozen_test_projection", "out_of_fold_training"):
+                    errors.append("Invalid signature fitting/projection scope")
+                if score["score_provenance"] not in ("native_r_individual_score", "external_frozen_projection"):
+                    errors.append("Missing eligible signature provenance")
+                if score["source_exchange_analysis_id"] != manifest.get("analysis_id"):
+                    errors.append("Signature source analysis ID mismatch")
+                for key in ("reference_model_sha256", "feature_definition_sha256"):
+                    digest = score[key]
+                    if len(digest) != 64 or any(c not in "0123456789abcdef" for c in digest):
+                        errors.append("Signature has invalid model/feature SHA-256")
+                unique = (score["omic"], score["assay_id"], score["signature_id"])
+                if unique in duplicates:
+                    errors.append("Duplicate assay/signature")
+                duplicates.add(unique)
         assay_keys = [(r["omic"], r["assay_id"]) for r in samples]
         feature_keys = [(r["omic"], r["feature_id"]) for r in features]
         if len(set(assay_keys)) != len(assay_keys):
