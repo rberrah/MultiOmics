@@ -1,0 +1,55 @@
+name: MultiOmics full R reference result export
+
+on:
+  pull_request:
+    paths:
+      - 'multiomics-engine/reference_full_results.R'
+      - 'multiomics-engine/server.R'
+      - 'multiomics-engine/tests/test_reference_full_results.R'
+      - 'multiomics-engine/tests/test_reference_local_archive.R'
+      - 'multiomics-engine/tests/test_full_reference_engine_real_fits.R'
+      - 'multiomics-engine/tests/test_full_reference_backend_endpoint.R'
+      - '.github/workflows/multiomics-full-reference-export.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reference-export-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 80
+    container:
+      image: bioconductor/bioconductor_docker:RELEASE_3_22-r-4.5.2@sha256:e34177896c1579f66d48b756e4229b58237499183a089da084af72d7aba1d40a
+    steps:
+      - uses: actions/checkout@v5
+      - name: Pure base-R full result integrity
+        run: Rscript multiomics-engine/tests/test_reference_full_results.R
+      - name: Ensure real Bioconductor 3.22 packages are present
+        shell: bash
+        run: |
+          Rscript -e '
+            repos <- "https://cloud.r-project.org"
+            needed <- c("BiocManager","jsonlite","statmod","plumber","digest")
+            missing <- needed[!vapply(needed,requireNamespace,logical(1),quietly=TRUE)]
+            if(length(missing)) install.packages(missing,repos=repos)
+            stopifnot(identical(as.character(BiocManager::version()),"3.22"))
+            bioc <- c("DESeq2","edgeR","limma")
+            missing_bioc <- bioc[!vapply(bioc,requireNamespace,logical(1),quietly=TRUE)]
+            if(length(missing_bioc))
+              BiocManager::install(missing_bioc,ask=FALSE,update=FALSE,quiet=TRUE)
+            stopifnot(all(vapply(c(needed,bioc),requireNamespace,logical(1),quietly=TRUE)))
+          '
+      - name: Explicit local retention of oversized confidential reference CSV
+        run: Rscript multiomics-engine/tests/test_reference_local_archive.R
+      - name: Genuine DESeq2, limma-voom and limma 168-gene export
+        run: |
+          Rscript multiomics-engine/tests/test_full_reference_engine_real_fits.R
+      - name: Actual backend R response retains every fitted gene through JSON
+        run: Rscript multiomics-engine/tests/test_full_reference_backend_endpoint.R
+      - name: Actual Plumber application loads source files from its own working directory
+        run: |
+          Rscript -e 'p <- plumber::plumb("multiomics-engine/server.R"); stopifnot(inherits(p,"Plumber")); cat("PLUMBER BACKEND INIT PASS\\n")'
+      - name: R frontend bridge is syntactically parseable
+        run: |
+          Rscript -e 'parse("multiomics-engine/server.R"); cat("BACKEND SERVER PARSE PASS\n")'

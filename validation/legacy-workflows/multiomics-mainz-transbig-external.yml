@@ -1,0 +1,84 @@
+name: Multi-omics cross-study MAINZ to TRANSBIG PMx external validation
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/multiomics-mainz-transbig-external.yml'
+      - 'scripts/export_mainz_transbig_pmx.R'
+      - 'scripts/benchmark_mainz_transbig_pmx.mjs'
+      - 'scripts/evaluate_mainz_transbig_pmx.R'
+      - 'src/lib/multiomics/**'
+      - 'multiomics-engine/external_validation.R'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/multiomics-mainz-transbig-external.yml'
+      - 'scripts/export_mainz_transbig_pmx.R'
+      - 'scripts/benchmark_mainz_transbig_pmx.mjs'
+      - 'scripts/evaluate_mainz_transbig_pmx.R'
+      - 'src/lib/multiomics/**'
+  schedule:
+    - cron: '17 7 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mainz-transbig:
+    name: Freeze MAINZ native PMx fit; score distinct TRANSBIG cohort
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v5
+      - name: Checkout immutable MAINZ source study
+        uses: actions/checkout@v5
+        with:
+          repository: bioconductor-source/breastCancerMAINZ
+          ref: 63e11105cb8a7c854264e9a13f8c926b39f20ab0
+          path: external/MAINZ
+          sparse-checkout: |
+            data/mainz.rda
+            DESCRIPTION
+      - name: Checkout immutable independent TRANSBIG source study
+        uses: actions/checkout@v5
+        with:
+          repository: bioconductor-source/breastCancerTRANSBIG
+          ref: 44c052727769c051f965035725953b6883865743
+          path: external/TRANSBIG
+          sparse-checkout: |
+            data/transbig.rda
+            DESCRIPTION
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: 'release'
+          use-public-rspm: true
+      - name: Install R reference and ExpressionSet dependencies
+        run: |
+          Rscript -e 'if(!requireNamespace("jsonlite",quietly=TRUE)) install.packages("jsonlite",repos="https://cloud.r-project.org")'
+          Rscript -e 'if(!requireNamespace("BiocManager",quietly=TRUE)) install.packages("BiocManager",repos="https://cloud.r-project.org"); BiocManager::install("Biobase",ask=FALSE,update=FALSE)'
+      - run: npm ci
+      - name: Verify cohorts, phenotype codes, probe intersection and hidden study overlap
+        run: |
+          Rscript scripts/export_mainz_transbig_pmx.R \
+            external/MAINZ external/TRANSBIG tmp/multiomics/mainz-transbig
+      - name: Train PMx on MAINZ only, replay frozen model, predict unlabeled TRANSBIG and negative refits
+        run: node scripts/benchmark_mainz_transbig_pmx.mjs tmp/multiomics/mainz-transbig
+      - name: Evaluate frozen probabilities with the external R scorer after unblinding TRANSBIG
+        run: Rscript scripts/evaluate_mainz_transbig_pmx.R tmp/multiomics/mainz-transbig
+      - name: Archive coefficients, model, all predictions and scientific audit
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: pmx-mainz-to-transbig-cross-study-audit
+          path: |
+            tmp/multiomics/mainz-transbig/source-contract.json
+            tmp/multiomics/mainz-transbig/frozen-pmx-model.json
+            tmp/multiomics/mainz-transbig/transbig-frozen-predictions.csv
+            tmp/multiomics/mainz-transbig/train-label-null-scores.csv
+            tmp/multiomics/mainz-transbig/mainz-transbig-pmx-report.json
+          if-no-files-found: warn
