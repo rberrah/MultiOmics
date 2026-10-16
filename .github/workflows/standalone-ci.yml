@@ -39,11 +39,23 @@ jobs:
           BASE_PATH: /MultiOmics
         run: |
           npm run build
-          test -s build/index.html
-          test -s build/multiomics/index.html
-          test -s build/multiomics/tool/index.html
-          test -s build/multiomics/learn/index.html
-          ! grep -rq 'https://rberrah.github.io/pharmacometrie/' build/index.html
+          echo "Generated standalone Pages tree:"
+          find build -maxdepth 5 -type f -name 'index.html' -print | sort
+          for required in \
+            build/index.html \
+            build/multiomics/index.html \
+            build/multiomics/tool/index.html \
+            build/multiomics/learn/index.html
+          do
+            if [[ ! -s "$required" ]]; then
+              echo "::error::Missing prerendered standalone page $required"
+              exit 1
+            fi
+          done
+          if grep -q 'https://rberrah.github.io/pharmacometrie/' build/index.html; then
+            echo "::error::Standalone root still links to the original PMx application"
+            exit 1
+          fi
 
   r-contract:
     name: Independent R package-free reference contracts
