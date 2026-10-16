@@ -50,12 +50,12 @@
 </script>
 
 <svelte:head>
-  <title>{t('Analyse omique et multi-omique — PMx Explain', 'Single-omics and multi-omics — PMx Explain')}</title>
-  <meta name="description" content={t('Outil déterministe pour analyser une ou plusieurs omiques : RNA, protéines, métabolites.', 'Deterministic analysis for one or several omics: RNA, proteins and metabolites.')} />
+  <title>{t('MultiOmics — Omiques et pharmacométrie PK/PD', 'MultiOmics — Omics for PK/PD research')}</title>
+  <meta name="description" content={t('MultiOmics : analyses traçables des données transcriptomiques, protéomiques et métabolomiques, pour explorer des hypothèses en PK/PD.', 'MultiOmics: reproducible transcriptomics, proteomics and metabolomics analyses to explore PK/PD hypotheses.')} />
 </svelte:head>
 
 <section class="hero">
-  <p class="eyebrow">{t('Une ou plusieurs omiques · prototype de recherche', 'Single-omics or multi-omics · research prototype')}</p>
+  <p class="eyebrow">{t('Omiques → hypothèses PK/PD · outil de recherche', 'Omics → PK/PD hypotheses · research tool')}</p>
   <h1>{t('Analyser une ou plusieurs omiques avec des règles explicites.', 'Analyze one or multiple omics with explicit rules.')}</h1>
   <p class="lede">{t(
     'Choisissez RNA, protéines, métabolites ou leur combinaison. Le moteur confronte vos données à votre plan d’étude et à des bases scientifiques publiques, selon des règles auditables, sans LLM. Une seule omique suffit pour explorer, comparer ou prédire lorsque le plan le permet.',
