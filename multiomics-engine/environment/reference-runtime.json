@@ -1,0 +1,21 @@
+{
+  "schema": "multiomics.r-reference-runtime.v1",
+  "rVersion": "4.5.2",
+  "bioconductorVersion": "3.22",
+  "container": "bioconductor/bioconductor_docker:RELEASE_3_22-r-4.5.2@sha256:e34177896c1579f66d48b756e4229b58237499183a089da084af72d7aba1d40a",
+  "requiredPackages": [
+    "BiocManager",
+    "DESeq2",
+    "edgeR",
+    "limma",
+    "airway",
+    "statmod",
+    "jsonlite",
+    "plumber",
+    "rmarkdown",
+    "knitr"
+  ],
+  "versionLock": {},
+  "strictLockReady": false,
+  "note": "Capture actual package versions in CI before turning on strict verification. Image digest freezes the base, not packages installed later."
+}
