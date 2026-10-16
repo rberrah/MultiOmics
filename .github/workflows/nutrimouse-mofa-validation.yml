@@ -25,19 +25,21 @@ jobs:
   metadata-math:
     name: Strict genotype/diet post-fit metadata and factor-matching contracts
     runs-on: ubuntu-latest
+    container:
+      image: bioconductor/bioconductor_docker:RELEASE_3_22-r-4.5.2@sha256:e34177896c1579f66d48b756e4229b58237499183a089da084af72d7aba1d40a
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
-      - uses: r-lib/actions/setup-r@v2
-        with:
-          r-version: '4.5.2'
-          use-public-rspm: true
+      - name: Assert immutable R 4.5.2 / Bioconductor 3.22
+        run: Rscript -e 'stopifnot(identical(as.character(getRversion()),"4.5.2"),requireNamespace("BiocManager",quietly=TRUE),identical(as.character(BiocManager::version()),"3.22"))'
       - name: Test factor identity, conditional partial R2 and stratified permutations in base R
         run: Rscript multiomics-engine/tests/test_mofa_real_nutrimouse_audit.R
 
   real-mofa2:
     name: Genuine MOFA2 on Nutrimouse paired omics, two seeds and mispaired assay
     runs-on: ubuntu-latest
+    container:
+      image: bioconductor/bioconductor_docker:RELEASE_3_22-r-4.5.2@sha256:e34177896c1579f66d48b756e4229b58237499183a089da084af72d7aba1d40a
     needs: metadata-math
     timeout-minutes: 60
     steps:
@@ -50,14 +52,12 @@ jobs:
           path: external/mixOmics
           sparse-checkout: |
             data/nutrimouse.rda
-      - uses: r-lib/actions/setup-r@v2
-        with:
-          r-version: '4.5.2'
-          use-public-rspm: true
+      - name: Assert immutable R 4.5.2 / Bioconductor 3.22
+        run: Rscript -e 'stopifnot(identical(as.character(getRversion()),"4.5.2"),requireNamespace("BiocManager",quietly=TRUE),identical(as.character(BiocManager::version()),"3.22"))'
       - name: Install authentic MOFA2, Basilisk and python/HDF5 requirements
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq libhdf5-dev libglpk40
+          apt-get update -qq
+          apt-get install -y -qq libhdf5-dev libglpk40
           Rscript -e 'if(!requireNamespace("jsonlite",quietly=TRUE)) install.packages("jsonlite",repos="https://cloud.r-project.org")'
           Rscript -e 'if(!requireNamespace("BiocManager",quietly=TRUE)) install.packages("BiocManager",repos="https://cloud.r-project.org"); BiocManager::install(c("MOFA2","basilisk"),version="3.22",ask=FALSE,update=FALSE); stopifnot(requireNamespace("MOFA2",quietly=TRUE),requireNamespace("basilisk",quietly=TRUE))'
       - name: Fit genuine MOFA2 on real Nutrimouse and audit genotype/diet separately
