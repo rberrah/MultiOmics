@@ -1,0 +1,44 @@
+name: MTBLS404 primary MetaboLights ISA metadata availability
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/sacurine_ebi_metadata_probe.py'
+      - '.github/workflows/sacurine-ebi-metadata-probe.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/sacurine_ebi_metadata_probe.py'
+      - '.github/workflows/sacurine-ebi-metadata-probe.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-source-probe-contract:
+    name: Compile external EBI source probe without network
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - name: Check EBI provenance script syntax
+        run: python3 -m py_compile scripts/sacurine_ebi_metadata_probe.py
+
+  primary-study-metadata:
+    if: github.event_name == 'workflow_dispatch'
+    name: Reconcile Sacurine official EBI metadata source availability
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v5
+      - name: Verify native ISA-Tab study metadata using primary MetaboLights host
+        run: python3 scripts/sacurine_ebi_metadata_probe.py
+      - name: Archive only original source fingerprint and schema, never subject records
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: mtbls404-ebi-primary-metadata-source-evidence
+          path: tmp/mtbls404-metadata-probe/metabolights_source_probe.json
+          if-no-files-found: warn
+          retention-days: 45
