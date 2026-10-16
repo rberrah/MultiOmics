@@ -71,6 +71,28 @@ stopifnot(file.exists(file.path(out, "metabolomics_peak_area.csv")))
 stopifnot(file.exists(file.path(out, "metabolomics_feature_definitions.csv")))
 stopifnot(file.exists(file.path(out, "raw_ms_sample_sheet.csv")))
 stopifnot(file.exists(file.path(out, "xcms_processed_experiment.rds")))
+stopifnot(file.exists(file.path(out,"metabolomics_feature_definitions.rds")))
+original_definitions<-readRDS(file.path(out,"metabolomics_feature_definitions.rds"))
+saved_definitions<-utils::read.csv(file.path(out,"metabolomics_feature_definitions.csv"),
+                                   check.names=FALSE,stringsAsFactors=FALSE)
+stopifnot(is.data.frame(original_definitions),
+          nrow(saved_definitions)==nrow(original_definitions),
+          setequal(saved_definitions$feature_id,rownames(original_definitions)))
+structured<-names(original_definitions)[vapply(original_definitions,is.list,logical(1))]
+for(column in structured){
+  stopifnot(column %in% names(saved_definitions))
+  for(i in seq_len(nrow(saved_definitions))){
+    raw_value<-original_definitions[[column]][[i]]
+    parsed<-jsonlite::fromJSON(saved_definitions[[column]][[i]],
+                               simplifyVector=TRUE)
+    # JSON is intentionally human interoperable; exact original R object
+    # and its storage mode remain in the RDS. Here verify membership/order.
+    stopifnot(isTRUE(all.equal(unname(unlist(parsed)),
+                               unname(unlist(raw_value)),
+                               check.attributes=FALSE)))
+  }
+}
+
 
 # Quantify the actual saved output rather than only checking file existence.
 saved <- utils::read.csv(file.path(out,"metabolomics_peak_area.csv"),
