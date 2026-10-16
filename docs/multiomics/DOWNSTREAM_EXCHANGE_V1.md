@@ -35,6 +35,22 @@ The MultiOmics #20 interoperability extension **appends** `timepoint,timepoint_u
 - Pairing and temporal order must be explicit; unknown tissue/time are **empty with missingness documented**, never guessed.
 - Use pseudonymous IDs, not names or direct patient identifiers.
 
+### Optional individual biological signatures: `individual_signatures.csv`
+
+This file is **absent by default**. It is only included when an actual per-assay scoring result is explicitly supplied to `buildResearchBundle` as `result.individualSignatures`; the exporter never computes scores from group differences, `q_value`, differential `logFC`, or an unnormalized matrix. Missing or invalid explicit scores cause **export failure**, not a silently partial ZIP.
+
+Required fields per score: `subject_id,sample_id,assay_id,omic,signature_id,score,score_scale,fit_scope,reference_model_sha256,feature_definition_sha256,source_exchange_analysis_id,score_provenance`.
+
+- `subject_id/sample_id/assay_id/omic` must exactly match an existing matrix's biological identity.
+- `score` must be a finite, genuinely per-assay numeric scoring result; `score_scale` is explicit and cannot be a group statistic or raw counts.
+- `fit_scope` must be `training_frozen_test_projection` or `out_of_fold_training`; in-sample and transductive scores are rejected.
+- Both SHA-256 values are required and syntactically checked. **The exporter cannot independently attest that the referenced model was really fitted exclusively on training subjects**. The original model artifact, training IDs/split and frozen preprocessing still need independent custody and audit by Omics2PK.
+- `source_exchange_analysis_id` must match the exact source exchange manifest; `score_provenance` is `native_r_individual_score` or `external_frozen_projection` only.
+- The file has a verified SHA-256 in `manifest.files.individual_signatures` and is checked by the offline Python validator and the pinned consumer Omics2PK integration gate.
+- The presence of a structurally valid signature is **not** evidence of a biological biomarker, cross-cohort generalization or improvement in PopPK/PD. The manifest retains exploratory validation status.
+
+Existing ZIP consumers that ignore the optional `files.individual_signatures` property remain supported. Data remain local in the research ZIP; public CI only uses synthetic fixtures.
+
 ### features.csv (one row per matrix row)
 
 Required: `omic,feature_id,id_namespace`. Recommended: `display_name,organism,taxon_id,annotation_database,annotation_version,tissue_scope,mapping_status`.
