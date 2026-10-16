@@ -2,7 +2,7 @@ name: MultiOmics fixed-URL integration artifact
 
 on:
   push:
-    branches: ['integration/pmx-legacy-url-overlay-*']
+    branches: [main, 'integration/pmx-legacy-url-overlay-*']
   pull_request:
     paths:
       - 'svelte.config.js'
@@ -40,7 +40,7 @@ jobs:
       - name: Verify route compatibility, cryptographic hashes and file allowlist
         run: node scripts/test_pmx_compat_overlay.mjs
       - name: Store integration artifact; never deploy automatically
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: multiomics-fixed-urls-${{ github.sha }}
           path: compat-overlay/
