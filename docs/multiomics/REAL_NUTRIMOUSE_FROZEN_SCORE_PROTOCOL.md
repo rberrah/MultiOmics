@@ -1,6 +1,6 @@
 # Genuine Nutrimouse per-animal frozen-score study — narrow research qualification
 
-**Status: candidate scientific CI gate for issue #20, not independent biological or clinical validation.**
+**Status: authentic single-cohort numerical qualification of two frozen scores (1-gene marker and 4-gene technical composite), not external biological or clinical validation.**
 
 ## Measured source and experimental design
 
@@ -17,9 +17,21 @@ One animal = one biological subject. RNA and lipid assays share the original ani
 5. Independently recompute training mean/SD and the ten heldout scores in Node from the full original matrices; check train/test subject nonoverlap and file SHA-256; generate the normal production exchange package containing the **full real 120-feature transcriptome and 21-feature lipidome**, paired sample sheet, and optional ten scores. Validate independently with the strict Python interchange reader.
 6. Perform a heldout-only perturbation: altering test expression must not alter frozen training fit. Retain 199 exploratory genotype-label permutations *after scoring*, including negative results; these do not provide confirmatory FDR or external validation.
 
+## Additional four-gene score: fixed algorithm, frozen panel
+
+This follow-on experiment adds a **second genuinely calculated heldout score per animal** (20 score rows over the ten heldout animals). It is deliberately labeled a *technical four-gene composite*, **not** a validated CYP activity, detoxification or PK signature.
+
+- Keep the prespecified exact `Cyp3a11` anchor, then choose **exactly three additional measured liver genes from the other 119 by descending TRAINING-subject sample SD** (ties by gene ID). This deterministic rule is fixed independently of diet/genotype and avoids test-set feature selection. The other genes are **not chosen for presumed function**, and there is no post-hoc tuning for class separation.
+- Fit training mean and sample SD for each of the four genes, freeze the exact feature list, identities and fit parameters. For each of the ten heldout animals compute the **unweighted arithmetic mean of four training-standardized expression values**. It is a numerical reproducibility stress test, not a biological pathway score.
+- Store `frozen_panel_model.json`, `panel_feature_definition.json`, `training_panel_observations.csv` with true source and model SHA-256. Training-only selection, center and scale are unchanged by arbitrarily perturbing all heldout gene values.
+- An **independent JavaScript reference** rereads the complete 40-animal source matrix, recomputes the 119-gene TRAINING SD ranking, all four means/SDs and all ten heldout scores, and rejects mismatches before passing the 20 actual scores into the normal MultiOmics ZIP exchange. The offline Python schema validator checks the final package, including two scores sharing the same real assay without double-counting animals.
+- No contrast, p-value or permutation result is used to choose features, choose weights, change the predeclared split or pick a favorable score. Genotype/diet association is reported only as exploratory evidence and is **not** required to be positive for CI to succeed.
+
+The *same ten heldout mice* are used for both scores: 20 scores **are not 20 independent biological validation subjects**. This is not an external cohort, and the three additional features are selected from the previously published preselected 120-gene panel.
+
 ## Claim boundaries
 
-A successful run establishes **a real per-assay score, fitted with training-only preprocessing and projected to genuine untouched animals**, plus technical output reproducibility. It is **not** a clinical CYP3A4/5 phenotype, patient PK covariate, molecular biomarker, cross-study validation, proof of multi-omic superiority, or improvement in PopPK/PD. The 10-animal holdout has low precision and diet/genotype may be associated. The original 120 genes were preselected in the published study, and original platform measurement QA was not recreated.
+A successful run establishes **a real per-assay score, fitted with training-only preprocessing and projected to genuine untouched animals**, plus technical output reproducibility. Neither score is a biologically validated gene signature. It is **not** a clinical CYP3A4/5 phenotype, patient PK covariate, molecular biomarker, cross-study validation, proof of multi-omic superiority, or improvement in PopPK/PD. The 10-animal holdout has low precision and diet/genotype may be associated. The original 120 genes were preselected in the published study, and original platform measurement QA was not recreated.
 
 The generated exchange intentionally retains `validation.status=exploratory` and `individual_signature_export.status=schema_checked_only_not_biologically_validated` even when independent numerical checks pass. The last scientific step in issue #20 remains an independent cohort and meaningful multifeature biological signature and ultimately *actual PK* benchmarking downstream.
 
