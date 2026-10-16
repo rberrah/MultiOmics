@@ -74,6 +74,8 @@ test('shell remains usable on mobile without losing navigation', async ({ page }
 
 test('PMx compact editorial header preserves ecosystem navigation and theme', async ({ page }) => {
   await page.goto('/multiomics/');
+  await expect(page).toHaveTitle(/MultiOmics/);
+  await expect(page).not.toHaveTitle(/— PMx Explain/);
   const header = page.getByTestId('site-header');
   const mark = header.locator('.mark');
   const brand = page.getByTestId('logo-link');
