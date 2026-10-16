@@ -21,6 +21,8 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      - name: Refresh lockfile after removing unused vulnerable packages
+        run: npm install --package-lock-only --no-fund --ignore-scripts
       - name: Baseline audit against the exact committed lockfile
         run: |
           node --version
@@ -69,4 +71,4 @@ jobs:
           path: npm-audit-*.json
           if-no-files-found: warn
       - name: Reject unresolved high or critical advisories
-        run: npm audit --audit-level=high
+        run: npm audit --audit-level=moderate
