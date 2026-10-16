@@ -494,10 +494,14 @@ export async function buildResearchBundle({result,portableProject,referenceRepla
   // block any existing mono-omic ZIP export when their layout differs.
   let downstreamExchange={status:'not_available',reason:null};
   try {
-    const exchange=await buildDownstreamExchange(portableProject);
+    const exchange=await buildDownstreamExchange(portableProject,{individualSignatures:result.individualSignatures??null});
     for(const entry of exchange.entries)add(entry.name,entry.data);
-    downstreamExchange={status:'included',schema_version:'1.0.0',matrices:exchange.manifest.matrices.map(m=>m.omic)};
+    downstreamExchange={status:'included',schema_version:'1.0.0',matrices:exchange.manifest.matrices.map(m=>m.omic), individual_signatures:exchange.manifest.files.individual_signatures?'explicit_per_assay_schema_checked':'not_supplied'};
   } catch(error) {
+    // Never silently drop explicitly provided scores: failure must block
+    // the archive instead of claiming an apparently complete dossier.
+    if(result.individualSignatures!==undefined && result.individualSignatures!==null)
+      throw error;
     downstreamExchange={status:'not_available',reason:error instanceof Error?error.message:'Unknown incompatibility'};
   }
   const files={};

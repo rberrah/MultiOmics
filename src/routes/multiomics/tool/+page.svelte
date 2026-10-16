@@ -4,6 +4,7 @@
   import { language } from '$lib/stores/language';
   import { runDeterministicAnalysis } from '$lib/multiomics/deterministic.js';
   import { buildResearchBundle, fullLayerCsv, referencePreviewAudit } from '$lib/multiomics/research-export-package.js';
+  import { parseIndividualSignatureCsv } from '$lib/multiomics/downstream-exchange.js';
   import { auditPairedRnaStudy, pairedExampleSampleSheetCsv } from '$lib/multiomics/paired-study-client.js';
   import MultiomicsVisualizations from '$lib/components/MultiomicsVisualizations.svelte';
   import ExternalValidationPanel from '$lib/components/ExternalValidationPanel.svelte';
@@ -90,6 +91,12 @@
   let portableProjectError = '';
   let researchBundleMessage = '';
   let researchBundleError = '';
+  // Optional user-supplied scores, computed *outside* the default browser
+  // workflow using frozen/out-of-fold models. No automatic signature fitting.
+  /** @type {Array<Record<string,any>>} */
+  let individualSignatureRows = [];
+  let individualSignatureFilename = '';
+  let individualSignatureError = '';
   /** @type {any} */
   let analysisResult = null;
   /** @param {any} note */
@@ -1420,12 +1427,29 @@
 
   // One self-contained researcher dossier: full spreadsheets + methods +
   // provenance/hash manifest + source study for manual reproducible rerun.
+  /** @param {Event} event */
+  async function importIndividualSignatures(event) {
+    individualSignatureRows = [];
+    individualSignatureFilename = '';
+    individualSignatureError = '';
+    const file = /** @type {HTMLInputElement} */ (event.currentTarget)?.files?.[0];
+    if (!file) return;
+    try {
+      individualSignatureRows = parseIndividualSignatureCsv(await file.text());
+      individualSignatureFilename = file.name;
+    } catch (error) {
+      individualSignatureError = error instanceof Error ? error.message : 'Invalid score CSV.';
+    }
+  }
+
   async function downloadResearchBundle() {
     if (!analysisResult || portableProjectBusy) return;
     portableProjectBusy = true;
     researchBundleError = '';
     researchBundleMessage = '';
     try {
+      if(individualSignatureError)
+        throw Error('Individual signature import is invalid: '+individualSignatureError);
       const sourceProject = await createPortableProject({
         files,
         extraFiles:{ msOriginal:msOriginalFile, msUserAnnotations:msUserAnnotationFile },
@@ -1433,7 +1457,9 @@
         result:null // historic outputs are never imported as new evidence
       });
       const dossier = await buildResearchBundle({
-        result:analysisResult,
+        result:individualSignatureRows.length
+          ? {...analysisResult,individualSignatures:individualSignatureRows}
+          : analysisResult,
         portableProject:sourceProject,
         referenceReplay,
         // Exact vector snapshots of CURRENTLY RENDERED browser figures only.
@@ -2994,6 +3020,14 @@ Rscript multiomics-engine/run_backend.R</code></pre>
       <button class="btn btn-outline" type="button" onclick={downloadReproducibleReport}>{t('Télécharger le rapport complet', 'Download full report')}</button>
       <details class="simple-disclosure export-detail">
         <summary>{t('Autres exports', 'Other downloads')}</summary>
+        <div class="signature-optional-export" data-testid="multiomics-signature-optional">
+          <label for="individual-signature-upload">{t('Option expert : joindre des scores biologiques individuels calculés et validés hors de MultiOmics (CSV)', 'Expert option: include independently calculated individual biological scores (CSV)')}</label>
+          <input id="individual-signature-upload" data-testid="multiomics-signature-upload"
+            type="file" accept=".csv,text/csv" onchange={importIndividualSignatures}/>
+          <small>{t('Aucun score n’est inventé par MultiOmics. Assay, sujet, fenêtre de validation, modèle figé et SHA-256 doivent correspondre exactement. Une statistique de groupe ou un facteur MOFA ajusté sur les sujets test est refusé. Le ZIP ne prouve pas la validité du biomarqueur.', 'MultiOmics never invents scores. Assay, subject, fold, frozen model and SHA-256 must match exactly. Group statistics or transductive MOFA factors are rejected. ZIP export does not prove biomarker validity.')}</small>
+          {#if individualSignatureFilename}<p role="status" data-testid="multiomics-signature-ready">{individualSignatureRows.length} {t('lignes lues','rows parsed')} — {individualSignatureFilename}. {t('Validation de provenance au téléchargement ZIP.', 'Provenance validation on ZIP download.')}</p>{/if}
+          {#if individualSignatureError}<p role="alert" class="error" data-testid="multiomics-signature-error">{individualSignatureError}</p>{/if}
+        </div>
         <button class="btn btn-outline" type="button" onclick={downloadAnalysisJson}>{t('Données détaillées (JSON)', 'Detailed data (JSON)')}</button>
         <button class="btn btn-outline" type="button" data-testid="multiomics-methods-audit-export" onclick={downloadResearchMethodsAudit}>{t('Méthodes et contrôles (JSON, sans données brutes)', 'Methods and checks (JSON, no raw data)')}</button>
         <button class="btn btn-outline" type="button" data-testid="multiomics-project-export" disabled={portableProjectBusy} onclick={exportPortableProject}>{portableProjectBusy ? t('Préparation…', 'Preparing…') : t('Enregistrer le projet complet', 'Save complete project')}</button>
