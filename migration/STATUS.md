@@ -1,3 +1,7 @@
+**Historical migration snapshot.** The migration was subsequently merged into MultiOmics/main (9041d38c), and the fixed public URL integration was deployed through PMx Explain PR #116. See README.md for the current download and installation instructions. The pending items below describe the original migration stage, not the current deployment.
+
+---
+
 # Migration status — MultiOmics autonomous repository
 
 **Date:** 2026-10-16  
