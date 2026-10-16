@@ -70,6 +70,9 @@
         },
         "features": {
           "$ref": "#/$defs/file"
+        },
+        "individual_signatures": {
+          "$ref": "#/$defs/file"
         }
       },
       "additionalProperties": false
