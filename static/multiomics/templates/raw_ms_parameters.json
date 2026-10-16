@@ -1,0 +1,39 @@
+{
+  "peak_detection": {
+    "method": "centWave",
+    "ppm": 15,
+    "peakwidth": [5, 30],
+    "snthresh": 10,
+    "prefilter": [3, 100],
+    "mzCenterFun": "wMean",
+    "integrate": 1,
+    "mzdiff": -0.001,
+    "noise": 0
+  },
+  "retention_time": {
+    "method": "obiwarp",
+    "enabled": true,
+    "binSize": 0.6,
+    "response": 1,
+    "distFun": "cor_opt",
+    "factorDiag": 2,
+    "factorGap": 1,
+    "localAlignment": false
+  },
+  "correspondence": {
+    "method": "peak_density",
+    "bw": 5,
+    "minFraction": 0.5,
+    "minSamples": 1,
+    "binSize": 0.025,
+    "ppm": 10
+  },
+  "gap_filling": {
+    "enabled": true,
+    "method": "ChromPeakAreaParam"
+  },
+  "quantification": {
+    "value": "into",
+    "multiple_peak_method": "medret"
+  }
+}
