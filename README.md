@@ -1,12 +1,18 @@
 # MultiOmics
 
-An open-source, browser-first environment for reproducible **single- and multi-omics research**, with an optional local R reference engine.
+A public, source-available research environment for reproducible **single- and multi-omics research**, with an optional local R reference engine.
 
 **Release status:** independent source repository, with authenticated standalone CI and a validated PMx hosting integration. The deployed research tool remains at [rberrah.github.io/pharmacometrie/multiomics/tool](https://rberrah.github.io/pharmacometrie/multiomics/tool/). This is **not** a claim of universal confirmatory statistical validity, clinical use, or a remote hosted R service.
 
 ## Download and use independently
 
-The repository is public. Download the **complete source** with **Code → Download ZIP** on [GitHub](https://github.com/rberrah/MultiOmics), or clone it with:
+The repository is public, but the current original work is under **noncommercial**
+licenses rather than an OSI-approved open-source license. Earlier MIT and
+CC BY-SA grants remain valid on the versions originally released under them.
+See [the licensing scope](LICENSING.md), [the attribution notice](NOTICE)
+and [the current code license](LICENSE).
+
+Download the **complete source** with **Code → Download ZIP** on [GitHub](https://github.com/rberrah/MultiOmics), or clone it with:
 
 ```bash
 git clone https://github.com/rberrah/MultiOmics.git
@@ -32,7 +38,7 @@ npm ci
 npm run build:portable
 ```
 
-This additional packaging command uses Python 3's **standard library** to produce `release/MultiOmics-portable-web.zip` and a SHA-256 checksum. The package has a file-level manifest and is tested with a real local HTTP server and Chromium in CI. Actions artifacts expire; for permanent redistribution publish a vetted versioned GitHub Release after full qualification.
+This additional packaging command uses Python 3's **standard library** to produce `release/MultiOmics-portable-web.zip` and a SHA-256 checksum. The package contains the legally required code/content licenses, licensing scope, attribution notice and citation metadata, all covered by its SHA-256 manifest; it is tested with a real local HTTP server and Chromium in CI. Actions artifacts expire; for permanent redistribution publish a vetted versioned GitHub Release after full qualification.
 
 The browser package supports exploratory workflows and research exports. **It does not package or emulate a native R backend.** For reference analyses install the packages under `multiomics-engine/`, and make a deliberate local/authorized backend connection.
 

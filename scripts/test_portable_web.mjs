@@ -25,7 +25,7 @@ for (const file of manifest.files) {
 }
 for(const required of ['serve.mjs','START_HERE.txt','site/index.html',
  'site/multiomics/index.html','site/multiomics/tool/index.html',
- 'site/multiomics/learn/index.html','LICENSE','LICENSE-CONTENT.md'])
+ 'site/multiomics/learn/index.html','LICENSE','LICENSE-CONTENT.md','LICENSING.md','NOTICE','CITATION.cff'])
   assert(tracked.has(required),'Missing portable file '+required);
 async function scan(folder) {
   for(const name of await readdir(folder)) {
@@ -38,6 +38,12 @@ async function scan(folder) {
   }
 }
 await scan(root);
+const notice = await readFile(join(root,'NOTICE'),'utf8');
+assert(notice.includes('Required Notice:'),
+  'Required PolyForm attribution is missing from downloadable archive');
+const scope = await readFile(join(root,'LICENSING.md'),'utf8');
+assert(scope.includes('PolyForm Noncommercial')&&scope.includes('MIT'),
+  'Archive must explain new noncommercial and previously granted MIT rights');
 
 const port=4187, url='http://127.0.0.1:'+port;
 const child=spawn(process.execPath,[join(root,'serve.mjs'),'--port',String(port)],
