@@ -1,0 +1,30 @@
+{
+  "name": "multiomics-research",
+  "private": true,
+  "version": "0.1.0-dev",
+  "type": "module",
+  "engines": {
+    "node": ">=22 <25"
+  },
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json",
+    "test:core": "node scripts/test_multiomics.mjs && node scripts/test_multiomics_single_omic.mjs && node scripts/test_multiomics_identifiers.mjs && node scripts/test_multiomics_portable_project.mjs && node scripts/test_multiomics_statistical_calibration.mjs",
+    "test:exports": "node scripts/test_multiomics_research_export_package.mjs && node scripts/test_multiomics_r_figures.mjs && node scripts/test_multiomics_research_report.mjs",
+    "test:browser": "playwright test --config playwright.config.js",
+    "test:all": "npm run test:core && npm run test:exports && npm run build && npm run test:browser"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@playwright/test": "1.62.1",
+    "@sveltejs/adapter-static": "3.0.10",
+    "@sveltejs/kit": "2.50.2",
+    "@sveltejs/vite-plugin-svelte": "6.2.4",
+    "svelte": "5.49.2",
+    "svelte-check": "4.3.6",
+    "typescript": "5.9.3",
+    "vite": "7.3.1"
+  }
+}
