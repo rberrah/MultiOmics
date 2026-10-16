@@ -1,3 +1,4 @@
+// @ts-nocheck
 import {sveltekit} from '@sveltejs/kit/vite';
 import {defineConfig} from 'vite';
 import {execFileSync} from 'node:child_process';
