@@ -3,12 +3,18 @@
 # censored signals, removing unknown features or making pathway claims.
 ms_quantitative_assurance <- function(intensities, manifest,
   qc_rsd_threshold=.30, blank_fraction_threshold=.20,
-  max_missing_fraction=.20, imbalance_threshold=.30) {
+  max_missing_fraction=.20, imbalance_threshold=.30,
+  drift_spearman_screen_threshold=.80, qc_batch_ratio_screen_threshold=1.25) {
   x <- as.matrix(intensities)
   meta <- as.data.frame(manifest,stringsAsFactors=FALSE)
   needed <- c("assay_id","sample_type","condition","injection_order")
   thresholds <- c(qc_rsd_threshold,blank_fraction_threshold,
-                  max_missing_fraction,imbalance_threshold)
+                  max_missing_fraction,imbalance_threshold,drift_spearman_screen_threshold)
+  if(!is.numeric(qc_batch_ratio_screen_threshold) ||
+     length(qc_batch_ratio_screen_threshold)!=1L ||
+     !is.finite(qc_batch_ratio_screen_threshold) ||
+     qc_batch_ratio_screen_threshold<=1)
+    stop("MS batch QC median ratio screen must exceed 1 (heuristic, not a p-value).")
   if(!is.numeric(x)||!nrow(x)||ncol(x)<2L||
      is.null(rownames(x))||is.null(colnames(x))||
      anyNA(rownames(x))||anyNA(colnames(x))||
@@ -113,6 +119,54 @@ ms_quantitative_assurance <- function(intensities, manifest,
       drift_status[[j]]<-"screen_evaluable"
     }
   }
+  # Heuristic QC screens are descriptive only: monotone instrument run-order
+  # correlation is not a formal hypothesis test or post-hoc correction.
+  flag_qc_drift <- is.finite(drift)&
+    abs(drift)>=drift_spearman_screen_threshold
+  flag_qc_drift_not_evaluable <- length(qc)>=5L &
+    drift_status!="screen_evaluable"
+
+  # Multi-batch median QC comparison needs >=3 actual finite QC values per
+  # batch for each feature; sample metadata alone does not establish coverage.
+  qc_batch_ratio<-rep(NA_real_,ncol(x))
+  qc_batch_status<-rep("batch_not_declared",ncol(x))
+  qc_batches<-character()
+  batch_screen_evaluable<-FALSE
+  if("batch"%in%names(meta)){
+    qc_batches<-trimws(as.character(meta$batch[qc]))
+    if(anyNA(qc_batches)||any(!nzchar(qc_batches))){
+      qc_batch_status[]<-"qc_batch_labels_missing"
+    }else if(length(unique(qc_batches))<2L){
+      qc_batch_status[]<-"too_few_qc_batches"
+    }else {
+      strata_qc<-sort(unique(qc_batches))
+      for(j in seq_len(ncol(x))){
+        medians<-numeric(length(strata_qc))
+        enough<-TRUE
+        for(k in seq_along(strata_qc)){
+          values<-x[qc[qc_batches==strata_qc[[k]]],j]
+          values<-values[is.finite(values)]
+          if(length(values)<3L){enough<-FALSE;break}
+          medians[[k]]<-stats::median(values)
+        }
+        if(!enough){
+          qc_batch_status[[j]]<-"too_few_finite_qc_per_batch"
+        }else if(any(medians<=0)){
+          qc_batch_status[[j]]<-"zero_or_nonpositive_qc_batch_median"
+        }else{
+          qc_batch_ratio[[j]]<-max(medians)/min(medians)
+          qc_batch_status[[j]]<-"screen_evaluable"
+        }
+      }
+      batch_screen_evaluable<-any(qc_batch_status=="screen_evaluable")
+    }
+  }
+  flag_qc_batch_shift<-is.finite(qc_batch_ratio)&
+    qc_batch_ratio>=qc_batch_ratio_screen_threshold
+  flag_qc_batch_not_evaluable<-"batch"%in%names(meta)&
+    length(unique(trimws(as.character(meta$batch[biological]))))>=2L&
+    qc_batch_status!="screen_evaluable"
+
   feature_table <- data.frame(
     feature_id=colnames(x),
     finite_biological_values=as.integer(biological_finite),
@@ -126,6 +180,12 @@ ms_quantitative_assurance <- function(intensities, manifest,
     missingness_group_difference=diff_missing,
     pooled_qc_order_spearman=drift,
     pooled_qc_drift_status=drift_status,
+    pooled_qc_batch_median_ratio=qc_batch_ratio,
+    pooled_qc_batch_status=qc_batch_status,
+    flag_qc_drift_screen=flag_qc_drift,
+    flag_qc_drift_not_evaluable=flag_qc_drift_not_evaluable,
+    flag_qc_batch_shift_screen=flag_qc_batch_shift,
+    flag_qc_batch_not_evaluable=flag_qc_batch_not_evaluable,
     flag_missing=missing>max_missing_fraction,
     flag_qc_variation=is.finite(qc_rsd)&qc_rsd>qc_rsd_threshold,
     flag_qc_not_evaluable=(length(qc)>=3L)&!is.finite(qc_rsd),
@@ -159,6 +219,8 @@ ms_quantitative_assurance <- function(intensities, manifest,
     pooled_qc_precision_evaluable=length(qc)>=3L,
     blank_background_evaluable=length(blanks)>=2L,
     pooled_qc_drift_screen_evaluable=length(qc)>=5L,
+    pooled_qc_batch_screen_evaluable=batch_screen_evaluable,
+    pooled_qc_batch_label_count=length(unique(qc_batches)),
     missingness_group_imbalance_evaluable=length(strata)==2L)
   alerts <- character()
   if(isTRUE(batch_confounded))alerts<-c(alerts,"batch_perfectly_confounded_with_biological_group")
@@ -172,7 +234,9 @@ ms_quantitative_assurance <- function(intensities, manifest,
     alerts <- c(alerts,"exactly_two_biological_groups_needed_for_missingness_comparison")
   for(flag in c("flag_missing","flag_qc_variation","flag_qc_not_evaluable",
                 "flag_blank_signal","flag_blank_not_evaluable",
-                "flag_group_missingness")){
+                "flag_group_missingness","flag_qc_drift_screen",
+                "flag_qc_drift_not_evaluable","flag_qc_batch_shift_screen",
+                "flag_qc_batch_not_evaluable")){
     if(any(feature_table[[flag]]))
       alerts <- c(alerts,paste0(flag,"_",sum(feature_table[[flag]])))
   }
@@ -184,7 +248,9 @@ ms_quantitative_assurance <- function(intensities, manifest,
     parameters=list(qc_rsd_threshold=qc_rsd_threshold,
       blank_fraction_threshold=blank_fraction_threshold,
       max_missing_fraction=max_missing_fraction,
-      imbalance_threshold=imbalance_threshold),
+      imbalance_threshold=imbalance_threshold,
+      drift_spearman_screen_threshold=drift_spearman_screen_threshold,
+      qc_batch_ratio_screen_threshold=qc_batch_ratio_screen_threshold),
     feature_exclusions_automatically_applied=FALSE,
     per_feature_qc_observability_recorded=TRUE,
     mnar_diagnosis_possible_from_this_table=FALSE,
@@ -193,6 +259,7 @@ ms_quantitative_assurance <- function(intensities, manifest,
     limitation=paste("Peak-area QC is descriptive; zero and NA differ;",
       "an absence of group missingness imbalance does not rule out MNAR.",
       "A measured QC/blank injection is not evidence for a particular missing or zero-valued feature.",
+      "Batch median-ratio and run-order drift flags are heuristic screens, not statistical significance tests.",
       "No drift correction or biological feature exclusion is selected after seeing p-values.")
   )
 }

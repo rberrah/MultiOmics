@@ -4,6 +4,12 @@ on:
   pull_request:
     paths:
       - 'multiomics-engine/raw_ms_processing.R'
+      - 'multiomics-engine/ms_quantitative_assurance.R'
+      - 'multiomics-engine/tests/test_ms_quantitative_assurance.R'
+      - 'multiomics-engine/tests/test_ms_qc_multiscenario_stress.R'
+      - 'multiomics-engine/environment/raw-ms-reference-runtime.json'
+      - 'multiomics-engine/environment/verify_raw_ms_runtime.R'
+      - 'multiomics-engine/capture_environment.R'
       - 'multiomics-engine/run_raw_ms.R'
       - 'multiomics-engine/tests/raw_ms_xcms_integration.R'
       - 'multiomics-engine/tests/raw_ms_contract.R'
@@ -12,6 +18,12 @@ on:
     branches: [main]
     paths:
       - 'multiomics-engine/raw_ms_processing.R'
+      - 'multiomics-engine/ms_quantitative_assurance.R'
+      - 'multiomics-engine/tests/test_ms_quantitative_assurance.R'
+      - 'multiomics-engine/tests/test_ms_qc_multiscenario_stress.R'
+      - 'multiomics-engine/environment/raw-ms-reference-runtime.json'
+      - 'multiomics-engine/environment/verify_raw_ms_runtime.R'
+      - 'multiomics-engine/capture_environment.R'
       - 'multiomics-engine/run_raw_ms.R'
       - 'multiomics-engine/tests/raw_ms_xcms_integration.R'
       - 'multiomics-engine/tests/raw_ms_contract.R'
@@ -22,6 +34,29 @@ permissions:
   contents: read
 
 jobs:
+  qc-stress:
+    name: Synthetic known-truth MS quality screens (no native packages)
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    container:
+      image: bioconductor/bioconductor_docker:RELEASE_3_22-r-4.5.2@sha256:e34177896c1579f66d48b756e4229b58237499183a089da084af72d7aba1d40a
+    env:
+      MULTIOMICS_MS_QC_OUTPUT: tmp/multiomics/synthetic-ms-qc
+    steps:
+      - uses: actions/checkout@v5
+      - name: Run existing quantitative MS negative controls
+        run: Rscript multiomics-engine/tests/test_ms_quantitative_assurance.R
+      - name: Falsify known planted blanks, monotone drift, QC batch shifts and confounding
+        run: Rscript multiomics-engine/tests/test_ms_qc_multiscenario_stress.R
+      - name: Preserve synthetic tests as explicitly NON-REAL study evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: synthetic-known-truth-MS-QC-regression
+          path: tmp/multiomics/synthetic-ms-qc/
+          if-no-files-found: warn
+          retention-days: 45
+
   native-xcms:
     name: Genuine xcms CDF peaks and groups on 2 KO + 2 WT faahKO files
     runs-on: ubuntu-latest
@@ -54,6 +89,8 @@ jobs:
         run: Rscript multiomics-engine/tests/raw_ms_contract.R
       - name: Process authentic faahKO CDF files and audit output numerically
         run: Rscript multiomics-engine/tests/raw_ms_xcms_integration.R
+      - name: Reject native xcms package or 206-library drift against real observed R lock
+        run: Rscript multiomics-engine/environment/verify_raw_ms_runtime.R verify
       - name: Record actual R and Bioconductor package inventory
         run: Rscript multiomics-engine/capture_environment.R tmp/multiomics/faahko-xcms-evidence/r_environment.json
       - name: Preserve failures and complete real-data scientific outputs
