@@ -1,0 +1,66 @@
+name: Real faahKO LC-MS xcms integration and quantitative evidence
+
+on:
+  pull_request:
+    paths:
+      - 'multiomics-engine/raw_ms_processing.R'
+      - 'multiomics-engine/run_raw_ms.R'
+      - 'multiomics-engine/tests/raw_ms_xcms_integration.R'
+      - 'multiomics-engine/tests/raw_ms_contract.R'
+      - '.github/workflows/native-raw-ms-faahko.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'multiomics-engine/raw_ms_processing.R'
+      - 'multiomics-engine/run_raw_ms.R'
+      - 'multiomics-engine/tests/raw_ms_xcms_integration.R'
+      - 'multiomics-engine/tests/raw_ms_contract.R'
+      - '.github/workflows/native-raw-ms-faahko.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-xcms:
+    name: Genuine xcms CDF peaks and groups on 2 KO + 2 WT faahKO files
+    runs-on: ubuntu-latest
+    timeout-minutes: 80
+    container:
+      image: bioconductor/bioconductor_docker:RELEASE_3_22-r-4.5.2@sha256:e34177896c1579f66d48b756e4229b58237499183a089da084af72d7aba1d40a
+    env:
+      MULTIOMICS_RAW_MS_OUTPUT: tmp/multiomics/faahko-xcms-evidence
+    steps:
+      - uses: actions/checkout@v5
+      - name: Verify immutable R 4.5.2 and Bioconductor 3.22
+        run: Rscript -e 'stopifnot(identical(as.character(getRversion()),"4.5.2"),requireNamespace("BiocManager",quietly=TRUE),identical(as.character(BiocManager::version()),"3.22"))'
+      - name: Install genuine native xcms and official faahKO CDF study data
+        shell: bash
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq libnetcdf-dev libhdf5-dev libxml2-dev libcurl4-openssl-dev
+          Rscript -e '
+            essentials <- c("BiocManager","jsonlite")
+            missing <- essentials[!vapply(essentials,requireNamespace,logical(1),quietly=TRUE)]
+            if(length(missing)) install.packages(missing,repos="https://cloud.r-project.org")
+            stopifnot(identical(as.character(BiocManager::version()),"3.22"))
+            packages <- c("xcms","MsExperiment","Spectra","mzR","faahKO","BiocParallel")
+            missing <- packages[!vapply(packages,requireNamespace,logical(1),quietly=TRUE)]
+            if(length(missing)) BiocManager::install(missing,version="3.22",
+                ask=FALSE,update=FALSE,quiet=TRUE)
+            stopifnot(all(vapply(packages,requireNamespace,logical(1),quietly=TRUE)))
+          '
+      - name: Test open-format contracts and reject vendor data without conversion
+        run: Rscript multiomics-engine/tests/raw_ms_contract.R
+      - name: Process authentic faahKO CDF files and audit output numerically
+        run: Rscript multiomics-engine/tests/raw_ms_xcms_integration.R
+      - name: Record actual R and Bioconductor package inventory
+        run: Rscript multiomics-engine/capture_environment.R tmp/multiomics/faahko-xcms-evidence/r_environment.json
+      - name: Preserve failures and complete real-data scientific outputs
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: genuine-faahKO-xcms-native-reference-evidence
+          path: tmp/multiomics/faahko-xcms-evidence/
+          if-no-files-found: warn
+          retention-days: 45
