@@ -26,7 +26,7 @@ await rm(target, { recursive:true, force:true });
 await mkdir(site, { recursive:true });
 await cp(built, site, { recursive:true });
 await cp(join(project,'scripts','portable_server.mjs'), join(target,'serve.mjs'));
-for (const name of ['LICENSE', 'LICENSE-CONTENT.md'])
+for (const name of ['LICENSE', 'LICENSE-CONTENT.md', 'LICENSING.md', 'NOTICE', 'CITATION.cff'])
   await cp(join(project,name), join(target,name));
 await writeFile(join(target, 'START_HERE.txt'),
 'MultiOmics — standalone portable web edition\n' +
@@ -47,7 +47,10 @@ await writeFile(join(target, 'START_HERE.txt'),
 'https://rberrah.github.io/pharmacometrie/multiomics/\n' +
 'Do not upload this root build over the PMx Explain deployment.\n' +
 'The PMx site uses a separate, namespaced overlay built from the same source.\n\n' +
-'Original source and licenses: https://github.com/rberrah/MultiOmics\n', 'utf8');
+'Original source and licenses: https://github.com/rberrah/MultiOmics\n' +
+'Legal notices and reuse conditions: read LICENSE, LICENSE-CONTENT.md,\n' +
+'LICENSING.md and NOTICE in this folder. Noncommercial terms apply to\n' +
+'newly licensed original code/content; earlier grants retain their terms.\n', 'utf8');
 
 const manifest=[];
 async function walk(dir) {
