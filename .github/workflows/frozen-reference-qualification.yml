@@ -1,0 +1,68 @@
+name: Frozen R reference — calibration and negative-control qualification
+
+on:
+  pull_request:
+    paths:
+      - 'multiomics-engine/environment/**'
+      - 'multiomics-engine/tests/bioconductor_null_calibration.R'
+      - 'multiomics-engine/tests/bioconductor_mixed_truth_reference.R'
+      - '.github/workflows/frozen-reference-qualification.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'multiomics-engine/environment/**'
+      - 'multiomics-engine/tests/bioconductor_null_calibration.R'
+      - 'multiomics-engine/tests/bioconductor_mixed_truth_reference.R'
+      - '.github/workflows/frozen-reference-qualification.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  frozen-reference:
+    name: Pinned R/Bioconductor, global null and planted truth
+    runs-on: ubuntu-latest
+    timeout-minutes: 85
+    container:
+      image: bioconductor/bioconductor_docker:RELEASE_3_22-r-4.5.2@sha256:e34177896c1579f66d48b756e4229b58237499183a089da084af72d7aba1d40a
+    env:
+      MULTIOMICS_NULL_REPLICATES: '8'
+      MULTIOMICS_NULL_STRESS_REPLICATES: '8'
+      MULTIOMICS_MIXED_REFERENCE_REPLICATES: '8'
+      MULTIOMICS_VALIDATION_OUTPUT: tmp/reference-methods
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install required genuine R packages only under pinned Bioconductor
+        shell: bash
+        run: |
+          Rscript -e '
+            if(!requireNamespace("BiocManager",quietly=TRUE))
+              install.packages("BiocManager",repos="https://cloud.r-project.org")
+            stopifnot(identical(as.character(getRversion()),"4.5.2"))
+            stopifnot(identical(as.character(BiocManager::version()),"3.22"))
+            required_cran<-c("jsonlite","statmod","plumber","knitr","rmarkdown")
+            missing<-required_cran[!vapply(required_cran,requireNamespace,logical(1),quietly=TRUE)]
+            if(length(missing))install.packages(missing,repos="https://cloud.r-project.org")
+            required_bioc<-c("DESeq2","edgeR","limma","airway")
+            missing<-required_bioc[!vapply(required_bioc,requireNamespace,logical(1),quietly=TRUE)]
+            if(length(missing))BiocManager::install(missing,ask=FALSE,update=FALSE,quiet=TRUE)
+            stopifnot(all(vapply(c(required_cran,required_bioc),
+                                 requireNamespace,logical(1),quietly=TRUE)))
+          '
+      - name: Verify exact recorded versions of all pinned reference packages (fail closed)
+        run: Rscript multiomics-engine/environment/check_reference_runtime.R verify
+      - name: Run real global-null DESeq2, edgeR-QL and limma-voom checks
+        run: Rscript multiomics-engine/tests/bioconductor_null_calibration.R
+      - name: Run independent mixed-truth FDR, power and effect-direction checks
+        run: Rscript multiomics-engine/tests/bioconductor_mixed_truth_reference.R
+      - name: Preserve all scientific results, including negative outcomes
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: multiomics-frozen-r-calibration-evidence
+          path: |
+            tmp/reference-runtime/
+            tmp/reference-methods/
+          if-no-files-found: warn
+          retention-days: 45

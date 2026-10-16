@@ -10,6 +10,8 @@ on:
       - 'static/**'
       - 'scripts/build_pmx_compat_overlay.mjs'
       - 'scripts/test_pmx_compat_overlay.mjs'
+      - 'scripts/build_short_url_overlay.mjs'
+      - 'scripts/test_short_url_overlay.mjs'
       - '.github/workflows/pmx-fixed-url-artifact.yml'
       - 'package.json'
       - 'package-lock.json'
@@ -39,6 +41,24 @@ jobs:
         run: node scripts/build_pmx_compat_overlay.mjs
       - name: Verify route compatibility, cryptographic hashes and file allowlist
         run: node scripts/test_pmx_compat_overlay.mjs
+      # A second independent build resolves /multiomics/ directly from the
+      # origin root instead of redirecting to /pharmacometrie/multiomics/.
+      # PMx must explicitly adopt it in a separate, reviewed integration PR.
+      - name: Build direct /multiomics/ without a project or PMx base prefix
+        env:
+          BASE_PATH: ''
+        run: npm run build
+      - name: Stage and validate direct short-URL root payload
+        run: |
+          node scripts/build_short_url_overlay.mjs
+          node scripts/test_short_url_overlay.mjs
+      - name: Upload proposed direct URL; never deploy from this repository
+        uses: actions/upload-artifact@v6
+        with:
+          name: multiomics-root-short-url-${{ github.sha }}
+          path: short-url-overlay/
+          if-no-files-found: error
+          retention-days: 14
       - name: Store integration artifact; never deploy automatically
         uses: actions/upload-artifact@v6
         with:

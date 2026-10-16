@@ -1,0 +1,29 @@
+{
+  "schema": "multiomics.nutrimouse-r-lock.v1",
+  "rVersion": "4.5.2",
+  "bioconductorVersion": "3.22",
+  "container": "bioconductor/bioconductor_docker:RELEASE_3_22-r-4.5.2@sha256:e34177896c1579f66d48b756e4229b58237499183a089da084af72d7aba1d40a",
+  "profiles": {
+    "diablo": {
+      "requiredPackages": [
+        "mixOmics"
+      ],
+      "versionLock": {
+        "mixOmics": "6.34.0"
+      },
+      "strictLockReady": true
+    },
+    "mofa": {
+      "requiredPackages": [
+        "MOFA2",
+        "basilisk"
+      ],
+      "versionLock": {
+        "MOFA2": "1.20.2",
+        "basilisk": "1.22.0"
+      },
+      "strictLockReady": true
+    }
+  },
+  "note": "DIABLO mixOmics 6.34.0 observed from successful pinned R4.5.2/Bioc3.22 real Nutrimouse run 38902770148. MOFA2 1.20.2 and basilisk 1.22.0 sourced from official Bioconductor 3.22 package metadata; CI must verify these are the ACTUAL installed versions and fail otherwise. Python mofapy2 environment is separate and must be captured for full low-level restoration."
+}
