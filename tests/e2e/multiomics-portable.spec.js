@@ -5,6 +5,7 @@ test('Downloaded portable package serves real isolated routes, HTML and scripts'
     const response=await page.goto(route,{waitUntil:'domcontentloaded'});
     expect(response?.status(),'HTTP '+route).toBe(200);
   }
+  /** @type {string[]} */
   const pageErrors=[];
   page.on('pageerror',err=>pageErrors.push(err.message));
   await page.goto('/multiomics/tool/');
