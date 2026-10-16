@@ -1,0 +1,5 @@
+raw_file,sample_id,assay_id,condition,sample_type,injection_order
+raw/S01.mzML,S01,MET_S01,control,biological,1
+raw/QC01.mzML,QC01,MET_QC01,,pooled_qc,2
+raw/BL01.mzML,BL01,MET_BL01,,blank,3
+raw/S02.mzML,S02,MET_S02,treated,biological,4

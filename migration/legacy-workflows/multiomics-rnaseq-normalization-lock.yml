@@ -1,0 +1,64 @@
+name: Multi-omics RNA-seq frozen-normalization path audit
+
+# Short PR job checks real-R execution; longer runs are available manually.
+# Passing is NOT a proof of nominal FDR control or biological validity.
+on:
+  pull_request:
+    paths:
+      - 'multiomics-engine/rnaseq_normalization_lock.R'
+      - 'multiomics-engine/tests/test_rnaseq_normalization_lock.R'
+      - 'multiomics-engine/tests/bioconductor_rnaseq_normalization_lock.R'
+      - 'multiomics-engine/advanced_methods.R'
+      - 'multiomics-engine/rnaseq_stress_designs.R'
+      - 'multiomics-engine/rnaseq_filter_sensitivity.R'
+      - 'multiomics-engine/mixed_truth_reference_metrics.R'
+      - '.github/workflows/multiomics-rnaseq-normalization-lock.yml'
+  workflow_dispatch:
+    inputs:
+      repetitions:
+        description: 'Independent paired simulated studies per scenario'
+        type: choice
+        required: true
+        default: '80'
+        options: ['40','80','120']
+  schedule:
+    - cron: '13 3 15 * *'
+
+permissions:
+  contents: read
+
+jobs:
+  frozen-normalization-reference:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v5
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+      - name: Cache Bioconductor reference packages
+        uses: actions/cache@v5
+        with:
+          path: ${{ env.R_LIBS_USER }}
+          key: multiomics-norm-lock-${{ runner.os }}-${{ hashFiles('multiomics-engine/advanced_methods.R','multiomics-engine/tests/bioconductor_rnaseq_normalization_lock.R') }}
+      - name: Verify pure-R frozen scale and exact path identity tests
+        run: Rscript multiomics-engine/tests/test_rnaseq_normalization_lock.R
+      - name: Verify synthetic biological truth and reproducibility
+        run: Rscript multiomics-engine/tests/test_rnaseq_stress_designs.R
+      - name: Verify independent and label-blind filtering
+        run: Rscript multiomics-engine/tests/test_rnaseq_filter_sensitivity.R
+      - name: Install DESeq2, edgeR, limma and statmod
+        run: |
+          Rscript -e 'install.packages("BiocManager", repos="https://cloud.r-project.org"); BiocManager::install(c("DESeq2","edgeR","limma","statmod"), ask=FALSE, update=FALSE)'
+      - name: Fit three actual R engines under baseline, strict-frozen and strict-native normalization
+        env:
+          MULTIOMICS_NORM_LOCK_REPLICATES: ${{ github.event_name == 'pull_request' && '8' || (inputs.repetitions || '80') }}
+          MULTIOMICS_VALIDATION_OUTPUT: validation-artifacts
+        run: Rscript multiomics-engine/tests/bioconductor_rnaseq_normalization_lock.R
+      - name: Archive all per-study results, scale shifts, truth losses and environment
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: bioconductor-rnaseq-frozen-normalization-audit
+          path: validation-artifacts/*
+          if-no-files-found: warn

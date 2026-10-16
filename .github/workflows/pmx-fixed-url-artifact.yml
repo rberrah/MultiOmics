@@ -1,0 +1,48 @@
+name: MultiOmics fixed-URL integration artifact
+
+on:
+  push:
+    branches: ['integration/pmx-legacy-url-overlay-*']
+  pull_request:
+    paths:
+      - 'svelte.config.js'
+      - 'src/**'
+      - 'static/**'
+      - 'scripts/build_pmx_compat_overlay.mjs'
+      - 'scripts/test_pmx_compat_overlay.mjs'
+      - '.github/workflows/pmx-fixed-url-artifact.yml'
+      - 'package.json'
+      - 'package-lock.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  fixed-url-artifact:
+    name: Build MultiOmics for existing rberrah.github.io URLs
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install exact dependency tree
+        run: npm ci
+      - name: Static build compatible with existing /pharmacometrie/multiomics/ URLs
+        env:
+          BASE_PATH: /pharmacometrie
+        run: npm run build
+      - name: Stage only namespaced MultiOmics pages and assets
+        run: node scripts/build_pmx_compat_overlay.mjs
+      - name: Verify route compatibility, cryptographic hashes and file allowlist
+        run: node scripts/test_pmx_compat_overlay.mjs
+      - name: Store integration artifact; never deploy automatically
+        uses: actions/upload-artifact@v4
+        with:
+          name: multiomics-fixed-urls-${{ github.sha }}
+          path: compat-overlay/
+          if-no-files-found: error
+          retention-days: 14

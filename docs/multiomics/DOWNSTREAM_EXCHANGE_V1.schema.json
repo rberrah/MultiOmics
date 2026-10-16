@@ -1,0 +1,219 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MultiOmics downstream exchange manifest v1",
+  "description": "Declarative map for sample/feature metadata and matrix files. Provenance is mandatory; clinical or biological validity is not implied.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "analysis_id",
+    "study",
+    "files",
+    "matrices",
+    "software",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "analysis_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "study": {
+      "type": "object",
+      "required": [
+        "organism",
+        "biological_unit",
+        "data_access"
+      ],
+      "properties": {
+        "organism": {
+          "type": "string",
+          "minLength": 1
+        },
+        "biological_unit": {
+          "enum": [
+            "participant",
+            "animal",
+            "culture",
+            "organoid",
+            "other"
+          ]
+        },
+        "data_access": {
+          "enum": [
+            "public",
+            "private",
+            "controlled"
+          ]
+        },
+        "source_doi": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "files": {
+      "type": "object",
+      "required": [
+        "samples",
+        "features"
+      ],
+      "properties": {
+        "samples": {
+          "$ref": "#/$defs/file"
+        },
+        "features": {
+          "$ref": "#/$defs/file"
+        }
+      },
+      "additionalProperties": false
+    },
+    "matrices": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "omic",
+          "file",
+          "value_type",
+          "orientation"
+        ],
+        "properties": {
+          "omic": {
+            "enum": [
+              "transcriptomics",
+              "proteomics",
+              "metabolomics"
+            ]
+          },
+          "file": {
+            "$ref": "#/$defs/file"
+          },
+          "value_type": {
+            "type": "string",
+            "minLength": 1
+          },
+          "orientation": {
+            "const": "feature_rows_sample_columns"
+          },
+          "normalization": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "missing_value": {
+            "const": "NA"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "software": {
+      "type": "object",
+      "required": [
+        "producer",
+        "commit",
+        "r_version",
+        "python_version",
+        "dependency_lockfiles"
+      ],
+      "properties": {
+        "producer": {
+          "type": "string",
+          "minLength": 1
+        },
+        "commit": {
+          "type": "string",
+          "minLength": 7
+        },
+        "r_version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "python_version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "dependency_lockfiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/file"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "validation": {
+      "type": "object",
+      "required": [
+        "status",
+        "methods"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "exploratory",
+            "reference_computed_unqualified",
+            "qualified_for_declared_scope"
+          ]
+        },
+        "methods": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "status"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "status": {
+                "enum": [
+                  "not_run",
+                  "passed_technical",
+                  "failed",
+                  "pending_independent_validation"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    }
+  }
+}

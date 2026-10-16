@@ -1,0 +1,61 @@
+name: Multi-omics RNA-seq power and FDR stress grid
+
+# Run a short real-R regression on PRs, and a larger INDEPENDENT study grid
+# monthly or when manually requested. Success means executable, not calibrated.
+on:
+  pull_request:
+    paths:
+      - 'multiomics-engine/rnaseq_stress_designs.R'
+      - 'multiomics-engine/tests/test_rnaseq_stress_designs.R'
+      - 'multiomics-engine/tests/bioconductor_rnaseq_stress_grid.R'
+      - 'multiomics-engine/advanced_methods.R'
+      - 'multiomics-engine/mixed_truth_reference_metrics.R'
+      - '.github/workflows/multiomics-rnaseq-stress-grid.yml'
+  workflow_dispatch:
+    inputs:
+      repetitions:
+        description: 'Independent synthetic datasets per scenario (4 scenarios; each fitted by 3 R engines)'
+        required: true
+        type: choice
+        default: '120'
+        options: ['60', '120', '200']
+  schedule:
+    - cron: '23 3 1 * *'
+
+permissions:
+  contents: read
+
+jobs:
+  real-rnaseq-stress:
+    name: Real DESeq2, edgeR and limma-voom across weak/small-n/batch scenarios
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v5
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+      - name: Cache reference Bioconductor packages
+        uses: actions/cache@v5
+        with:
+          path: ${{ env.R_LIBS_USER }}
+          key: multiomics-rnaseq-stress-r-${{ runner.os }}-${{ hashFiles('multiomics-engine/advanced_methods.R', 'multiomics-engine/tests/bioconductor_rnaseq_stress_grid.R') }}
+      - name: Verify study generator reproducibility and experimental truth
+        run: Rscript multiomics-engine/tests/test_rnaseq_stress_designs.R
+      - name: Verify correct dataset-level FDR and power calculations
+        run: Rscript multiomics-engine/tests/test_mixed_truth_reference_metrics.R
+      - name: Install actual reference-model implementations
+        run: |
+          Rscript -e 'install.packages("BiocManager", repos="https://cloud.r-project.org"); BiocManager::install(c("DESeq2", "edgeR", "limma", "statmod"), ask=FALSE, update=FALSE)'
+      - name: Run real reference R stress calibration and report uncertainty
+        env:
+          MULTIOMICS_RNASEQ_STRESS_REPLICATES: ${{ github.event_name == 'pull_request' && '8' || (inputs.repetitions || '120') }}
+          MULTIOMICS_VALIDATION_OUTPUT: validation-artifacts
+        run: Rscript multiomics-engine/tests/bioconductor_rnaseq_stress_grid.R
+      - name: Archive negative results, all per-study FDP/power and environment
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: bioconductor-rnaseq-stress-calibration
+          path: validation-artifacts/*
+          if-no-files-found: warn

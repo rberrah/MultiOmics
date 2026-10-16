@@ -1,0 +1,45 @@
+name: Multi-omics missingness stress calibration
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/test_multiomics_missingness_calibration.mjs'
+      - '.github/workflows/multiomics-missingness-stress.yml'
+      - 'src/lib/multiomics/**'
+      - 'package.json'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/test_multiomics_missingness_calibration.mjs'
+      - '.github/workflows/multiomics-missingness-stress.yml'
+      - 'src/lib/multiomics/**'
+  schedule:
+    - cron: '47 3 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  stress:
+    name: Independent MCAR MAR MNAR stress scenarios
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Evaluate fixed-seed null calibration, power and MNAR review gates
+        env:
+          MULTIOMICS_MISSINGNESS_REPORT_PATH: tmp/multiomics/missingness-calibration.json
+        run: node scripts/test_multiomics_missingness_calibration.mjs
+      - name: Archive complete metrics even when validation fails
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: multiomics-missingness-calibration
+          path: tmp/multiomics/missingness-calibration.json
+          if-no-files-found: warn

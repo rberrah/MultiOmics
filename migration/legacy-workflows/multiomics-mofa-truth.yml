@@ -1,0 +1,64 @@
+name: Multi-omics MOFA2 known-truth independent benchmark
+
+on:
+  pull_request:
+    paths:
+      - 'multiomics-engine/advanced_methods.R'
+      - 'multiomics-engine/validation_benchmarks.R'
+      - 'multiomics-engine/tests/test_mofa_truth_metrics.R'
+      - 'multiomics-engine/tests/test_mofa_truth_reference.R'
+      - '.github/workflows/multiomics-mofa-truth.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'multiomics-engine/advanced_methods.R'
+      - 'multiomics-engine/validation_benchmarks.R'
+      - 'multiomics-engine/tests/test_mofa_truth_metrics.R'
+      - 'multiomics-engine/tests/test_mofa_truth_reference.R'
+      - '.github/workflows/multiomics-mofa-truth.yml'
+  schedule:
+    - cron: '27 5 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  factor-truth-contract:
+    name: Factor orientation and technical-vs-biological truth checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: 'release'
+          use-public-rspm: true
+      - name: Verify score invariance, technical controls and exact sample orientation
+        run: Rscript multiomics-engine/tests/test_mofa_truth_metrics.R
+
+  actual-mofa2:
+    name: Real MOFA2 recovered biological factors vs batch-only negative control
+    runs-on: ubuntu-latest
+    needs: factor-truth-contract
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v5
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: 'release'
+          use-public-rspm: true
+      - name: Install Bioconductor MOFA2, Python interface and HDF5 libraries
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libhdf5-dev libglpk40
+          Rscript -e 'install.packages("BiocManager"); BiocManager::install(c("MOFA2","basilisk"),ask=FALSE,update=FALSE); stopifnot(requireNamespace("MOFA2",quietly=TRUE)); cat("MOFA2 ",as.character(packageVersion("MOFA2"))," available\n")'
+      - name: Fit actual MOFA2 over 2 independent seeds x 3 truth scenarios
+        run: Rscript multiomics-engine/tests/test_mofa_truth_reference.R
+      - name: Archive all MOFA2 truth/scenario results including failed models
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: multiomics-mofa2-known-truth-validation
+          path: tmp/multiomics/mofa-truth/
+          if-no-files-found: warn

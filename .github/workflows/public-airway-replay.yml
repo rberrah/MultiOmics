@@ -1,0 +1,68 @@
+name: Public Airway native-R replay and R Markdown
+
+on:
+  pull_request:
+    paths:
+      - 'multiomics-engine/**'
+      - 'src/lib/multiomics/**'
+      - 'scripts/test_public_airway_website_r_numeric_figures.mjs'
+      - '.github/workflows/public-airway-replay.yml'
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  public-airway:
+    name: GSE52778 native DESeq2, 17k complete rows, JS/R figures and real Rmd HTML
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    container:
+      image: bioconductor/bioconductor_docker:RELEASE_3_22-r-4.5.2@sha256:e34177896c1579f66d48b756e4229b58237499183a089da084af72d7aba1d40a
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install actual scientific R reference packages
+        shell: bash
+        run: |
+          Rscript -e '
+            essentials <- c("BiocManager","jsonlite","statmod","digest","plumber")
+            missing <- essentials[!vapply(essentials,requireNamespace,logical(1),quietly=TRUE)]
+            if(length(missing))install.packages(missing,repos="https://cloud.r-project.org")
+            stopifnot(identical(as.character(BiocManager::version()),"3.22"))
+            reference <- c("DESeq2","edgeR","limma","airway")
+            missing <- reference[!vapply(reference,requireNamespace,logical(1),quietly=TRUE)]
+            if(length(missing))BiocManager::install(missing,update=FALSE,ask=FALSE,quiet=TRUE)
+            stopifnot(all(vapply(c(essentials,reference),requireNamespace,logical(1),quietly=TRUE)))
+          '
+      - name: Paired RNA-seq guardrails and invalid-design refusal
+        run: Rscript multiomics-engine/tests/test_paired_rnaseq_backend.R
+      - name: 'Real public GSE52778: all 17,199 features versus DESeq2 native'
+        env:
+          PMX_PAIRED_AIRWAY_REPORT_DIR: /tmp/paired-airway-evidence
+        run: Rscript multiomics-engine/tests/test_public_airway_paired_backend.R
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Install independent research ZIP dependencies
+        run: npm ci
+      - name: Install Pandoc and R Markdown reporting packages
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq pandoc libuv1-dev libssl-dev libcurl4-openssl-dev libxml2-dev
+          Rscript -e 'for(p in c("rmarkdown","knitr"))if(!requireNamespace(p,quietly=TRUE))install.packages(p,repos="https://cloud.r-project.org");stopifnot(rmarkdown::pandoc_available())'
+      - name: Reproduce the actual scientific ZIP, Rmd HTML and 30×8 plotted values
+        env:
+          PMX_PAIRED_AIRWAY_REPORT_DIR: /tmp/paired-airway-evidence
+          PMX_TEST_RMD: '1'
+        run: node scripts/test_public_airway_website_r_numeric_figures.mjs
+      - name: Confirm reference API syntax remains valid
+        run: Rscript -e 'p<-plumber::plumb("multiomics-engine/server.R");stopifnot(inherits(p,"Plumber"))'
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: standalone-airway-GSE52778-replay-evidence
+          path: /tmp/paired-airway-evidence/
+          if-no-files-found: warn
+          retention-days: 45

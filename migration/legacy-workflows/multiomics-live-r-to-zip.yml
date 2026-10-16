@@ -1,0 +1,101 @@
+name: MultiOmics live R to researcher ZIP integration
+
+on:
+  pull_request:
+    paths:
+      - 'tests/e2e/multiomics-live-r-to-zip.spec.js'
+      - '.github/workflows/multiomics-live-r-to-zip.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  real-research-session:
+    name: Uploaded counts -> actual R DESeq2 -> complete scientific ZIP and offline verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 85
+    container:
+      image: bioconductor/bioconductor_docker:RELEASE_3_22-r-4.5.2@sha256:e34177896c1579f66d48b756e4229b58237499183a089da084af72d7aba1d40a
+    env:
+      CI: 'true'
+      PMX_E2E_REAL_R: '1'
+      LABS_E2E_PREBUILT: '1'
+      PMX_MULTIOMICS_ALLOWED_ORIGINS: 'http://127.0.0.1:4173'
+    steps:
+      - name: Application and R backend — exact same checked-out integration commit
+        uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install Node and exact genuine R method prerequisites
+        shell: bash
+        run: |
+          npm ci
+          Rscript -e '
+            repos <- "https://cloud.r-project.org"
+            missing <- c("BiocManager","jsonlite","plumber","statmod")
+            missing <- missing[!vapply(missing,requireNamespace,logical(1),quietly=TRUE)]
+            if(length(missing)) install.packages(missing,repos=repos)
+            stopifnot(identical(as.character(BiocManager::version()),"3.22"))
+            bioc <- c("DESeq2","edgeR","limma")
+            missing_bioc <- bioc[!vapply(bioc,requireNamespace,logical(1),quietly=TRUE)]
+            if(length(missing_bioc))
+              BiocManager::install(missing_bioc,ask=FALSE,update=FALSE,quiet=TRUE)
+            stopifnot(all(vapply(c("jsonlite","plumber","DESeq2","edgeR","limma"),
+              requireNamespace,logical(1),quietly=TRUE)))
+          '
+      - name: Build actual SvelteKit application
+        run: npm run build
+      - name: Install headless Chromium and its OS dependencies
+        run: npx playwright install chromium --with-deps
+      - name: Start genuine locally restricted R Plumber backend
+        shell: bash
+        run: |
+          (nohup Rscript multiomics-engine/run_backend.R 127.0.0.1 8787             >/tmp/pmx-live-r.log 2>&1 </dev/null &)
+          for i in $(seq 1 75); do
+            if curl --silent --fail http://127.0.0.1:8787/health >/tmp/pmx-live-health.json; then
+              cat /tmp/pmx-live-health.json
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Genuine R reference backend did not become healthy."
+          cat /tmp/pmx-live-r.log
+          exit 1
+      - name: Check allowed browser JSON preflight and refuse unrelated website
+        shell: bash
+        run: |
+          allow="$(curl --silent --show-error -i -X OPTIONS \
+            -H 'Origin: http://127.0.0.1:4173' \
+            -H 'Access-Control-Request-Method: POST' \
+            -H 'Access-Control-Request-Headers: content-type' \
+            http://127.0.0.1:8787/run)"
+          printf '%s\\n' "$allow"
+          printf '%s\\n' "$allow" | grep -qi '^HTTP/.* 204'
+          printf '%s\\n' "$allow" | grep -qi '^Access-Control-Allow-Origin: http://127.0.0.1:4173'
+          printf '%s\\n' "$allow" | grep -qi '^Access-Control-Allow-Headers: Content-Type'
+          reject="$(curl --silent --show-error -i -X OPTIONS \
+            -H 'Origin: https://untrusted.example' \
+            -H 'Access-Control-Request-Method: POST' \
+            -H 'Access-Control-Request-Headers: content-type' \
+            http://127.0.0.1:8787/run)"
+          printf '%s\\n' "$reject" | grep -qi '^HTTP/.* 403'
+          if printf '%s\\n' "$reject" | grep -qi '^Access-Control-Allow-Origin: https://untrusted.example'; then
+            echo 'SECURITY FAILURE: unrelated browser origin allowed'
+            exit 1
+          fi
+      - name: Researcher interaction against truly fitted R differential expression
+        run: npx playwright test --config playwright.multiomics.config.js tests/e2e/multiomics-live-r-to-zip.spec.js --workers=1
+      - name: Preserve reproducible backend diagnostics and browser traces if unsuccessful
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: full-reference-R-to-browser-zip-debug
+          path: |
+            /tmp/pmx-live-r.log
+            test-results/
+            playwright-report/
+          if-no-files-found: ignore
+          retention-days: 30

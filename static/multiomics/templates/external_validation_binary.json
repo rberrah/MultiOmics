@@ -1,0 +1,10 @@
+{
+  "outcome_type": "binary",
+  "prediction_column": "prediction",
+  "outcome_column": "outcome",
+  "prediction_kind": "probability",
+  "independent_cohort": false,
+  "cohort_label": "Replace with cohort name and document independence before setting true",
+  "bootstrap_repetitions": 1000,
+  "seed": 20260928
+}

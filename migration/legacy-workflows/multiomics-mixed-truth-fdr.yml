@@ -1,0 +1,45 @@
+name: Multi-omics mixed-truth FDR benchmark
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/test_multiomics_mixed_truth_fdr.mjs'
+      - '.github/workflows/multiomics-mixed-truth-fdr.yml'
+      - 'src/lib/multiomics/**'
+      - 'package.json'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/test_multiomics_mixed_truth_fdr.mjs'
+      - '.github/workflows/multiomics-mixed-truth-fdr.yml'
+      - 'src/lib/multiomics/**'
+  schedule:
+    - cron: '27 5 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mixed-truth:
+    name: Independent mixed-truth false discovery calibration
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Compute empirical FDR, power and confidence interval coverage
+        env:
+          MULTIOMICS_MIXED_FDR_REPORT_PATH: tmp/multiomics/mixed-truth-fdr.json
+        run: node scripts/test_multiomics_mixed_truth_fdr.mjs
+      - name: Archive all calibration metrics, including negative results
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: multiomics-mixed-truth-fdr
+          path: tmp/multiomics/mixed-truth-fdr.json
+          if-no-files-found: warn

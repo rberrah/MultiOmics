@@ -1,0 +1,77 @@
+name: MultiOmics standalone software qualification
+
+on:
+  push:
+    branches: [main, 'migration/**']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  web-and-browser:
+    name: Standalone SvelteKit, JS reference and beginner browser workflow
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - name: Reproducible install from independent lockfile
+        run: npm ci
+      - name: Check standalone imports and Svelte interfaces
+        run: npm run check
+      - name: Exercise real deterministic JS and method guardrails
+        run: npm run test:multiomics
+      - name: Build app with no PMx portal
+        run: npm run build
+      - name: Install Chromium
+        run: npx playwright install chromium --with-deps
+      - name: Run standalone FR/EN lessons and four-button desktop UI
+        env:
+          LABS_E2E_PREBUILT: '1'
+        run: npx playwright test --config playwright.multiomics.config.js tests/e2e/multiomics-methods-learning.spec.js tests/e2e/multiomics-contrast.spec.js --workers=1 --retries=0
+      - name: Validate static GitHub Pages base path independently of PMx
+        env:
+          BASE_PATH: /MultiOmics
+        run: |
+          npm run build
+          echo "Generated standalone Pages tree:"
+          find build -maxdepth 8 -type f \( -name '*.html' -o -name '*.json' \) -print | sort | head -100
+          echo "SvelteKit generated route manifest:"
+          find .svelte-kit/output -maxdepth 7 -type f -name '*page*' -print | head -45
+          for required in \
+            build/index.html \
+            build/multiomics/index.html \
+            build/multiomics/tool/index.html \
+            build/multiomics/learn/index.html
+          do
+            if [[ ! -s "$required" ]]; then
+              echo "::error::Missing prerendered standalone page $required"
+              exit 1
+            fi
+          done
+          if grep -q 'https://rberrah.github.io/pharmacometrie/' build/index.html; then
+            echo "::error::Standalone root still links to the original PMx application"
+            exit 1
+          fi
+
+  r-contract:
+    name: Independent R package-free reference contracts
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+      - name: Verify native R syntax and repository inputs
+        run: |
+          Rscript -e 'for(f in c("multiomics-engine/server.R","multiomics-engine/advanced_methods.R","multiomics-engine/run_backend.R","multiomics-engine/run_research_bundle.R","multiomics-engine/verify_research_replay.R","multiomics-engine/plot_research_figures.R")) parse(file=f); cat("R parsing PASS\n")'
+      - name: Test R backend routes and mandatory safeguards
+        run: Rscript multiomics-engine/tests/backend_smoke.R
+      - name: Test JS-to-R explanatory reference
+        run: Rscript multiomics-engine/tests/browser_reference_agreement.R

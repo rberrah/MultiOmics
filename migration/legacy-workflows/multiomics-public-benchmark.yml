@@ -1,0 +1,142 @@
+name: Multi-omics public truth benchmark
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/multiomics-public-benchmark.yml'
+      - 'scripts/export_public_multiomics_benchmarks.R'
+      - 'scripts/benchmark_public_multiomics.mjs'
+      - 'scripts/benchmark_multiomics_negative_controls.mjs'
+      - 'scripts/attach_public_benchmark_provenance.mjs'
+      - 'scripts/audit_public_omics_evidence.mjs'
+      - 'scripts/test_public_omics_evidence.mjs'
+      - 'src/lib/multiomics/**'
+  pull_request:
+    paths:
+      - '.github/workflows/multiomics-public-benchmark.yml'
+      - 'scripts/benchmark_public_multiomics.mjs'
+      - 'scripts/export_public_multiomics_benchmarks.R'
+      - 'src/lib/multiomics/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout PMx Explain
+        uses: actions/checkout@v5
+
+      - name: Checkout official mixOmics data source
+        uses: actions/checkout@v5
+        with:
+          repository: mixOmics-org/mixOmics
+          ref: ef3e760526623d9e91e945e4b50be48d764efc40
+          path: external/mixOmics
+          sparse-checkout: |
+            data/nutrimouse.rda
+            data/breast.TCGA.rda
+
+      - name: Checkout NCI-60 gene-metabolite benchmark
+        uses: actions/checkout@v5
+        with:
+          repository: Mathelab/NCI60_GeneMetabolite_Data
+          ref: 4c140708c18c41910458414a626b1a51d3dd2a85
+          path: external/NCI60_GeneMetabolite_Data
+
+      - name: Checkout IntLIM BRCA benchmark
+        uses: actions/checkout@v5
+        with:
+          repository: ncats/IntLIMVignettes
+          ref: e1a03362dd113db9655ad3e4dabd62e1c47cd731
+          path: external/IntLIMVignettes
+          sparse-checkout: |
+            BRCA_data
+
+      - name: Checkout public 3-omics aging/diet benchmark
+        uses: actions/checkout@v5
+        with:
+          repository: GenomicsNX/xOmicsShiny_app
+          ref: db2065b87c6e7a3d76e24e272573dd74428ff191
+          path: external/xOmicsShiny
+          sparse-checkout: |
+            data/AgingHFCD_RNAseq.RData
+            data/AgingHFCD_Proteomics.RData
+            data/AgingHFCD_Metabolomics.RData
+            data/LRRK2_Neuron_RNA.RData
+            data/LRRK2_Neuron_Protein.RData
+
+      - name: Checkout STATegra processed public benchmark
+        uses: actions/checkout@v5
+        with:
+          repository: ConesaLab/PaintOmics
+          ref: a166da377450977a6a95ec44f4ae703a31c99742
+          path: external/PaintOmics
+          sparse-checkout: |
+            PaintomicsServer/src/examplefiles/datasets/08-stategra-multiomics/README.md
+            PaintomicsServer/src/examplefiles/datasets/08-stategra-multiomics/data/gene_expression_values.tab
+            PaintomicsServer/src/examplefiles/datasets/08-stategra-multiomics/data/proteomics_values.tab
+            PaintomicsServer/src/examplefiles/datasets/08-stategra-multiomics/data/metabolomics_values.tab
+            PaintomicsServer/src/examplefiles/datasets/08-stategra-multiomics/data/gene_expression_relevant.tab
+            PaintomicsServer/src/examplefiles/datasets/08-stategra-multiomics/data/proteomics_relevant.tab
+            PaintomicsServer/src/examplefiles/datasets/08-stategra-multiomics/data/metabolomics_relevant.tab
+            PaintomicsServer/src/examplefiles/datasets/04-multiomics-integration/data/gene_expression_relevant.tab
+            PaintomicsServer/src/examplefiles/datasets/04-multiomics-integration/data/proteomics_relevant.tab
+            PaintomicsServer/src/examplefiles/datasets/04-multiomics-integration/data/metabolomics_relevant.tab
+            PaintomicsServer/src/examplefiles/datasets/04-multiomics-integration/expected/signal_features.txt
+            PaintomicsServer/src/examplefiles/datasets/04-multiomics-integration/expected/expected_pathways.txt
+            PaintomicsServer/src/examplefiles/datasets/12-stategra-metabolomics-replicates/data/experimental_design.tab
+            PaintomicsServer/src/examplefiles/datasets/12-stategra-metabolomics-replicates/data/metabolomics_replicates.tab
+            PaintomicsServer/src/examplefiles/datasets/12-stategra-metabolomics-replicates/data/metabolomics_relevant.tab
+
+      - name: Checkout Bioconductor missRows benchmark
+        uses: actions/checkout@v5
+        with:
+          repository: bioc/missRows
+          ref: 5c5fd6c8940523bcf1511fafe9e7896a5b8a0a1e
+          path: external/missRows
+          sparse-checkout: |
+            data/NCI60.rda
+
+      - name: Setup R
+        uses: r-lib/actions/setup-r@v2
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Export public datasets to PMx contract
+        run: |
+          mkdir -p tmp/public-benchmarks
+          MIXOMICS_ROOT=external/mixOmics NCI60_GM_ROOT=external/NCI60_GeneMetabolite_Data INTLIM_ROOT=external/IntLIMVignettes MISSROWS_ROOT=external/missRows XOMICS_ROOT=external/xOmicsShiny Rscript scripts/export_public_multiomics_benchmarks.R tmp/public-benchmarks
+
+      - name: Run PMx deterministic engine against known public truths
+        env:
+          PAINTOMICS_ROOT: external/PaintOmics
+        run: node scripts/benchmark_public_multiomics.mjs tmp/public-benchmarks
+
+      - name: Run public-label negative controls
+        run: node scripts/benchmark_multiomics_negative_controls.mjs tmp/public-benchmarks
+
+      - name: Attach immutable source and input provenance
+        run: node scripts/attach_public_benchmark_provenance.mjs tmp/public-benchmarks
+
+      - name: Test the independent public evidence qualification gate
+        run: node scripts/test_public_omics_evidence.mjs
+
+      - name: Validate independent public sources, negative controls and evidence boundaries
+        run: node scripts/audit_public_omics_evidence.mjs tmp/public-benchmarks
+
+      - name: Upload benchmark report
+        uses: actions/upload-artifact@v6
+        with:
+          name: multiomics-public-benchmark
+          path: |
+            tmp/public-benchmarks/benchmark-report.json
+            tmp/public-benchmarks/benchmark-provenance.json
+            tmp/public-benchmarks/qualification-scope.json
