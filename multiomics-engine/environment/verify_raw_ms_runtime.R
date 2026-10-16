@@ -55,6 +55,6 @@ if(identical(mode,"verify")){
          " packages; SHA-256=",fingerprint)
 }
 cat("PASS genuine native MS ",mode," | R ",as.character(getRversion()),
-    " | Bioconductor ",BiocManager::version(),
+    " | Bioconductor ",as.character(BiocManager::version()),
     " | packages ",length(versions_all),
     " | sha256 ",fingerprint,"\n",sep="")
