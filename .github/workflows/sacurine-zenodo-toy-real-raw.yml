@@ -1,0 +1,69 @@
+name: Real Sacurine Zenodo raw mzXML and independent true-blank xcms validation
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/verify_sacurine_zenodo_raw.py'
+      - 'multiomics-engine/tests/real_sacurine_zenodo_blank_xcms.R'
+      - '.github/workflows/sacurine-zenodo-toy-real-raw.yml'
+      - 'docs/multiomics/SACURINE_ZENODO_EXTERNAL_EVIDENCE.md'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/verify_sacurine_zenodo_raw.py'
+      - 'multiomics-engine/tests/real_sacurine_zenodo_blank_xcms.R'
+      - '.github/workflows/sacurine-zenodo-toy-real-raw.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  authentic-external-zendo-blank-xcms:
+    name: Real Sacurine mzXML source fingerprints and observed blank/urine peaks
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    container:
+      image: bioconductor/bioconductor_docker:RELEASE_3_22-r-4.5.2@sha256:e34177896c1579f66d48b756e4229b58237499183a089da084af72d7aba1d40a
+    env:
+      MULTIOMICS_RAW_MS_OUTPUT: tmp/sacurine-zenodo-results
+    steps:
+      - uses: actions/checkout@v5
+      - name: Download four genuine Zenodo mzXML files and verify published MD5 + SHA-256
+        run: python3 scripts/verify_sacurine_zenodo_raw.py --output tmp/sacurine-zenodo-raw
+      - name: Install frozen Bioconductor 3.22 native reference packages
+        shell: bash
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq libnetcdf-dev libhdf5-dev libxml2-dev libcurl4-openssl-dev
+          Rscript -e '
+            stopifnot(identical(as.character(getRversion()),"4.5.2"),
+                      identical(as.character(BiocManager::version()),"3.22"))
+            packages <- c("xcms","MsExperiment","Spectra","mzR","faahKO",
+                          "BiocParallel","jsonlite","digest")
+            missing <- packages[!vapply(packages,requireNamespace,logical(1),quietly=TRUE)]
+            if(length(missing)) BiocManager::install(missing,version="3.22",
+              ask=FALSE,update=FALSE,quiet=TRUE)
+            stopifnot(all(vapply(packages,requireNamespace,logical(1),quietly=TRUE)))
+          '
+      - name: Fail on any direct/transitive R dependency version drift
+        run: |
+          MULTIOMICS_RAW_MS_OUTPUT=tmp/sacurine-zenodo-results \
+            Rscript multiomics-engine/environment/verify_raw_ms_runtime.R verify
+      - name: Run genuine independent Zenodo Sacurine 2 urine + 2 blanks with xcms
+        run: |
+          Rscript multiomics-engine/tests/real_sacurine_zenodo_blank_xcms.R \
+            tmp/sacurine-zenodo-raw tmp/sacurine-zenodo-results/real-raw-fit
+      - name: Preserve hashes and compact quantitative findings, NOT original raw samples
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: real-sacurine-zenodo-true-blank-xcms-evidence
+          path: |
+            tmp/sacurine-zenodo-raw/sacurine_zenodo_source_manifest.json
+            tmp/sacurine-zenodo-results/raw_ms_frozen_environment.json
+            tmp/sacurine-zenodo-results/real-raw-fit/raw_ms_processing_manifest.json
+            tmp/sacurine-zenodo-results/real-raw-fit/sacurine_real_blank_evidence.json
+            tmp/sacurine-zenodo-results/real-raw-fit/true_blank_external_feature_ratios.csv
+          if-no-files-found: warn
+          retention-days: 45
