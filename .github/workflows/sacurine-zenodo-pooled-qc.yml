@@ -1,0 +1,68 @@
+name: Real Sacurine Zenodo nine-mzML pooled-QC external study
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/verify_sacurine_zenodo_qc.py'
+      - 'multiomics-engine/tests/real_sacurine_zenodo_qc_xcms.R'
+      - '.github/workflows/sacurine-zenodo-pooled-qc.yml'
+      - 'docs/multiomics/SACURINE_ZENODO_POOLED_QC_EVIDENCE.md'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/verify_sacurine_zenodo_qc.py'
+      - 'multiomics-engine/tests/real_sacurine_zenodo_qc_xcms.R'
+      - '.github/workflows/sacurine-zenodo-pooled-qc.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  measured-real-pooled-qc:
+    name: Nine published human urine / pooled-QC raw mzML and genuine QC RSD
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    container:
+      image: bioconductor/bioconductor_docker:RELEASE_3_22-r-4.5.2@sha256:e34177896c1579f66d48b756e4229b58237499183a089da084af72d7aba1d40a
+    env:
+      MULTIOMICS_RAW_MS_OUTPUT: tmp/sacurine-zenodo-qc-output
+    steps:
+      - uses: actions/checkout@v5
+      - name: Verify nine original Galaxy/Zenodo mzML data against official record checksums
+        run: python3 scripts/verify_sacurine_zenodo_qc.py --output tmp/sacurine-zenodo-qc-sources
+      - name: Install native pinned xcms reference environment
+        shell: bash
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq libnetcdf-dev libhdf5-dev libxml2-dev libcurl4-openssl-dev
+          Rscript -e '
+            stopifnot(identical(as.character(getRversion()),"4.5.2"),
+                      identical(as.character(BiocManager::version()),"3.22"))
+            packages<-c("xcms","MsExperiment","Spectra","mzR","faahKO",
+                         "BiocParallel","jsonlite","digest")
+            missing<-packages[!vapply(packages,requireNamespace,logical(1),quietly=TRUE)]
+            if(length(missing)) BiocManager::install(missing,version="3.22",
+                                      ask=FALSE,update=FALSE,quiet=TRUE)
+            stopifnot(all(vapply(packages,requireNamespace,logical(1),quietly=TRUE)))
+          '
+      - name: Fail closed on native 206-R-package closure drift
+        run: |
+          Rscript multiomics-engine/environment/verify_raw_ms_runtime.R verify
+      - name: Process real mzML spectra then quantify genuine pooled-QC variability
+        run: |
+          Rscript multiomics-engine/tests/real_sacurine_zenodo_qc_xcms.R \
+            tmp/sacurine-zenodo-qc-sources tmp/sacurine-zenodo-qc-output/xcms-fit
+      - name: Archive source checksums and anonymous quantitative QC evidence, not raw human specimens
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: genuine-zenodo-Galaxy-LCMS-pooled-QC-native-evidence
+          path: |
+            tmp/sacurine-zenodo-qc-sources/zenodo_galaxy_true_qc_source_manifest.json
+            tmp/sacurine-zenodo-qc-output/raw_ms_frozen_environment.json
+            tmp/sacurine-zenodo-qc-output/xcms-fit/raw_ms_processing_manifest.json
+            tmp/sacurine-zenodo-qc-output/xcms-fit/real_sacurine_qc_evidence.json
+            tmp/sacurine-zenodo-qc-output/xcms-fit/real_sacurine_qc_quality_features.csv
+          if-no-files-found: warn
+          retention-days: 45
