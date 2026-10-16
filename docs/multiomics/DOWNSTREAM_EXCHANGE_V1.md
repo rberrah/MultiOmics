@@ -21,6 +21,15 @@ Only include matrices actually supplied. One layer is valid. No network inferenc
 
 Required columns: `assay_id,sample_id,subject_id,omic`.
 Recommended: `tissue,collection_time,collection_time_unit,condition,batch,technical_replicate_id,source_dataset_id`.
+The MultiOmics #20 interoperability extension **appends** `timepoint,timepoint_unit,time_origin` at the end of the existing V1 sample sheet. These optional columns may be blank in older V1 archives and are not a breaking schema revision.
+
+- `timepoint` preserves the **source's categorical original label** (e.g. `T0`, `T12`); it is **not** an elapsed time or PK sampling clock.
+- `timepoint_unit` and `time_origin` are exported only if explicitly present in the original sample sheet. Missing means unknown, not zero hours or time since dose.
+- `collection_time` and `collection_time_unit` retain the original quantitative measurement and unit when supplied; MultiOmics **never** derives 12 h or any unit from `T12`. PK temporal alignment must be qualified downstream.
+- Source `technical_replicate` is copied into the V1 contract's `technical_replicate_id` unless the explicit V1 name is already provided. Multiple assays from one specimen must not be interpreted as additional subjects.
+- Cross-omic assays that share `sample_id` must not disagree on subject, tissue or any supplied time fields. The JS producer and offline Python validator both reject conflicting original metadata.
+- The browser manifest records the actual source Git checkout SHA **when available at build time**; a build from a source archive without Git metadata records `unknown` rather than a fabricated hash. This is the **producer** commit, not the revision of a model fitted from omic signatures.
+- **No individual signatures by default**: `exchange/matrices/*.csv` are individual original measurements, not independently qualified frozen-model scores. Group logFC/q-values cannot be promoted to individual PK covariates. A future optional `individual_signatures.csv` requires true per-assay scores, frozen held-out projection or out-of-fold training provenance, with model and feature SHA-256 verified by the Omics2PK consumer.
 
 - `subject_id` is the biological unit (patient, animal, cell line); `sample_id` is the specimen; `assay_id` is the **unique matrix column key**. Never treat repeated assays from one subject as independent subjects.
 - Pairing and temporal order must be explicit; unknown tissue/time are **empty with missingness documented**, never guessed.
