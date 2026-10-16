@@ -54,7 +54,7 @@ if(identical(mode,"verify")){
     stop("Native MS transitive dependency drift: ",length(versions_all),
          " packages; SHA-256=",fingerprint)
 }
-cat("PASS genuine native MS ",mode," | R ",getRversion(),
+cat("PASS genuine native MS ",mode," | R ",as.character(getRversion()),
     " | Bioconductor ",BiocManager::version(),
     " | packages ",length(versions_all),
     " | sha256 ",fingerprint,"\n",sep="")
