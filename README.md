@@ -2,7 +2,7 @@
 
 A public, source-available research environment for reproducible **single- and multi-omics research**, with an optional local R reference engine.
 
-**Release status:** independent source repository, with authenticated standalone CI and a validated PMx hosting integration. The deployed research tool remains at [rberrah.github.io/pharmacometrie/multiomics/tool](https://rberrah.github.io/pharmacometrie/multiomics/tool/). This is **not** a claim of universal confirmatory statistical validity, clinical use, or a remote hosted R service.
+**Release status:** independent source repository, with authenticated standalone CI and a validated PMx hosting integration. The deployed research tool remains at [rberrah.github.io/pharmacometrie/multiomics/tool](https://rberrah.github.io/multiomics/tool/). This is **not** a claim of universal confirmatory statistical validity, clinical use, or a remote hosted R service.
 
 ## Download and use independently
 

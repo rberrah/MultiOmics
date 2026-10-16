@@ -15,7 +15,8 @@ const target=join(root,'short-url-overlay');
 const site=join(target,'site');
 const dirs=['multiomics','_multiomics_app'];
 const paths=['multiomics/index.html','multiomics/tool/index.html',
-  'multiomics/learn/index.html'];
+  'multiomics/learn/index.html','multiomics/disciplines/index.html',
+  'multiomics/resources/index.html'];
 for(const p of paths){
   assert((await lstat(join(build,p))).isFile(),'Expected standalone route missing: '+p);
   const h=await readFile(join(build,p),'utf8');

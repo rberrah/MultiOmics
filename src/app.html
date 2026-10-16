@@ -6,6 +6,12 @@
     <meta name="theme-color" content="#fbfaf8"/>
     <meta name="author" content="Racym Berrah"/>
     <meta name="description" content="MultiOmics — analyses exploratoires mono et multi-omiques, méthodes R vérifiables et rapports reproductibles."/>
+    <script>
+      try {
+        var t = localStorage.getItem('pk-theme');
+        if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    </script>
     <script defer src="%sveltekit.assets%/multiomics/plain-language-ui.js"></script>
     <script defer src="%sveltekit.assets%/multiomics/guided-ui.js"></script>
     <script defer src="%sveltekit.assets%/multiomics/validation-evidence-ui.js"></script>
