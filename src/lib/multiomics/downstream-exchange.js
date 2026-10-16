@@ -129,7 +129,7 @@ export async function buildDownstreamExchange(portableProject){
       producer:'MultiOmics browser source exchange',
       // Injected by Vite from the checked-out Git commit. Unknown is explicit
       // for unversioned browser/local builds and must not be forged.
-      commit:import.meta.env?.VITE_MULTIOMICS_SOURCE_SHA||'unknown',
+      commit:(import.meta.env && import.meta.env.VITE_MULTIOMICS_SOURCE_SHA)||'unknown',
       r_version:null,python_version:null,dependency_lockfiles:[]
     },
     validation:{status:'exploratory',methods:[]}
