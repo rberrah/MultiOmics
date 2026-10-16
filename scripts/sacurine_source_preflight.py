@@ -158,13 +158,23 @@ def inspect_metadata(meta_path: Path, rows: list[dict]) -> dict:
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path, default=Path("tmp/sacurine-preflight"))
+    parser.add_argument("--local-archive", type=Path, default=None,
+                        help="Already-acquired official Sacurine mzXML ZIP; no network needed")
+    parser.add_argument("--local-metadata", type=Path, default=None,
+                        help="Already-acquired official Sacurine sampleMetadata TSV")
+
     args = parser.parse_args()
+    if (args.local_archive is None) != (args.local_metadata is None):
+        parser.error("--local-archive and --local-metadata must be provided together")
+    local_mode = args.local_archive is not None
     out = args.output
     if out.exists() and any(out.iterdir()):
         raise RuntimeError("Refusing to overwrite prior Sacurine run artifacts")
     out.mkdir(parents=True, exist_ok=True)
-    private_archive = Path(os.environ.get("RUNNER_TEMP", str(out))) / "sacurine-neg-subset_mzXML.zip"
-    private_metadata = out / "sacurine-neg_sampleMetadata.tsv"
+    private_archive = (args.local_archive if local_mode else
+                       Path(os.environ.get("RUNNER_TEMP", str(out))) / "sacurine-neg-subset_mzXML.zip")
+    private_metadata = (args.local_metadata if local_mode else
+                        out / "sacurine-neg_sampleMetadata.tsv")
     state = {
         "schema": "multiomics.sacurine-raw-external-preflight.v1",
         "study": "MetaboLights MTBLS404; Workflow4Metabolomics Sacurine",
@@ -178,8 +188,24 @@ def main():
         "scientific_certification": False,
     }
     try:
-        state["sample_metadata_sha256"] = download(METADATA, private_metadata, 8_000_000)
-        state["archive_sha256"] = download(ARCHIVE, private_archive, MAX_ARCHIVE_BYTES)
+        if local_mode:
+            for source, limit in ((private_metadata, 8_000_000),
+                                  (private_archive, MAX_ARCHIVE_BYTES)):
+                if not source.is_file() or source.stat().st_size == 0 or source.stat().st_size > limit:
+                    raise ValueError("Missing, empty or oversized official local source: " + source.name)
+            def file_digest(path):
+                digest = hashlib.sha256()
+                with path.open("rb") as stream:
+                    for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+                        digest.update(chunk)
+                return digest.hexdigest()
+            state["sample_metadata_sha256"] = file_digest(private_metadata)
+            state["archive_sha256"] = file_digest(private_archive)
+            state["source_mode"] = "local_verified_files_not_downloaded"
+        else:
+            state["sample_metadata_sha256"] = download(METADATA, private_metadata, 8_000_000)
+            state["archive_sha256"] = download(ARCHIVE, private_archive, MAX_ARCHIVE_BYTES)
+            state["source_mode"] = "direct_official_research_download"
         state["archive_size_bytes"] = private_archive.stat().st_size
         rows, others = inspect_archive(private_archive)
         state["sample_roles_provisional"] = EXPECTED
@@ -205,7 +231,8 @@ def main():
         )
         # The actual data remain private to the CI machine and never become
         # a GH Actions artifact, even on failure.
-        private_archive.unlink(missing_ok=True)
+        if not local_mode:
+            private_archive.unlink(missing_ok=True)
 
 
 if __name__ == "__main__":
