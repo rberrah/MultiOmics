@@ -2,7 +2,7 @@
 # Capture the REAL isolated Python dependency closure used by MOFA2::run_mofa
 # with use_basilisk=TRUE. Does not inspect ambient system Python.
 args <- commandArgs(trailingOnly=TRUE)
-mode <- if(length(args)) args[[1L]] else "probe"
+mode <- if(length(args)) args[[1L]] else "verify"
 if(!mode %in% c("probe","verify")) stop("Mode must be probe or verify")
 for(p in c("MOFA2","basilisk","reticulate","jsonlite","digest"))
   if(!requireNamespace(p,quietly=TRUE))stop("Missing authentic method dependency: ",p)
@@ -46,10 +46,17 @@ if(!identical(unname(versions["mofapy2"]),config$mofapy2Target))
   stop("Basilisk installed an unexpected mofapy2 version: ",versions["mofapy2"])
 if(!startsWith(actual$python,paste0(config$pythonMajorMinor,".")))
   stop("Basilisk Python interpreter version drift: ",actual$python)
+if(identical(mode,"verify") && !identical(actual$python,config$pythonVersion))
+  stop("Basilisk exact Python interpreter version drift: ",actual$python)
 canonical <- paste0(paste(paste0(names(versions),"=",unname(versions)),
                           collapse="\n"),"\n")
 fingerprint <- digest::digest(canonical,algo="sha256",serialize=FALSE)
 if(identical(mode,"verify")){
+  expected <- unlist(config$pinnedPackages,use.names=TRUE)
+  if(!length(expected) || !setequal(names(expected),names(versions)) ||
+     anyNA(versions[names(expected)]) ||
+     any(unname(versions[names(expected)])!=unname(expected)))
+    stop("Basilisk named Python package set or exact versions have drifted")
   if(!isTRUE(config$strictPythonLockReady) ||
      !identical(as.integer(length(versions)),
                 as.integer(config$packageCount)) ||
