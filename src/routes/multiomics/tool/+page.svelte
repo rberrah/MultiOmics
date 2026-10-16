@@ -2921,8 +2921,8 @@
             <li>{t('Installer R et Git sur votre ordinateur.', 'Install R and Git on your computer.')}</li>
             <li>{t('Ouvrir un terminal et copier ces commandes une par une :', 'Open a terminal and run these commands one by one:')}</li>
           </ol>
-          <pre style="max-width:100%;overflow-x:auto;white-space:pre;" tabindex="0"><code>git clone https://github.com/rberrah/rberrah.github.io.git
-cd rberrah.github.io
+          <pre style="max-width:100%;overflow-x:auto;white-space:pre;" tabindex="0"><code>git clone https://github.com/rberrah/MultiOmics.git
+cd MultiOmics
 Rscript multiomics-engine/install_backend_dependencies.R
 Rscript multiomics-engine/run_backend.R</code></pre>
           <p>{t('Laisser le terminal R ouvert, revenir ici et ouvrir « Options de calcul et connexions externes ». Choisir « Auto · utiliser si disponible » (le mode initial « Navigateur uniquement » désactive les tests R), conserver l’adresse http://127.0.0.1:8787 et cliquer sur « Tester ». Le statut doit indiquer que R est disponible. Ne sélectionner « R requis » que si le backend fonctionne et qu’une analyse de référence est indispensable.', 'Keep the R terminal open, return here and open Analysis options and external services. Choose Auto · use when available (the initial Browser only mode disables R checks), keep http://127.0.0.1:8787 and click Check. The status should report that R is available. Select Require R only when the backend is operational and reference analysis is essential.')}</p>

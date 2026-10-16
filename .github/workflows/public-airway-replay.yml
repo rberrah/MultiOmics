@@ -38,7 +38,7 @@ jobs:
           '
       - name: Paired RNA-seq guardrails and invalid-design refusal
         run: Rscript multiomics-engine/tests/test_paired_rnaseq_backend.R
-      - name: Real public GSE52778: all 17,199 features versus DESeq2 native
+      - name: 'Real public GSE52778: all 17,199 features versus DESeq2 native'
         env:
           PMX_PAIRED_AIRWAY_REPORT_DIR: /tmp/paired-airway-evidence
         run: Rscript multiomics-engine/tests/test_public_airway_paired_backend.R
