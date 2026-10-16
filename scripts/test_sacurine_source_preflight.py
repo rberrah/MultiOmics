@@ -3,6 +3,9 @@
 from io import BytesIO
 from pathlib import Path
 import tempfile
+import subprocess
+import sys
+import json
 import zipfile
 
 from sacurine_source_preflight import identify_role, inspect_archive, inspect_metadata
@@ -38,6 +41,15 @@ with tempfile.TemporaryDirectory() as tmp:
     audit = inspect_metadata(meta, rows)
     assert audit["exact_sample_name_matches"]["filename"] == 36
     assert not audit["official_roles_confirmed"]  # preflight is not conclusive
+    result_out = root / "verified-output"
+    subprocess.run([sys.executable, "scripts/sacurine_source_preflight.py",
+                    "--local-archive", str(archive), "--local-metadata", str(meta),
+                    "--output", str(result_out)], check=True)
+    result = json.loads((result_out / "sacurine_source_provenance.json").read_text())
+    assert result["status"] == "source_acquired_and_archive_structure_valid"
+    assert result["source_mode"] == "local_verified_files_not_downloaded"
+    assert archive.is_file() and meta.is_file(), "Must never remove user's local source"
+
     for unsafe in ("../not-allowed.mzXML", "/absolute.mzXML",
                    "unknown-file.mzXML", "hu_neg_001.mzXML"):
         fixture(archive, unsafe)
