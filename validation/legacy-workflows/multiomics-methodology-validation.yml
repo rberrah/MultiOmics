@@ -1,0 +1,62 @@
+name: Multi-omics independent methodology validation
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/validate_multiomics_methodology.mjs'
+      - 'multiomics-engine/tests/independent_hc3_reference.R'
+      - '.github/workflows/multiomics-methodology-validation.yml'
+      - 'src/lib/multiomics/**'
+      - 'package.json'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/validate_multiomics_methodology.mjs'
+      - 'multiomics-engine/tests/independent_hc3_reference.R'
+      - '.github/workflows/multiomics-methodology-validation.yml'
+      - 'src/lib/multiomics/**'
+  schedule:
+    - cron: '41 4 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  independent-hc3:
+    name: Browser-vs-R HC3 validation and MNAR controls
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: 'release'
+          use-public-rspm: true
+      - run: npm ci
+      - name: Generate fixed-seed simulated studies and browser results
+        run: node scripts/validate_multiomics_methodology.mjs --generate tmp/multiomics/methodology
+      - name: Fit independent R lm / robust HC3 / BH
+        run: |
+          Rscript multiomics-engine/tests/independent_hc3_reference.R \
+            tmp/multiomics/methodology/observations.csv \
+            tmp/multiomics/methodology/browser-estimates.csv \
+            tmp/multiomics/methodology/r-estimates.csv
+      - name: Strict paired R agreement and exploratory calibration metrics
+        run: node scripts/validate_multiomics_methodology.mjs --compare tmp/multiomics/methodology
+      - name: Retain reference results, input truth and all validation diagnostics
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: multiomics-independent-methodology-validation
+          path: |
+            tmp/multiomics/methodology/protocol.json
+            tmp/multiomics/methodology/observations.csv
+            tmp/multiomics/methodology/browser-estimates.csv
+            tmp/multiomics/methodology/r-estimates.csv
+            tmp/multiomics/methodology/methodology-report.json
+          if-no-files-found: warn
