@@ -80,7 +80,7 @@ def main():
       "source":"https://zenodo.org/records/1346742",
       "doi":"10.5281/zenodo.1346742",
       "published_md5_authority":"Zenodo public 1346742 record file checksums",
-      "source_commit":os.environ.get("GITHUB_SHA","local"),
+      "source_commit":os.environ.get("QUALIFIED_SOURCE_SHA",os.environ.get("GITHUB_SHA","local")),
       "samples":[{"filename":k,"sample_type":v[0]} for k,v in SOURCES.items()],
       "research_design":"2 real biological urine + 2 true blanks; zero pooled QC",
       "native_xcms_executed":False,
