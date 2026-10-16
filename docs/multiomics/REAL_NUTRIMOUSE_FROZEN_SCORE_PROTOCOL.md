@@ -6,7 +6,7 @@
 
 Official public mixOmics Nutrimouse source at immutable Git commit `ef3e760526623d9e91e945e4b50be48d764efc40`, `data/nutrimouse.rda`: 40 animals measured for 120 preselected liver macroarray gene-expression signals and 21 liver fatty-acid percentages by gas chromatography. These are neither RNA-seq raw counts nor LC-MS peak areas. It is the **same published single cohort** used in the existing DIABLO/MOFA2 benchmarks; cross-cohort replication is not established.
 
-One animal = one biological subject. Two assay rows from the same specimen are NOT two independent subjects. Genotype and diet are real experimental metadata; sampling/dose time and any PK concentration remain unknown.
+One animal = one biological subject. RNA and lipid assays share the original animal `subject_id`, but receive **distinct specimen identifiers**, because a shared physical aliquot is not documented. They are NOT two independent subjects. Genotype and diet are real experimental metadata; sampling/dose time and any PK concentration remain unknown.
 
 ## Locked fit and independent check
 
