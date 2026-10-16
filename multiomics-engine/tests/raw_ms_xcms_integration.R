@@ -1,5 +1,6 @@
 #!/usr/bin/env Rscript
 source(file.path("multiomics-engine", "raw_ms_processing.R"))
+source(file.path("multiomics-engine","ms_quantitative_assurance.R"))
 
 required <- c("xcms", "MsExperiment", "Spectra", "mzR", "faahKO")
 missing <- required[!vapply(required, requireNamespace, logical(1), quietly = TRUE)]
@@ -121,6 +122,43 @@ stopifnot(all(is.finite(actual)|is.na(actual)),
                            check.attributes=FALSE,tolerance=1e-8)),
           isTRUE(all.equal(mean(!is.finite(res$matrix)),
                            res$summary$matrix_missing_fraction,tolerance=1e-12)))
+# The authentic faahKO subset has no solvent blanks or pooled-QC samples.
+# Quantitative QC must say "not evaluable" instead of inventing blank/pooled QC
+# values or applying an implicit instrument correction to its 4 assays.
+qc_manifest<-data.frame(
+ assay_id=as.character(colnames(res$matrix)),
+ sample_type=rep("biological",length(selected)),
+ condition=sample_data$condition,
+ injection_order=seq_along(selected),
+ stringsAsFactors=FALSE
+)
+authentic_qc<-ms_quantitative_assurance(t(res$matrix),qc_manifest)
+stopifnot(authentic_qc$coverage$biological_assays==4L,
+ authentic_qc$coverage$pooled_qc_assays==0L,
+ authentic_qc$coverage$blank_assays==0L,
+ !authentic_qc$coverage$pooled_qc_precision_evaluable,
+ !authentic_qc$coverage$blank_background_evaluable,
+ !authentic_qc$coverage$pooled_qc_drift_screen_evaluable,
+ !authentic_qc$scientific_certified,
+ !authentic_qc$feature_exclusions_automatically_applied,
+ "pooled_qc_not_sufficient_for_rsd"%in%authentic_qc$alerts,
+ "blanks_not_sufficient_for_background"%in%authentic_qc$alerts)
+if(nzchar(output_from_ci)){
+ utils::write.csv(authentic_qc$features,
+   file.path(out,"faahko_real_descriptive_qc_features.csv"),row.names=FALSE,na="")
+ jsonlite::write_json(list(
+   schema="multiomics.raw-ms.real-qc-coverage.v1",
+   source="authentic unspiked faahKO 2 KO + 2 WT public netCDF files",
+   measurement_type="integrated analytical chromatographic peak area, NOT plasma PK AUC",
+   coverage=authentic_qc$coverage,
+   alerts=authentic_qc$alerts,
+   status=authentic_qc$status,
+   scientific_certified=FALSE,
+   qc_and_blank_observations_available=FALSE,
+   interpretation="No pooled-QC/blank injections: precision, contamination, time drift and per-batch QC shifts CANNOT be evaluated; synthetic known-truth QC belongs to a separate test."
+ ),file.path(out,"faahko_real_qc_limitations.json"),auto_unbox=TRUE,pretty=TRUE)
+}
+
 if(nzchar(output_from_ci)){
   package_names<-c("xcms","MsExperiment","Spectra","mzR","faahKO","BiocManager")
   installed_versions<-vapply(package_names,function(pkg)
