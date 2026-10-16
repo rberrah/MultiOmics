@@ -39,10 +39,21 @@ export async function buildDownstreamExchange(portableProject){
   const h=metadata.header;
   for(const key of ['assay_id','sample_id','subject_id','omic'])
     if(!h.includes(key))throw Error('Exchange requires explicit sample sheet column '+key);
-  const sampleRows=metadata.rows.map(r=>Object.fromEntries(h.map((key,i)=>[key,r[i]])));
+  const sampleRows=metadata.rows.map(r=>{
+    const sample=Object.fromEntries(h.map((key,i)=>[key,r[i]]));
+    // Native demos call this technical_replicate; downstream contract uses _id.
+    // Explicit downstream column wins; never synthesize a biological sample.
+    sample.technical_replicate_id=sample.technical_replicate_id||sample.technical_replicate||'';
+    return sample;
+  });
   const specimenOwners=new Map();
   const specimenContext=new Map();
-  const sampleIds=new Set(),sampleOutput=[['assay_id','sample_id','subject_id','omic','tissue','collection_time','collection_time_unit','condition','batch','technical_replicate_id','source_dataset_id']];
+  const sampleIds=new Set(),sampleOutput=[[
+    'assay_id','sample_id','subject_id','omic','tissue','collection_time',
+    'collection_time_unit','condition','batch','technical_replicate_id','source_dataset_id',
+    // Backwards-compatible appended columns: categorical time is NOT numeric PK time.
+    'timepoint','timepoint_unit','time_origin'
+  ]];
   for(const s of sampleRows){
     if(!TYPES.includes(s.omic)||!s.assay_id||!s.sample_id||!s.subject_id)
       throw Error('Invalid sample sheet for downstream exchange');
@@ -51,11 +62,11 @@ export async function buildDownstreamExchange(portableProject){
       throw Error('One sample_id cannot belong to multiple biological subjects');
     specimenOwners.set(s.sample_id,s.subject_id);
     const previous=specimenContext.get(s.sample_id)||{};
-    for(const field of ['tissue','collection_time','collection_time_unit']){
+    for(const field of ['tissue','collection_time','collection_time_unit','timepoint','timepoint_unit','time_origin']){
       if(previous[field] && s[field] && previous[field]!==s[field])
         throw Error('Conflicting '+field+' for shared specimen '+s.sample_id);
     }
-    specimenContext.set(s.sample_id,{...previous,...Object.fromEntries(['tissue','collection_time','collection_time_unit'].map(field=>[field,s[field]||previous[field]||'']))});
+    specimenContext.set(s.sample_id,{...previous,...Object.fromEntries(['tissue','collection_time','collection_time_unit','timepoint','timepoint_unit','time_origin'].map(field=>[field,s[field]||previous[field]||'']))});
     const key=s.omic+'\u0000'+s.assay_id;
     if(sampleIds.has(key))throw Error('Duplicate assay_id for '+s.omic);
     sampleIds.add(key);
@@ -114,7 +125,13 @@ export async function buildDownstreamExchange(portableProject){
     study:{organism:declared.organism||'unknown',biological_unit:declared.unitType||'other',data_access:'private'},
     files:{samples:sampleSpec,features:featuresSpec},
     matrices,
-    software:{producer:'PMx Explain browser source exchange',commit:'unknown',r_version:null,python_version:null,dependency_lockfiles:[]},
+    software:{
+      producer:'MultiOmics browser source exchange',
+      // Injected by Vite from the checked-out Git commit. Unknown is explicit
+      // for unversioned browser/local builds and must not be forged.
+      commit:import.meta.env?.VITE_MULTIOMICS_SOURCE_SHA||'unknown',
+      r_version:null,python_version:null,dependency_lockfiles:[]
+    },
     validation:{status:'exploratory',methods:[]}
   };
   entries.push({name:'exchange/manifest.json',data:JSON.stringify(manifest,null,2)+'\n'});
