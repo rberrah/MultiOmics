@@ -70,6 +70,38 @@ if(!identical(unname(parameters),unname(fit_on_train(counterfactual))))
 heldout_z <- (values[test_index]-parameters[["mean"]])/parameters[["sd"]]
 if(any(!is.finite(heldout_z)))stop("Nonfinite genuine heldout scores")
 
+# SECOND, deliberately modest 4-gene technical composite. The marker Cyp3a11
+# is prespecified. Three more genes are selected by TRAINING-ONLY variance,
+# with no genotype, diet, heldout value or significance screen. It demonstrates
+# frozen multi-feature projection, NOT a validated pathway/activity score.
+panel_candidate <- setdiff(seq_len(ncol(gene)),location)
+train_sds <- apply(gene[train_index,panel_candidate,drop=FALSE],2,stats::sd)
+valid <- which(is.finite(train_sds) & train_sds>1e-12)
+if(length(valid)<3L)stop("Fewer than three nonconstant TRAINING-only genes")
+ranked <- valid[order(-train_sds[valid],colnames(gene)[panel_candidate[valid]],method="radix")]
+panel_indices <- c(location,panel_candidate[ranked[seq_len(3L)]])
+panel_names <- colnames(gene)[panel_indices]
+panel_train <- gene[train_index,panel_indices,drop=FALSE]
+panel_means <- colMeans(panel_train)
+panel_sds <- apply(panel_train,2,stats::sd)
+if(any(!is.finite(panel_sds)) || any(panel_sds<=0))
+ stop("Multigene training parameters are not finite")
+panel_z <- sweep(sweep(gene[test_index,panel_indices,drop=FALSE],
+                       2,panel_means,"-"),2,panel_sds,"/")
+heldout_panel_z <- rowMeans(panel_z)
+if(any(!is.finite(heldout_panel_z)))stop("Nonfinite heldout panel score")
+# Negative-control: entire heldout matrix can change without affecting
+# training-only feature selection, means or SDs.
+counterfactual_matrix <- gene
+counterfactual_matrix[test_index,] <- counterfactual_matrix[test_index,]*1e6+999999
+refit_candidate_sds <- apply(counterfactual_matrix[train_index,panel_candidate,drop=FALSE],2,stats::sd)
+if(!identical(unname(train_sds),unname(refit_candidate_sds)) ||
+   !identical(unname(panel_means),
+              unname(colMeans(counterfactual_matrix[train_index,panel_indices,drop=FALSE]))) ||
+   !identical(unname(panel_sds),
+              unname(apply(counterfactual_matrix[train_index,panel_indices,drop=FALSE],2,stats::sd))))
+ stop("Heldout leakage into multigene selection, center or scale")
+
 sha <- function(path) {
   result <- suppressWarnings(system2("sha256sum",shQuote(normalizePath(path)),
                                       stdout=TRUE,stderr=TRUE))
@@ -146,6 +178,42 @@ model_file <- file.path(dest,"frozen_model.json")
 write_json(model,model_file)
 model_sha <- sha(model_file)
 feature_sha <- sha(definition_file)
+# Save true bytes from the real fitted panel and selected training measurements.
+panel_train_rows <- data.frame(
+  subject_id=rep(ids[train_index],times=length(panel_indices)),
+  feature_id=rep(panel_names,each=length(train_index)),
+  value=as.vector(panel_train),stringsAsFactors=FALSE)
+write.csv(panel_train_rows,file.path(dest,"training_panel_observations.csv"),row.names=FALSE)
+panel_feature_definition <- list(
+  anchor="Cyp3a11",source_block="nutrimouse$gene",tissue="liver",
+  original_measurement_type="preprocessed_macroarray_gene_expression",
+  method="anchor_plus_three_highest_train_only_standard_deviations",
+  selected_gene_ids=as.list(panel_names),
+  selection_and_all_preprocessing_training_only=TRUE,
+  score_scale="mean_of_four_training_centered_gene_z_scores",
+  formula="rowMeans((gene_expression - training_mean) / training_sample_sd)",
+  feature_weights=c(.25,.25,.25,.25),
+  phenotype_used_for_selection=FALSE,missing_policy="reject_missing_no_imputation",
+  scientific_status="technical_four_gene_composite_not_biologically_validated")
+panel_def_file <- file.path(dest,"panel_feature_definition.json")
+write_json(panel_feature_definition,panel_def_file)
+panel_model <- list(
+  method="four_gene_train_only_variance_selection_and_scaling",
+  feature_ids=as.list(panel_names),
+  training_subject_ids=as.list(ids[train_index]),
+  heldout_subject_ids=as.list(ids[test_index]),
+  training_means=unname(as.numeric(panel_means)),
+  training_sample_sds=unname(as.numeric(panel_sds)),
+  training_measurements_sha256=sha(file.path(dest,"training_panel_observations.csv")),
+  source_rda_sha256=sha(source_file),
+  pinned_source_commit="ef3e760526623d9e91e945e4b50be48d764efc40",
+  phenotype_labels_used_for_selection_or_fitting=FALSE,
+  heldout_values_used_for_selection_or_fitting=FALSE,
+  clinical_or_PK_prediction_validated=FALSE)
+panel_model_file <- file.path(dest,"frozen_panel_model.json")
+write_json(panel_model,panel_model_file)
+panel_model_sha <- sha(panel_model_file)
+panel_feature_sha <- sha(panel_def_file)
 analysis_id <- paste0("source-",substr(sha(file.path(dest,"metadata.csv")),1L,16L))
 scores <- data.frame(
   subject_id=ids[test_index],sample_id=rna_specimens[test_index],
@@ -157,9 +225,19 @@ scores <- data.frame(
   source_exchange_analysis_id=analysis_id,
   score_provenance="native_r_individual_score",stringsAsFactors=FALSE
 )
+panel_scores <- scores
+panel_scores$signature_id <- "nutrimouse_four_gene_trainonly_composite"
+panel_scores$score <- as.numeric(heldout_panel_z)
+panel_scores$score_scale <- "mean_of_four_training_centered_gene_z_scores"
+panel_scores$reference_model_sha256 <- panel_model_sha
+panel_scores$feature_definition_sha256 <- panel_feature_sha
+scores <- rbind(scores,panel_scores)
 write.csv(scores,file.path(dest,"individual_signatures.csv"),row.names=FALSE)
-if(anyDuplicated(scores$subject_id) || nrow(scores)!=10L)
- stop("Heldout individual biological assay projection incomplete")
+if(nrow(scores)!=20L ||
+   anyDuplicated(paste(scores$assay_id,scores$signature_id)) ||
+   length(unique(scores$subject_id))!=10L ||
+   length(unique(scores$signature_id))!=2L)
+ stop("Actual ten heldout animals and both frozen per-assay scores incomplete")
 # An exploratory phenotype check, strictly AFTER all scores were fixed:
 # no conditional diet/genotype evidence or biological superiority claim.
 levels <- sort(unique(genotype))
@@ -178,6 +256,10 @@ report <- list(
   train_n=30L,heldout_n=10L,
   no_subject_leakage=TRUE,heldout_perturbation_invariance_pass=TRUE,
   model_sha256=model_sha,feature_definition_sha256=feature_sha,
+  panel_model_sha256=panel_model_sha,panel_feature_definition_sha256=panel_feature_sha,
+  panel_selected_genes=panel_names,panel_selection_training_only=TRUE,
+  panel_heldout_scores=as.numeric(heldout_panel_z),
+  panel_performance_not_assessed_as_biomarker=TRUE,
   heldout_mean_score_by_genotype=c(mean(g1),mean(g2)),
   heldout_difference_second_minus_first=unname(effect),
   exploratory_permutation_n=199L,
@@ -186,9 +268,10 @@ report <- list(
   limits=c(
     "One published cohort, no independently acquired external animals.",
     "Preselected 120 expression features, not untargeted transcriptomics.",
-    "Marker preselected by name; no supervised selection or optimized PK outcome.",
+    "Marker preselected by name; 3 additional genes selected by training variance only, NOT biology.",
     "Genotype/diet may confound; 10 heldout animals give low precision.",
     "The empirical permutation is descriptive, not confirmatory FDR control.",
+    "Neither 1-gene nor 4-gene score predicts human CYP activity, PK or therapeutic outcomes.",
     "No PK measures, dosing, pharmacodynamic response or clinical interpretation."
   ),
   biological_validation_status="exploratory_real_assay_projection_not_external_confirmatory",
