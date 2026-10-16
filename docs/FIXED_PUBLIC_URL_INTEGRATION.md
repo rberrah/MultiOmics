@@ -1,3 +1,7 @@
+**Current deployment (16 October 2026):** This integration has been implemented by `rberrah/rberrah.github.io` PR #116 (commit `f81e2748`) and monitored by PR #117 (commit `1320880a`). The public deployment of PR #116 was successful. PMx Explain owns Pages, pins `MultiOmics@9041d38c` and builds only the allowlisted `/pharmacometrie/multiomics/` and `/_multiomics_app/` overlay. A new MultiOmics/main commit does NOT automatically change the public app: coordinate an immutable-pin update through PMx CI. The below cutover section is the **historical design and rollback recipe**, not an outstanding first-deployment instruction.
+
+---
+
 # Same public URLs, independent MultiOmics repository
 
 Decision (2026-10-16): the repository rberrah/MultiOmics is the future

@@ -2,7 +2,39 @@
 
 An open-source, browser-first environment for reproducible **single- and multi-omics research**, with an optional local R reference engine.
 
-**Release status:** autonomous migration under review — this is **not** yet a validated standalone release or a universal confirmatory analysis platform. The upstream public tool remains available at [rberrah.github.io/pharmacometrie/multiomics/tool](https://rberrah.github.io/pharmacometrie/multiomics/tool/).
+**Release status:** independent source repository, with authenticated standalone CI and a validated PMx hosting integration. The deployed research tool remains at [rberrah.github.io/pharmacometrie/multiomics/tool](https://rberrah.github.io/pharmacometrie/multiomics/tool/). This is **not** a claim of universal confirmatory statistical validity, clinical use, or a remote hosted R service.
+
+## Download and use independently
+
+The repository is public. Download the **complete source** with **Code → Download ZIP** on [GitHub](https://github.com/rberrah/MultiOmics), or clone it with:
+
+```bash
+git clone https://github.com/rberrah/MultiOmics.git
+cd MultiOmics
+npm ci
+npm run dev
+```
+
+The repository ZIP includes the SvelteKit application, scientific R source, example CSVs, tests and documentation. Node.js 22 or newer and npm are needed to develop or build the site. The optional R/Bioconductor reference engine has its own package dependencies (see below).
+
+For a **portable, browser-only download**, use the GitHub Actions artifact named `MultiOmics-portable-web-<commit SHA>` from a successful [standalone software qualification run](https://github.com/rberrah/MultiOmics/actions/workflows/standalone-ci.yml). Extract `MultiOmics-portable-web.zip`, enter its `MultiOmics-portable-web` directory, then run:
+
+```bash
+node serve.mjs
+```
+
+Open `http://127.0.0.1:4173/multiomics/tool/`. This package needs Node.js 22+ but **no npm installation, PMx Explain source, R installation or development dependencies**. It is a locally served static website: double-clicking an HTML file under `file://` is not a supported way to launch SvelteKit.
+
+To create exactly that distributable from a full source checkout, use:
+
+```bash
+npm ci
+npm run build:portable
+```
+
+This additional packaging command uses Python 3's **standard library** to produce `release/MultiOmics-portable-web.zip` and a SHA-256 checksum. The package has a file-level manifest and is tested with a real local HTTP server and Chromium in CI. Actions artifacts expire; for permanent redistribution publish a vetted versioned GitHub Release after full qualification.
+
+The browser package supports exploratory workflows and research exports. **It does not package or emulate a native R backend.** For reference analyses install the packages under `multiomics-engine/`, and make a deliberate local/authorized backend connection.
 
 ## Analyse in a browser
 
@@ -37,7 +69,7 @@ node scripts/build_pmx_compat_overlay.mjs
 node scripts/test_pmx_compat_overlay.mjs
 ```
 
-This does **not** publish the website or change the PMx Explain repository. A separate, reviewed PMx integration PR will pin a vetted MultiOmics SHA and add only the verified pages and `_multiomics_app` assets to its existing deployment. See [fixed public URL integration](docs/FIXED_PUBLIC_URL_INTEGRATION.md). A static Pages site **does not execute R on the server**.
+This command does **not** publish or modify PMx Explain. The public hosting integration was merged via [PMx Explain PR #116](https://github.com/rberrah/rberrah.github.io/pull/116), and its post-deployment smoke via [PR #117](https://github.com/rberrah/rberrah.github.io/pull/117). PMx publishes a **pinned, independently qualified source commit** and adds only the verified pages and `_multiomics_app` assets. See [fixed public URL integration](docs/FIXED_PUBLIC_URL_INTEGRATION.md). A static Pages site **does not execute R on the server**.
 
 ## Optional native R reference engine
 
@@ -76,4 +108,4 @@ The second command installs missing **reporting** dependencies where supported, 
 
 The initial scientific snapshot contains **244 source-matched files** from `rberrah/rberrah.github.io` commit `dbe503f98cfde460f95a60617f3d743adb6b915b`, verified against immutable Git blob hashes. See `migration/source-snapshot-manifest.json`. Standalone adaptations are intentionally separate commits.
 
-The original portal's MultiOmics links remain operational while the autonomous version is tested. No deletion, redirect cutover, scientific publication claim or clinical deployment is implied by opening this repository.
+The portal continues to serve exactly the original MultiOmics URLs using a scoped namespaced overlay. Future MultiOmics changes require an updated immutable source pin and PMx build qualification; merging MultiOmics/main alone does not silently update the public site.

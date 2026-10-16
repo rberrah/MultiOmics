@@ -22,3 +22,6 @@ research_reproduction_status.json
 r_numeric_comparison_report.json
 *.zip
 # Do NOT ignore public benchmark CSV source fixtures by default.
+# Generated archives and verified public-site overlay (do not commit)
+release/
+compat-overlay/

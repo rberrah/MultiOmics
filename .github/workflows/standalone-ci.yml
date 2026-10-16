@@ -34,6 +34,22 @@ jobs:
         env:
           LABS_E2E_PREBUILT: '1'
         run: npx playwright test --config playwright.multiomics.config.js tests/e2e/multiomics-methods-learning.spec.js tests/e2e/multiomics-contrast.spec.js --workers=1 --retries=0
+      - name: Create portable web download with manifest; Node-only runtime
+        run: |
+          node scripts/package_portable_web.mjs
+          node scripts/test_portable_web.mjs
+          python3 scripts/archive_portable_web.py
+      - name: Exercise portable downloaded bundle in real desktop/mobile browser
+        run: npx playwright test --config playwright.portable.config.js --workers=1 --retries=0
+      - name: Publish independently usable browser package as Actions artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: MultiOmics-portable-web-${{ github.sha }}
+          path: |
+            release/MultiOmics-portable-web.zip
+            release/MultiOmics-portable-web.zip.sha256
+          if-no-files-found: error
+          retention-days: 30
       - name: Validate static GitHub Pages base path independently of PMx
         env:
           BASE_PATH: /MultiOmics
