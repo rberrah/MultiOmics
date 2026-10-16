@@ -23,7 +23,11 @@ jobs:
           node-version: 22
           cache: npm
       - name: Refresh lockfile after removing unused vulnerable packages
-        run: npm install --package-lock-only --no-fund --ignore-scripts
+        run: |
+          # Only this experimental major-version compatibility branch:
+          # resolve a fresh tree; the old v2/v7 lock contains incompatible peers.
+          rm package-lock.json
+          npm install --package-lock-only --no-fund --ignore-scripts
       - name: Baseline audit against the exact committed lockfile
         run: |
           node --version
