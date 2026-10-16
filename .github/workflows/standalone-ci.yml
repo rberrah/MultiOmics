@@ -33,7 +33,7 @@ jobs:
       - name: Run standalone FR/EN lessons and four-button desktop UI
         env:
           LABS_E2E_PREBUILT: '1'
-        run: npx playwright test --config playwright.multiomics.config.js tests/e2e/multiomics-methods-learning.spec.js --workers=1 --retries=0
+        run: npx playwright test --config playwright.multiomics.config.js tests/e2e/multiomics-methods-learning.spec.js tests/e2e/multiomics-contrast.spec.js --workers=1 --retries=0
       - name: Validate static GitHub Pages base path independently of PMx
         env:
           BASE_PATH: /MultiOmics

@@ -51,3 +51,27 @@ test('Quick-start demo has three single-omic choices above a full-width multi-om
   expect(all.y).toBeGreaterThan(rna.y+rna.height-3);
   expect(all.width).toBeGreaterThan(rna.width*2.5);
 });
+
+test('Mobile 390px: three single-omic shortcuts and a full-width multi-omics button',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  await page.goto('/multiomics/tool?lang=fr');
+  const ids=['multiomics-quick-demo-rna','multiomics-quick-demo-protein','multiomics-quick-demo-metabolite','multiomics-quick-demo'];
+  const boxes=[];
+  for(const id of ids){
+    const el=page.getByTestId(id);
+    await expect(el).toBeVisible();
+    const area=await el.boundingBox();
+    if(!area)throw new Error('Mobile shortcut cannot be measured: '+id);
+    boxes.push(area);
+  }
+  const [a,b,c,all]=boxes;
+  expect(Math.abs(a.y-b.y)).toBeLessThan(3);
+  expect(Math.abs(b.y-c.y)).toBeLessThan(3);
+  expect(all.y).toBeGreaterThan(a.y+a.height-3);
+  expect(all.width).toBeGreaterThan(a.width*2.5);
+  const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
+  expect(overflow).toBeLessThanOrEqual(12);
+  await page.getByTestId('multiomics-quick-demo').click();
+  await expect(page.getByTestId('multiomics-results')).toBeVisible({timeout:30000});
+  await expect(page.getByTestId('multiomics-visualizations')).toBeVisible();
+});
