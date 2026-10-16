@@ -7,13 +7,12 @@ on:
       - 'multiomics-engine/tests/bioconductor_null_calibration.R'
       - 'multiomics-engine/tests/bioconductor_mixed_truth_reference.R'
       - '.github/workflows/frozen-reference-qualification.yml'
+  # The release assembler requires an independently reproducible passing
+  # scientific result on the *exact* immutable published SHA, even when a
+  # commit changes only JS/UI/other methods. Path-filtered main pushes gave
+  # a permanently stale source pin and prevented visible header updates.
   push:
     branches: [main]
-    paths:
-      - 'multiomics-engine/environment/**'
-      - 'multiomics-engine/tests/bioconductor_null_calibration.R'
-      - 'multiomics-engine/tests/bioconductor_mixed_truth_reference.R'
-      - '.github/workflows/frozen-reference-qualification.yml'
   workflow_dispatch:
 
 permissions:
