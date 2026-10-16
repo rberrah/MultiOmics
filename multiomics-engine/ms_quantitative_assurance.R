@@ -40,6 +40,16 @@ ms_quantitative_assurance <- function(intensities, manifest,
     stop('Biological samples have missing condition annotations.')
   groups <- trimws(as.character(meta$condition[biological]))
   if(any(!nzchar(groups)))stop("Biological samples lack group declaration.")
+  # External peak-area tables sometimes omit QC injection order. Accept
+  # synthetic sequence indices only for stable joins; never infer drift from
+  # positions that were not documented by the original laboratory.
+  order_verified <- TRUE
+  if("injection_order_verified" %in% names(meta)){
+    flag <- meta$injection_order_verified
+    if(!is.logical(flag) || anyNA(flag) || length(unique(flag))!=1L)
+      stop("injection_order_verified must be one explicit logical value for the whole study.")
+    order_verified <- isTRUE(flag[[1L]])
+  }
   order <- suppressWarnings(as.numeric(meta$injection_order))
   if(any(!is.finite(order)) || anyDuplicated(order))
     stop("Unique finite injection orders are needed for drift review.")
@@ -106,7 +116,9 @@ ms_quantitative_assurance <- function(intensities, manifest,
 
   drift <- rep(NA_real_,ncol(x))
   drift_status <- rep("too_few_pooled_qc_injections",ncol(x))
-  if(length(qc)>=5L) for(j in seq_len(ncol(x))) {
+  if(length(qc)>=5L && !order_verified)
+    drift_status[] <- "injection_order_not_verified"
+  if(length(qc)>=5L && order_verified) for(j in seq_len(ncol(x))) {
     v<-x[qc,j]
     ok<-is.finite(v)
     if(sum(ok)<5L) {
@@ -218,7 +230,8 @@ ms_quantitative_assurance <- function(intensities, manifest,
     biological_missingness_evaluable=TRUE,
     pooled_qc_precision_evaluable=length(qc)>=3L,
     blank_background_evaluable=length(blanks)>=2L,
-    pooled_qc_drift_screen_evaluable=length(qc)>=5L,
+    pooled_qc_drift_screen_evaluable=length(qc)>=5L && order_verified,
+    pooled_qc_injection_order_verified=order_verified,
     pooled_qc_batch_screen_evaluable=batch_screen_evaluable,
     pooled_qc_batch_label_count=length(unique(qc_batches)),
     missingness_group_imbalance_evaluable=length(strata)==2L)
@@ -229,7 +242,9 @@ ms_quantitative_assurance <- function(intensities, manifest,
   if(!coverage$blank_background_evaluable)
     alerts <- c(alerts,"blanks_not_sufficient_for_background")
   if(!coverage$pooled_qc_drift_screen_evaluable)
-    alerts <- c(alerts,"pooled_qc_not_sufficient_for_drift")
+    alerts <- c(alerts,if(length(qc)>=5L && !order_verified)
+      "pooled_qc_injection_order_not_verified" else
+      "pooled_qc_not_sufficient_for_drift")
   if(!coverage$missingness_group_imbalance_evaluable)
     alerts <- c(alerts,"exactly_two_biological_groups_needed_for_missingness_comparison")
   for(flag in c("flag_missing","flag_qc_variation","flag_qc_not_evaluable",
@@ -260,6 +275,7 @@ ms_quantitative_assurance <- function(intensities, manifest,
       "an absence of group missingness imbalance does not rule out MNAR.",
       "A measured QC/blank injection is not evidence for a particular missing or zero-valued feature.",
       "Batch median-ratio and run-order drift flags are heuristic screens, not statistical significance tests.",
+      "Drift is not computed when the source does not document QC injection order.",
       "No drift correction or biological feature exclusion is selected after seeing p-values.")
   )
 }
