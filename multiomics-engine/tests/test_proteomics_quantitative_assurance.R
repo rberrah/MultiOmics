@@ -1,0 +1,42 @@
+#!/usr/bin/env Rscript
+source("multiomics-engine/proteomics_quantitative_assurance.R")
+ids<-paste0("Q",seq_len(12L))
+genes<-c("P1","P2","P3","P4")
+meta<-data.frame(assay_id=ids,subject_id=ids,
+  condition=rep(c("control","treated"),each=6L),
+  batch=rep(c("B1","B2"),times=6L),stringsAsFactors=FALSE)
+mat<-matrix(100,12L,4L,dimnames=list(ids,genes))
+mat[7:12,"P2"]<-NA_real_
+mat[1:5,"P3"]<-NA_real_
+out<-proteomics_quantitative_assurance(mat,meta,platform="lfq_ms",scale="raw")
+stopifnot(out$sample_count==12L,out$measured_features==4L,
+ out$features$flag_group_imbalance[2L],
+ out$features$flag_high_missingness[2L],
+ !out$scientific_certified,!out$mnar_ruled_out,
+ !out$statistical_significance_computed,
+ "missing_not_at_random_left_censoring_not_excluded"%in%out$alerts)
+tmt<-proteomics_quantitative_assurance(log2(mat),meta,
+ platform="tmt",scale="log2")
+stopifnot("reference_channel_and_ratio_compression_not_verified"%in%tmt$alerts)
+aff<-proteomics_quantitative_assurance(log2(mat),meta,
+ platform="affinity",scale="log2")
+stopifnot("target_binding_specificity_and_panel_version_not_verified"%in%aff$alerts)
+reject<-function(x=mat,m=meta,...)
+  inherits(try(proteomics_quantitative_assurance(x,m,...),
+               silent=TRUE),"try-error")
+bad<-meta;bad$subject_id[2]<-bad$subject_id[1]
+stopifnot(reject(m=bad))
+bad<-mat;rownames(bad)[2]<-rownames(bad)[1]
+stopifnot(reject(x=bad))
+bad<-mat;bad[1,1]<--3
+stopifnot(reject(x=bad,platform="lfq_ms",scale="raw"))
+stopifnot(!reject(x=bad,platform="lfq_ms",scale="log2"))
+bad<-meta;bad$condition[1]<-NA_character_
+stopifnot(reject(m=bad))
+bad<-meta;bad$batch[1]<-NA_character_
+stopifnot(reject(m=bad))
+bad<-meta;bad$batch<-bad$condition
+flag<-proteomics_quantitative_assurance(mat,bad,platform="affinity",scale="raw")
+stopifnot(isTRUE(flag$batch_condition_fully_confounded),
+ "protein_batch_confounded_with_group"%in%flag$alerts)
+cat("PROTEOMICS QUANTITATIVE QA: independent subjects, LFQ/TMT/affinity specificity, missingness and batch guards PASS\n")
