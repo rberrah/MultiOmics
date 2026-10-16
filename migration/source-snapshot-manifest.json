@@ -1,0 +1,1477 @@
+{
+  "schema_version": "1",
+  "migration_stage": "raw_scientific_source_snapshot_not_yet_independently_built",
+  "source_repository": "rberrah/rberrah.github.io",
+  "source_commit": "dbe503f98cfde460f95a60617f3d743adb6b915b",
+  "target_repository": "rberrah/MultiOmics",
+  "target_branch": "migration/import-validated-multiomics-20261016",
+  "imported_files": 244,
+  "verified_identical_git_blobs": 244,
+  "mismatches": [],
+  "files": [
+    {
+      "source_path": ".github/workflows/multiomics-all-native-heldout.yml",
+      "target_path": "migration/legacy-workflows/multiomics-all-native-heldout.yml",
+      "git_blob_sha": "a2278fd23f1f97b10bd4e0a3a497f968c8a73cc2",
+      "bytes": 2977
+    },
+    {
+      "source_path": ".github/workflows/multiomics-bioconductor-validation.yml",
+      "target_path": "migration/legacy-workflows/multiomics-bioconductor-validation.yml",
+      "git_blob_sha": "5fd55f8029b259231eedf54e33f423251e40b327",
+      "bytes": 3036
+    },
+    {
+      "source_path": ".github/workflows/multiomics-calibration-grid.yml",
+      "target_path": "migration/legacy-workflows/multiomics-calibration-grid.yml",
+      "git_blob_sha": "5ac5c068842b237c121548f7ef83f9a3bc64dfab",
+      "bytes": 1324
+    },
+    {
+      "source_path": ".github/workflows/multiomics-ci.yml",
+      "target_path": "migration/legacy-workflows/multiomics-ci.yml",
+      "git_blob_sha": "a068059536513be08cc923b5ea4699986805c454",
+      "bytes": 4682
+    },
+    {
+      "source_path": ".github/workflows/multiomics-cox-reference.yml",
+      "target_path": "migration/legacy-workflows/multiomics-cox-reference.yml",
+      "git_blob_sha": "a57d57b5b86cce6f07f86e9d00debde544b58e1a",
+      "bytes": 2226
+    },
+    {
+      "source_path": ".github/workflows/multiomics-diablo-holdout.yml",
+      "target_path": "migration/legacy-workflows/multiomics-diablo-holdout.yml",
+      "git_blob_sha": "d308f64bd001b67051715d55e4d451289d60296e",
+      "bytes": 2651
+    },
+    {
+      "source_path": ".github/workflows/multiomics-exchange-contract.yml",
+      "target_path": "migration/legacy-workflows/multiomics-exchange-contract.yml",
+      "git_blob_sha": "003155533dc1faf5b94e5e3bbc5d3b54f712e250",
+      "bytes": 3719
+    },
+    {
+      "source_path": ".github/workflows/multiomics-full-reference-export.yml",
+      "target_path": "migration/legacy-workflows/multiomics-full-reference-export.yml",
+      "git_blob_sha": "8c1d4708a0b51535d5c8bf09604a8e21be6bd52a",
+      "bytes": 2721
+    },
+    {
+      "source_path": ".github/workflows/multiomics-live-r-to-zip.yml",
+      "target_path": "migration/legacy-workflows/multiomics-live-r-to-zip.yml",
+      "git_blob_sha": "a9dc468abed3bfa34cb48c71ef68cdd27a24276a",
+      "bytes": 4483
+    },
+    {
+      "source_path": ".github/workflows/multiomics-longitudinal-reference.yml",
+      "target_path": "migration/legacy-workflows/multiomics-longitudinal-reference.yml",
+      "git_blob_sha": "7bf0bdf1eb947f5edd7cdc4e3c5e1bd2202034a5",
+      "bytes": 1206
+    },
+    {
+      "source_path": ".github/workflows/multiomics-mainz-nki-preflight.yml",
+      "target_path": "migration/legacy-workflows/multiomics-mainz-nki-preflight.yml",
+      "git_blob_sha": "c434f9bc947d060636e92104158cee0b56317cb5",
+      "bytes": 3926
+    },
+    {
+      "source_path": ".github/workflows/multiomics-mainz-transbig-external.yml",
+      "target_path": "migration/legacy-workflows/multiomics-mainz-transbig-external.yml",
+      "git_blob_sha": "5fc9d5eb4486b37ec058ec623ebf2837f713faa3",
+      "bytes": 3513
+    },
+    {
+      "source_path": ".github/workflows/multiomics-methodology-validation.yml",
+      "target_path": "migration/legacy-workflows/multiomics-methodology-validation.yml",
+      "git_blob_sha": "205a5f1b7fd158bf860167f3eec9986208d08cff",
+      "bytes": 2301
+    },
+    {
+      "source_path": ".github/workflows/multiomics-missingness-stress.yml",
+      "target_path": "migration/legacy-workflows/multiomics-missingness-stress.yml",
+      "git_blob_sha": "5ee664e6aed3723f0985c304fb87eff596830a39",
+      "bytes": 1369
+    },
+    {
+      "source_path": ".github/workflows/multiomics-mixed-truth-fdr.yml",
+      "target_path": "migration/legacy-workflows/multiomics-mixed-truth-fdr.yml",
+      "git_blob_sha": "0eae26148104fd3a52484599756e72240b76d694",
+      "bytes": 1326
+    },
+    {
+      "source_path": ".github/workflows/multiomics-mofa-real-nutrimouse.yml",
+      "target_path": "migration/legacy-workflows/multiomics-mofa-real-nutrimouse.yml",
+      "git_blob_sha": "a5e7a3e278129dd8283ab869643c799dcc148afc",
+      "bytes": 3140
+    },
+    {
+      "source_path": ".github/workflows/multiomics-mofa-truth.yml",
+      "target_path": "migration/legacy-workflows/multiomics-mofa-truth.yml",
+      "git_blob_sha": "23c66db189b3ec4c931ec3e308d91e76fa240438",
+      "bytes": 2450
+    },
+    {
+      "source_path": ".github/workflows/multiomics-ms-auc-stability.yml",
+      "target_path": "migration/legacy-workflows/multiomics-ms-auc-stability.yml",
+      "git_blob_sha": "b884f1dcf6a6a36fa4f2202ad295fd7fd2c6cf21",
+      "bytes": 1426
+    },
+    {
+      "source_path": ".github/workflows/multiomics-native-heldout.yml",
+      "target_path": "migration/legacy-workflows/multiomics-native-heldout.yml",
+      "git_blob_sha": "1e634d8b547868200e0c25b0df707e681428b000",
+      "bytes": 2779
+    },
+    {
+      "source_path": ".github/workflows/multiomics-oracle-dispersion.yml",
+      "target_path": "migration/legacy-workflows/multiomics-oracle-dispersion.yml",
+      "git_blob_sha": "11f97bb295bac1f88bee96edc6a3cc7e05eac709",
+      "bytes": 1397
+    },
+    {
+      "source_path": ".github/workflows/multiomics-paired-beginner.yml",
+      "target_path": "migration/legacy-workflows/multiomics-paired-beginner.yml",
+      "git_blob_sha": "881386c9282576e2cd22b5253e524d07200324b0",
+      "bytes": 1593
+    },
+    {
+      "source_path": ".github/workflows/multiomics-paired-rnaseq.yml",
+      "target_path": "migration/legacy-workflows/multiomics-paired-rnaseq.yml",
+      "git_blob_sha": "56b6043aa54670f42400b556d9f6eca0c5554ed2",
+      "bytes": 4255
+    },
+    {
+      "source_path": ".github/workflows/multiomics-public-airway-replay.yml",
+      "target_path": "migration/legacy-workflows/multiomics-public-airway-replay.yml",
+      "git_blob_sha": "9ccdebac3f70b97577a82e2eb05b31ee84abda72",
+      "bytes": 2917
+    },
+    {
+      "source_path": ".github/workflows/multiomics-public-benchmark.yml",
+      "target_path": "migration/legacy-workflows/multiomics-public-benchmark.yml",
+      "git_blob_sha": "71d15a783b95737e972e889c6a8b1cdd87eb6e7b",
+      "bytes": 6205
+    },
+    {
+      "source_path": ".github/workflows/multiomics-public-research-flow-contract.yml",
+      "target_path": "migration/legacy-workflows/multiomics-public-research-flow-contract.yml",
+      "git_blob_sha": "e4b8e8b263d512252f1b309536aa24ac3b5e2a06",
+      "bytes": 1217
+    },
+    {
+      "source_path": ".github/workflows/multiomics-public-route-smoke.yml",
+      "target_path": "migration/legacy-workflows/multiomics-public-route-smoke.yml",
+      "git_blob_sha": "de83d6871d7ccee6813886c97796b43add1c46ee",
+      "bytes": 2889
+    },
+    {
+      "source_path": ".github/workflows/multiomics-r-frozen-replay.yml",
+      "target_path": "migration/legacy-workflows/multiomics-r-frozen-replay.yml",
+      "git_blob_sha": "4cbbfb61ffd928ce3edb57b19b7afcf541cd9553",
+      "bytes": 4307
+    },
+    {
+      "source_path": ".github/workflows/multiomics-raw-ms-integration.yml",
+      "target_path": "migration/legacy-workflows/multiomics-raw-ms-integration.yml",
+      "git_blob_sha": "ba8285ed90c77eafd7b594673660893a12d92ec6",
+      "bytes": 2172
+    },
+    {
+      "source_path": ".github/workflows/multiomics-real-nutrimouse-diablo.yml",
+      "target_path": "migration/legacy-workflows/multiomics-real-nutrimouse-diablo.yml",
+      "git_blob_sha": "40742b0a223a2b27f1dae0258adb8467d3395be9",
+      "bytes": 2845
+    },
+    {
+      "source_path": ".github/workflows/multiomics-research-bundle.yml",
+      "target_path": "migration/legacy-workflows/multiomics-research-bundle.yml",
+      "git_blob_sha": "b8dcdaeee658f25be562f0541defb7b7f8ced07d",
+      "bytes": 2150
+    },
+    {
+      "source_path": ".github/workflows/multiomics-research-use-cases.yml",
+      "target_path": "migration/legacy-workflows/multiomics-research-use-cases.yml",
+      "git_blob_sha": "5d738602c5a10dc966f69ede08a1cf05de72cdbd",
+      "bytes": 4219
+    },
+    {
+      "source_path": ".github/workflows/multiomics-rnaseq-confirmatory.yml",
+      "target_path": "migration/legacy-workflows/multiomics-rnaseq-confirmatory.yml",
+      "git_blob_sha": "bccf8e3b25a6bf2382ab9b59cfc673f12fca6f78",
+      "bytes": 2141
+    },
+    {
+      "source_path": ".github/workflows/multiomics-rnaseq-filter-sensitivity.yml",
+      "target_path": "migration/legacy-workflows/multiomics-rnaseq-filter-sensitivity.yml",
+      "git_blob_sha": "ca505ae93b51d743fa424a53c71c28ecc7ade18c",
+      "bytes": 3004
+    },
+    {
+      "source_path": ".github/workflows/multiomics-rnaseq-normalization-lock.yml",
+      "target_path": "migration/legacy-workflows/multiomics-rnaseq-normalization-lock.yml",
+      "git_blob_sha": "d1c1fb8d5bf0223b432b7e894daadd1611b23401",
+      "bytes": 2915
+    },
+    {
+      "source_path": ".github/workflows/multiomics-rnaseq-oracle-normalization.yml",
+      "target_path": "migration/legacy-workflows/multiomics-rnaseq-oracle-normalization.yml",
+      "git_blob_sha": "2aa4803e2989f84a17cf2334df655640bfb9aea7",
+      "bytes": 1425
+    },
+    {
+      "source_path": ".github/workflows/multiomics-rnaseq-stress-grid.yml",
+      "target_path": "migration/legacy-workflows/multiomics-rnaseq-stress-grid.yml",
+      "git_blob_sha": "f434d7eb52229d98656f5cc675bfb2325ff579b2",
+      "bytes": 2733
+    },
+    {
+      "source_path": ".github/workflows/multiomics-tcga-heldout.yml",
+      "target_path": "migration/legacy-workflows/multiomics-tcga-heldout.yml",
+      "git_blob_sha": "dc8a7026c18e2bdaf7890afc35ed414d6634571a",
+      "bytes": 2024
+    },
+    {
+      "source_path": ".github/workflows/multiomics-three-cohort-calibration.yml",
+      "target_path": "migration/legacy-workflows/multiomics-three-cohort-calibration.yml",
+      "git_blob_sha": "1a1ccb94a50ef0d5fa819878949c4a98358d603e",
+      "bytes": 5082
+    },
+    {
+      "source_path": "docs/multiomics/DOWNSTREAM_EXCHANGE_V1.md",
+      "target_path": "docs/multiomics/DOWNSTREAM_EXCHANGE_V1.md",
+      "git_blob_sha": "fe29782c694f57aef483f389baa83bbcde14831f",
+      "bytes": 9728
+    },
+    {
+      "source_path": "docs/multiomics/DOWNSTREAM_EXCHANGE_V1.schema.json",
+      "target_path": "docs/multiomics/DOWNSTREAM_EXCHANGE_V1.schema.json",
+      "git_blob_sha": "b7bb99f0712de8aa448412ad7dc880c422263309",
+      "bytes": 4641
+    },
+    {
+      "source_path": "docs/multiomics/EXACT_REPRODUCIBILITY_POLICY.md",
+      "target_path": "docs/multiomics/EXACT_REPRODUCIBILITY_POLICY.md",
+      "git_blob_sha": "b43107d5dc0d2b8f9e9bb2f9629e7f19c6254acf",
+      "bytes": 7080
+    },
+    {
+      "source_path": "docs/multiomics/EXTERNAL_CALIBRATION_AND_MNAR_EVIDENCE_20261015.md",
+      "target_path": "docs/multiomics/EXTERNAL_CALIBRATION_AND_MNAR_EVIDENCE_20261015.md",
+      "git_blob_sha": "56b71d309d0b5665789ef8bbd5d5230996dc482b",
+      "bytes": 5390
+    },
+    {
+      "source_path": "docs/multiomics/PUBLIC_AIRWAY_SITE_R_REPLAY.md",
+      "target_path": "docs/multiomics/PUBLIC_AIRWAY_SITE_R_REPLAY.md",
+      "git_blob_sha": "0fdc4f8cb9f231d9f6ebf5da933def23727de4ff",
+      "bytes": 5349
+    },
+    {
+      "source_path": "docs/multiomics/REPOSITORY_EXTRACTION_ADR.md",
+      "target_path": "docs/multiomics/REPOSITORY_EXTRACTION_ADR.md",
+      "git_blob_sha": "6f0cf75ed368efb3af17e79d8f56737ade945498",
+      "bytes": 7913
+    },
+    {
+      "source_path": "docs/multiomics/RESEARCH_RELEASE_GATES.md",
+      "target_path": "docs/multiomics/RESEARCH_RELEASE_GATES.md",
+      "git_blob_sha": "093f33283906c5a83872bccbcdd313085e0bc992",
+      "bytes": 13275
+    },
+    {
+      "source_path": "docs/multiomics/RNASEQ_DISPERSION_ORACLE_PROTOCOL.md",
+      "target_path": "docs/multiomics/RNASEQ_DISPERSION_ORACLE_PROTOCOL.md",
+      "git_blob_sha": "7ad937aada90c4c29f17de20f2e1673793eed9dd",
+      "bytes": 3590
+    },
+    {
+      "source_path": "docs/multiomics/RNASEQ_NORMALIZATION_PATH_UNCERTAINTY.md",
+      "target_path": "docs/multiomics/RNASEQ_NORMALIZATION_PATH_UNCERTAINTY.md",
+      "git_blob_sha": "6b2d6bf96079c524ab452f32cac886204ed8eadd",
+      "bytes": 4823
+    },
+    {
+      "source_path": "docs/multiomics/RNASEQ_ORACLE_NORMALIZATION_PROTOCOL.md",
+      "target_path": "docs/multiomics/RNASEQ_ORACLE_NORMALIZATION_PROTOCOL.md",
+      "git_blob_sha": "a9c42d18b6355d37cfb7837d156cc4f092c86a3c",
+      "bytes": 3262
+    },
+    {
+      "source_path": "multiomics-engine/RAW_MS_AND_EXTERNAL_VALIDATION.md",
+      "target_path": "multiomics-engine/RAW_MS_AND_EXTERNAL_VALIDATION.md",
+      "git_blob_sha": "6836a4aa54a7615e610685fd33e0a8ca6951255a",
+      "bytes": 9000
+    },
+    {
+      "source_path": "multiomics-engine/README.md",
+      "target_path": "multiomics-engine/README.md",
+      "git_blob_sha": "701a7d9907ef917c2a19b6c678dd2260d7628741",
+      "bytes": 20208
+    },
+    {
+      "source_path": "multiomics-engine/advanced_methods.R",
+      "target_path": "multiomics-engine/advanced_methods.R",
+      "git_blob_sha": "4a965070eb7696d8331f2b9871f1d605eb7a45ad",
+      "bytes": 64368
+    },
+    {
+      "source_path": "multiomics-engine/capture_environment.R",
+      "target_path": "multiomics-engine/capture_environment.R",
+      "git_blob_sha": "6a7220f6ef356ebb9331789a5f83d4e8c78fccd4",
+      "bytes": 1721
+    },
+    {
+      "source_path": "multiomics-engine/external_validation.R",
+      "target_path": "multiomics-engine/external_validation.R",
+      "git_blob_sha": "a4af1ea71112f3e3066f83eef8ca41ef659580c9",
+      "bytes": 17098
+    },
+    {
+      "source_path": "multiomics-engine/install_backend_dependencies.R",
+      "target_path": "multiomics-engine/install_backend_dependencies.R",
+      "git_blob_sha": "b501f14035fcc082f4133fce4e4ede1a415acf7b",
+      "bytes": 839
+    },
+    {
+      "source_path": "multiomics-engine/mixed_truth_reference_metrics.R",
+      "target_path": "multiomics-engine/mixed_truth_reference_metrics.R",
+      "git_blob_sha": "ad16ba932083037179bf3bc406e1e61740652b2f",
+      "bytes": 8089
+    },
+    {
+      "source_path": "multiomics-engine/mofa_real_metadata_audit.R",
+      "target_path": "multiomics-engine/mofa_real_metadata_audit.R",
+      "git_blob_sha": "300135a791c27c5b538a43ed17544d823759e16e",
+      "bytes": 15678
+    },
+    {
+      "source_path": "multiomics-engine/ms_quantitative_assurance.R",
+      "target_path": "multiomics-engine/ms_quantitative_assurance.R",
+      "git_blob_sha": "cbb4390f3011aedae11f73be5aff3283d73876f7",
+      "bytes": 9276
+    },
+    {
+      "source_path": "multiomics-engine/null_reference_metrics.R",
+      "target_path": "multiomics-engine/null_reference_metrics.R",
+      "git_blob_sha": "ffd6b72de0c1e1a29646493529695e30cb7a42f2",
+      "bytes": 3702
+    },
+    {
+      "source_path": "multiomics-engine/paired_rnaseq_reference.R",
+      "target_path": "multiomics-engine/paired_rnaseq_reference.R",
+      "git_blob_sha": "ac340233c3a8aa60c5f61cee5df87abd34acd114",
+      "bytes": 5255
+    },
+    {
+      "source_path": "multiomics-engine/plot_research_figures.R",
+      "target_path": "multiomics-engine/plot_research_figures.R",
+      "git_blob_sha": "b5bf30d301000d93517d4a0139a85b4ede73ff7d",
+      "bytes": 10646
+    },
+    {
+      "source_path": "multiomics-engine/proteomics_quantitative_assurance.R",
+      "target_path": "multiomics-engine/proteomics_quantitative_assurance.R",
+      "git_blob_sha": "95925077263bcb27e498f1a25d9e548e2a31307c",
+      "bytes": 3955
+    },
+    {
+      "source_path": "multiomics-engine/raw_ms_processing.R",
+      "target_path": "multiomics-engine/raw_ms_processing.R",
+      "git_blob_sha": "727a24da9fd5e8ba57d42e6d769f35d4fe536e5a",
+      "bytes": 13946
+    },
+    {
+      "source_path": "multiomics-engine/reference_full_results.R",
+      "target_path": "multiomics-engine/reference_full_results.R",
+      "git_blob_sha": "ddb090fbfb8516c9380c935f017405bf8c67ba85",
+      "bytes": 6861
+    },
+    {
+      "source_path": "multiomics-engine/render_research_notebook.R",
+      "target_path": "multiomics-engine/render_research_notebook.R",
+      "git_blob_sha": "2ee47aa3726cab3d3d916b0f705a30aa29ff3d08",
+      "bytes": 1393
+    },
+    {
+      "source_path": "multiomics-engine/reproducibility/README.md",
+      "target_path": "multiomics-engine/reproducibility/README.md",
+      "git_blob_sha": "b56d0e1d856c6fc3e51b30eb8e24249ce42d5a4b",
+      "bytes": 5473
+    },
+    {
+      "source_path": "multiomics-engine/reproducibility/rnaseq_replay.R",
+      "target_path": "multiomics-engine/reproducibility/rnaseq_replay.R",
+      "git_blob_sha": "258ed2013ac25fecf06b81746b820cda09b11676",
+      "bytes": 7039
+    },
+    {
+      "source_path": "multiomics-engine/research_reproducibility_notebook.Rmd",
+      "target_path": "multiomics-engine/research_reproducibility_notebook.Rmd",
+      "git_blob_sha": "74e81ab0e357e6edfe984fd54463c3bea9302df8",
+      "bytes": 8474
+    },
+    {
+      "source_path": "multiomics-engine/rnaseq_filter_sensitivity.R",
+      "target_path": "multiomics-engine/rnaseq_filter_sensitivity.R",
+      "git_blob_sha": "65bd6d60c0a53a745f5d7a3bcbd5205cd40508d2",
+      "bytes": 6135
+    },
+    {
+      "source_path": "multiomics-engine/rnaseq_normalization_lock.R",
+      "target_path": "multiomics-engine/rnaseq_normalization_lock.R",
+      "git_blob_sha": "544a45fc05c73eea78c720f36d14f9cf43305446",
+      "bytes": 10873
+    },
+    {
+      "source_path": "multiomics-engine/rnaseq_stress_designs.R",
+      "target_path": "multiomics-engine/rnaseq_stress_designs.R",
+      "git_blob_sha": "a43092d170e3f74780e5aabe6eca949b8672e096",
+      "bytes": 5105
+    },
+    {
+      "source_path": "multiomics-engine/run_backend.R",
+      "target_path": "multiomics-engine/run_backend.R",
+      "git_blob_sha": "71d4245ac0757dbe53f84fb2903eeedf850de5a6",
+      "bytes": 4995
+    },
+    {
+      "source_path": "multiomics-engine/run_external_validation.R",
+      "target_path": "multiomics-engine/run_external_validation.R",
+      "git_blob_sha": "6b18c32e3e8f6535eb93bad8f288a6f7ab82b1ce",
+      "bytes": 2791
+    },
+    {
+      "source_path": "multiomics-engine/run_ms_quantitative_assurance.R",
+      "target_path": "multiomics-engine/run_ms_quantitative_assurance.R",
+      "git_blob_sha": "55b5fec66b966152452ece81a31b055c15bd5639",
+      "bytes": 2624
+    },
+    {
+      "source_path": "multiomics-engine/run_raw_ms.R",
+      "target_path": "multiomics-engine/run_raw_ms.R",
+      "git_blob_sha": "8f77a40073cc1ef4f2cd3e1bb889ecf3c8043bbb",
+      "bytes": 1714
+    },
+    {
+      "source_path": "multiomics-engine/run_research_bundle.R",
+      "target_path": "multiomics-engine/run_research_bundle.R",
+      "git_blob_sha": "a45c03f422ea2a073561c782168aecee646d01fa",
+      "bytes": 2759
+    },
+    {
+      "source_path": "multiomics-engine/server.R",
+      "target_path": "multiomics-engine/server.R",
+      "git_blob_sha": "4fd76bc07ead9621b75e09d161f36cbf7287b925",
+      "bytes": 56238
+    },
+    {
+      "source_path": "multiomics-engine/tests/backend_smoke.R",
+      "target_path": "multiomics-engine/tests/backend_smoke.R",
+      "git_blob_sha": "ae50fb147fe8458cb5c0c23e56520d5a17a9c24e",
+      "bytes": 11084
+    },
+    {
+      "source_path": "multiomics-engine/tests/bioconductor_mixed_truth_reference.R",
+      "target_path": "multiomics-engine/tests/bioconductor_mixed_truth_reference.R",
+      "git_blob_sha": "97444fd722755b2a63191280301fedd3416c469c",
+      "bytes": 7706
+    },
+    {
+      "source_path": "multiomics-engine/tests/bioconductor_null_calibration.R",
+      "target_path": "multiomics-engine/tests/bioconductor_null_calibration.R",
+      "git_blob_sha": "b8a588b20951a195d16c323e0171c002c6a52c91",
+      "bytes": 7367
+    },
+    {
+      "source_path": "multiomics-engine/tests/bioconductor_reference_simulation.R",
+      "target_path": "multiomics-engine/tests/bioconductor_reference_simulation.R",
+      "git_blob_sha": "0f54f816daca53b9609dfd884f33369baf8fe7d7",
+      "bytes": 6133
+    },
+    {
+      "source_path": "multiomics-engine/tests/bioconductor_rnaseq_filter_sensitivity.R",
+      "target_path": "multiomics-engine/tests/bioconductor_rnaseq_filter_sensitivity.R",
+      "git_blob_sha": "0aa975b3e2d67cecfad682bfba352411edc6c4e8",
+      "bytes": 7924
+    },
+    {
+      "source_path": "multiomics-engine/tests/bioconductor_rnaseq_normalization_lock.R",
+      "target_path": "multiomics-engine/tests/bioconductor_rnaseq_normalization_lock.R",
+      "git_blob_sha": "3504a1fa69b24390de82fdc2f4790948fea8b513",
+      "bytes": 8191
+    },
+    {
+      "source_path": "multiomics-engine/tests/bioconductor_rnaseq_stress_grid.R",
+      "target_path": "multiomics-engine/tests/bioconductor_rnaseq_stress_grid.R",
+      "git_blob_sha": "b973162c398c3b4982c948566ed016a6a1f8f47f",
+      "bytes": 7395
+    },
+    {
+      "source_path": "multiomics-engine/tests/browser_reference_agreement.R",
+      "target_path": "multiomics-engine/tests/browser_reference_agreement.R",
+      "git_blob_sha": "2b94085b3be463a9cd33a7494f488bb59d80430e",
+      "bytes": 1942
+    },
+    {
+      "source_path": "multiomics-engine/tests/external_validation_smoke.R",
+      "target_path": "multiomics-engine/tests/external_validation_smoke.R",
+      "git_blob_sha": "173b988c8a3c8213291e0a361c62fded403712da",
+      "bytes": 7698
+    },
+    {
+      "source_path": "multiomics-engine/tests/independent_cox_reference.R",
+      "target_path": "multiomics-engine/tests/independent_cox_reference.R",
+      "git_blob_sha": "86fbb1a8b1e2e5d43dfbc562a894c96828041fdd",
+      "bytes": 1863
+    },
+    {
+      "source_path": "multiomics-engine/tests/independent_hc3_reference.R",
+      "target_path": "multiomics-engine/tests/independent_hc3_reference.R",
+      "git_blob_sha": "f3a79fdb3f8ebce0a3bc79332d3624f3ae0be307",
+      "bytes": 3305
+    },
+    {
+      "source_path": "multiomics-engine/tests/raw_ms_contract.R",
+      "target_path": "multiomics-engine/tests/raw_ms_contract.R",
+      "git_blob_sha": "b4ee14f7762588cb2920ed32611e16758b1f610f",
+      "bytes": 1891
+    },
+    {
+      "source_path": "multiomics-engine/tests/raw_ms_xcms_integration.R",
+      "target_path": "multiomics-engine/tests/raw_ms_xcms_integration.R",
+      "git_blob_sha": "8fc11fb2c76fe9f267335c579f8df0538788d11e",
+      "bytes": 2792
+    },
+    {
+      "source_path": "multiomics-engine/tests/test_diablo_holdout_recipe.R",
+      "target_path": "multiomics-engine/tests/test_diablo_holdout_recipe.R",
+      "git_blob_sha": "060486a8e6484b2b2b2c394ce97ce27074067dc0",
+      "bytes": 4951
+    },
+    {
+      "source_path": "multiomics-engine/tests/test_diablo_outer_reference.R",
+      "target_path": "multiomics-engine/tests/test_diablo_outer_reference.R",
+      "git_blob_sha": "1bb198f4cba651d16b9ec4fb45fb2587935cc4c5",
+      "bytes": 3836
+    },
+    {
+      "source_path": "multiomics-engine/tests/test_diablo_real_nutrimouse.R",
+      "target_path": "multiomics-engine/tests/test_diablo_real_nutrimouse.R",
+      "git_blob_sha": "65f55b3fdb737ec8e96c5ed00f8d39b2b4f51378",
+      "bytes": 11750
+    },
+    {
+      "source_path": "multiomics-engine/tests/test_diablo_real_nutrimouse_ablation.R",
+      "target_path": "multiomics-engine/tests/test_diablo_real_nutrimouse_ablation.R",
+      "git_blob_sha": "37595eb963e02261ebb39b88b3770077bc201281",
+      "bytes": 10564
+    },
+    {
+      "source_path": "multiomics-engine/tests/test_full_reference_backend_endpoint.R",
+      "target_path": "multiomics-engine/tests/test_full_reference_backend_endpoint.R",
+      "git_blob_sha": "ff3dbfe6100a527252f248bc1d459e17cf0ca672",
+      "bytes": 3386
+    },
+    {
+      "source_path": "multiomics-engine/tests/test_full_reference_engine_real_fits.R",
+      "target_path": "multiomics-engine/tests/test_full_reference_engine_real_fits.R",
+      "git_blob_sha": "f426694ef99fc2c39108ee9f57c47ef8fe47e06e",
+      "bytes": 2638
+    },
+    {
+      "source_path": "multiomics-engine/tests/test_longitudinal_backend.R",
+      "target_path": "multiomics-engine/tests/test_longitudinal_backend.R",
+      "git_blob_sha": "449e4613520b3f86cee220911f45bab2a5b2ac7d",
+      "bytes": 5930
+    },
+    {
+      "source_path": "multiomics-engine/tests/test_mixed_truth_reference_metrics.R",
+      "target_path": "multiomics-engine/tests/test_mixed_truth_reference_metrics.R",
+      "git_blob_sha": "5844407a32cb97c8086a277c24df87b75b3ff30e",
+      "bytes": 5275
+    },
+    {
+      "source_path": "multiomics-engine/tests/test_mofa_preflight_signature_stability.R",
+      "target_path": "multiomics-engine/tests/test_mofa_preflight_signature_stability.R",
+      "git_blob_sha": "cb2aa28e94800e336b72a5b134163cc195298f17",
+      "bytes": 2904
+    },
+    {
+      "source_path": "multiomics-engine/tests/test_mofa_real_nutrimouse.R",
+      "target_path": "multiomics-engine/tests/test_mofa_real_nutrimouse.R",
+      "git_blob_sha": "f1782c5cd15fe134e5cc055a027de54afd04df5d",
+      "bytes": 17663
+    },
+    {
+      "source_path": "multiomics-engine/tests/test_mofa_real_nutrimouse_audit.R",
+      "target_path": "multiomics-engine/tests/test_mofa_real_nutrimouse_audit.R",
+      "git_blob_sha": "108d4f91cad75ea8ebacdfd8da086ef2ac00dd9b",
+      "bytes": 7866
+    },
+    {
+      "source_path": "multiomics-engine/tests/test_mofa_truth_metrics.R",
+      "target_path": "multiomics-engine/tests/test_mofa_truth_metrics.R",
+      "git_blob_sha": "8999d5abc8cc8fd454fbd818da238cddfd662b73",
+      "bytes": 3943
+    },
+    {
+      "source_path": "multiomics-engine/tests/test_mofa_truth_reference.R",
+      "target_path": "multiomics-engine/tests/test_mofa_truth_reference.R",
+      "git_blob_sha": "743607445ca44196f0c1026c422d3d57f96ea2a6",
+      "bytes": 2855
+    },
+    {
+      "source_path": "multiomics-engine/tests/test_ms_quantitative_assurance.R",
+      "target_path": "multiomics-engine/tests/test_ms_quantitative_assurance.R",
+      "git_blob_sha": "97dc17c7f73e01eba10e8928db3aeba02b3e15dd",
+      "bytes": 7189
+    },
+    {
+      "source_path": "multiomics-engine/tests/test_null_reference_metrics.R",
+      "target_path": "multiomics-engine/tests/test_null_reference_metrics.R",
+      "git_blob_sha": "06b8c1b814d2a5b035bbb945b7f0b3aeb569b285",
+      "bytes": 2573
+    },
+    {
+      "source_path": "multiomics-engine/tests/test_paired_rnaseq_backend.R",
+      "target_path": "multiomics-engine/tests/test_paired_rnaseq_backend.R",
+      "git_blob_sha": "3034bd393817b059262540b8ada6774b438fbe4f",
+      "bytes": 6573
+    },
+    {
+      "source_path": "multiomics-engine/tests/test_proteomics_quantitative_assurance.R",
+      "target_path": "multiomics-engine/tests/test_proteomics_quantitative_assurance.R",
+      "git_blob_sha": "9d15743e5f7c03f8f099e30f9e4d87c674045e78",
+      "bytes": 2006
+    },
+    {
+      "source_path": "multiomics-engine/tests/test_public_airway_paired_backend.R",
+      "target_path": "multiomics-engine/tests/test_public_airway_paired_backend.R",
+      "git_blob_sha": "a3439ded838f50183bc552a720f311364d985f75",
+      "bytes": 5911
+    },
+    {
+      "source_path": "multiomics-engine/tests/test_public_airway_reference_replay.R",
+      "target_path": "multiomics-engine/tests/test_public_airway_reference_replay.R",
+      "git_blob_sha": "db3d231e031cf7dac155971a4292070fb0221b46",
+      "bytes": 7325
+    },
+    {
+      "source_path": "multiomics-engine/tests/test_reference_full_results.R",
+      "target_path": "multiomics-engine/tests/test_reference_full_results.R",
+      "git_blob_sha": "c36661394ddb4e4b82711a97c3065b18f403c98b",
+      "bytes": 2800
+    },
+    {
+      "source_path": "multiomics-engine/tests/test_reference_local_archive.R",
+      "target_path": "multiomics-engine/tests/test_reference_local_archive.R",
+      "git_blob_sha": "4bf7b694a98e892552ffbd517f1352735afa6d36",
+      "bytes": 3624
+    },
+    {
+      "source_path": "multiomics-engine/tests/test_rnaseq_confirmatory_preflight.R",
+      "target_path": "multiomics-engine/tests/test_rnaseq_confirmatory_preflight.R",
+      "git_blob_sha": "f65960512b79fb24004fdf5d10b5be82a2c1bc0d",
+      "bytes": 9080
+    },
+    {
+      "source_path": "multiomics-engine/tests/test_rnaseq_filter_sensitivity.R",
+      "target_path": "multiomics-engine/tests/test_rnaseq_filter_sensitivity.R",
+      "git_blob_sha": "f0f0183725347240e2e44f1454a1842315b3de6d",
+      "bytes": 3463
+    },
+    {
+      "source_path": "multiomics-engine/tests/test_rnaseq_normalization_lock.R",
+      "target_path": "multiomics-engine/tests/test_rnaseq_normalization_lock.R",
+      "git_blob_sha": "f7f9883198821e411b27a0a81c10670cadf6d993",
+      "bytes": 4994
+    },
+    {
+      "source_path": "multiomics-engine/tests/test_rnaseq_stress_designs.R",
+      "target_path": "multiomics-engine/tests/test_rnaseq_stress_designs.R",
+      "git_blob_sha": "627ec267fff2f995ae2c8004830949668064b0b5",
+      "bytes": 2067
+    },
+    {
+      "source_path": "multiomics-engine/tests/test_survival_backend.R",
+      "target_path": "multiomics-engine/tests/test_survival_backend.R",
+      "git_blob_sha": "6a17232145813ad830784aaec23cf269c8f5918e",
+      "bytes": 4138
+    },
+    {
+      "source_path": "multiomics-engine/validation/rnaseq_deseq2_oracle_dispersion.R",
+      "target_path": "multiomics-engine/validation/rnaseq_deseq2_oracle_dispersion.R",
+      "git_blob_sha": "1f33c52936abd83dd19730c1cecb95ada2919198",
+      "bytes": 8801
+    },
+    {
+      "source_path": "multiomics-engine/validation/rnaseq_normalization_oracle_audit.R",
+      "target_path": "multiomics-engine/validation/rnaseq_normalization_oracle_audit.R",
+      "git_blob_sha": "8df60d56f035a51bb955f6322da5f028142f09a9",
+      "bytes": 7215
+    },
+    {
+      "source_path": "multiomics-engine/validation/rnaseq_wald_mixed_truth_independent.R",
+      "target_path": "multiomics-engine/validation/rnaseq_wald_mixed_truth_independent.R",
+      "git_blob_sha": "917a0e4bbea0fbf0c5887b6900416b3afe467f51",
+      "bytes": 6947
+    },
+    {
+      "source_path": "multiomics-engine/validation/tcga_two_view_research_validation.R",
+      "target_path": "multiomics-engine/validation/tcga_two_view_research_validation.R",
+      "git_blob_sha": "107fe4c4d4c211202c1e74cc9b24fe9a6eab1da3",
+      "bytes": 9099
+    },
+    {
+      "source_path": "multiomics-engine/validation_benchmarks.R",
+      "target_path": "multiomics-engine/validation_benchmarks.R",
+      "git_blob_sha": "a246a5cf51b6ad9fce7249e57b3bce07348422b2",
+      "bytes": 9039
+    },
+    {
+      "source_path": "multiomics-engine/verify_research_replay.R",
+      "target_path": "multiomics-engine/verify_research_replay.R",
+      "git_blob_sha": "0ceb54977bf9cb54c10904a37681fb029f8b24c0",
+      "bytes": 3520
+    },
+    {
+      "source_path": "scripts/audit_public_omics_evidence.mjs",
+      "target_path": "scripts/audit_public_omics_evidence.mjs",
+      "git_blob_sha": "db325bf8ccede7e21ae0ae4d5c2242703216ebf3",
+      "bytes": 6677
+    },
+    {
+      "source_path": "scripts/benchmark_multiomics_negative_controls.mjs",
+      "target_path": "scripts/benchmark_multiomics_negative_controls.mjs",
+      "git_blob_sha": "2297c89c8acec4f835b5e5346610eb15e41ad09c",
+      "bytes": 6919
+    },
+    {
+      "source_path": "scripts/benchmark_public_multiomics.mjs",
+      "target_path": "scripts/benchmark_public_multiomics.mjs",
+      "git_blob_sha": "e82a4dc850e3f6bb196dd1d80779aa0ad7144b17",
+      "bytes": 49492
+    },
+    {
+      "source_path": "scripts/capture_multiomics_python_environment.py",
+      "target_path": "scripts/capture_multiomics_python_environment.py",
+      "git_blob_sha": "5975243d0de7bb8c6614dffcd91eae8ff5943679",
+      "bytes": 1677
+    },
+    {
+      "source_path": "scripts/check_live_multiomics.mjs",
+      "target_path": "scripts/check_live_multiomics.mjs",
+      "git_blob_sha": "04c3ece6b894e42219528e27a9c7eb5c81ab1343",
+      "bytes": 12720
+    },
+    {
+      "source_path": "scripts/export_public_multiomics_benchmarks.R",
+      "target_path": "scripts/export_public_multiomics_benchmarks.R",
+      "git_blob_sha": "57c8860932e23ecee87bc0cd90bc484a8d8eff90",
+      "bytes": 20902
+    },
+    {
+      "source_path": "scripts/test_multiomics.mjs",
+      "target_path": "scripts/test_multiomics.mjs",
+      "git_blob_sha": "6bbc643b2a3c2f4509b3aabfc6fce7eda38668d2",
+      "bytes": 57295
+    },
+    {
+      "source_path": "scripts/test_multiomics_calibration_grid.mjs",
+      "target_path": "scripts/test_multiomics_calibration_grid.mjs",
+      "git_blob_sha": "196763ca533dea14e8d5743b83466e429e992d2e",
+      "bytes": 7101
+    },
+    {
+      "source_path": "scripts/test_multiomics_cox_reference.mjs",
+      "target_path": "scripts/test_multiomics_cox_reference.mjs",
+      "git_blob_sha": "cce128b803ac6de7783fa882a4079e30ee02b218",
+      "bytes": 5467
+    },
+    {
+      "source_path": "scripts/test_multiomics_design_stress.mjs",
+      "target_path": "scripts/test_multiomics_design_stress.mjs",
+      "git_blob_sha": "f94ce93f4413dedff4f926d907c2955ddad27869",
+      "bytes": 6979
+    },
+    {
+      "source_path": "scripts/test_multiomics_diagnostics.mjs",
+      "target_path": "scripts/test_multiomics_diagnostics.mjs",
+      "git_blob_sha": "59146a7b94060e794a813af718c74f1bcac9d14e",
+      "bytes": 14858
+    },
+    {
+      "source_path": "scripts/test_multiomics_downstream_export.mjs",
+      "target_path": "scripts/test_multiomics_downstream_export.mjs",
+      "git_blob_sha": "f9ef40c1c56f0e3f280f491acf6514fa62743a51",
+      "bytes": 8787
+    },
+    {
+      "source_path": "scripts/test_multiomics_identifiers.mjs",
+      "target_path": "scripts/test_multiomics_identifiers.mjs",
+      "git_blob_sha": "c8fcf081e5e178f8e2f64de2f2d7ca106c57c86d",
+      "bytes": 7737
+    },
+    {
+      "source_path": "scripts/test_multiomics_missingness_calibration.mjs",
+      "target_path": "scripts/test_multiomics_missingness_calibration.mjs",
+      "git_blob_sha": "0476fe09f7f2b5ea455570713dd3aecd8c671c5f",
+      "bytes": 10858
+    },
+    {
+      "source_path": "scripts/test_multiomics_mixed_truth_fdr.mjs",
+      "target_path": "scripts/test_multiomics_mixed_truth_fdr.mjs",
+      "git_blob_sha": "6e68269632990b853375a2af3ca883e0cc24c8cf",
+      "bytes": 9928
+    },
+    {
+      "source_path": "scripts/test_multiomics_mofa_contract.mjs",
+      "target_path": "scripts/test_multiomics_mofa_contract.mjs",
+      "git_blob_sha": "f51c48145bfc66b9721c2c23fbefa98eb228e4dc",
+      "bytes": 2452
+    },
+    {
+      "source_path": "scripts/test_multiomics_paired_study.mjs",
+      "target_path": "scripts/test_multiomics_paired_study.mjs",
+      "git_blob_sha": "bd1a02d1055c7535aa2ab9753cc22a6e1608df60",
+      "bytes": 3024
+    },
+    {
+      "source_path": "scripts/test_multiomics_pathway_fdr.mjs",
+      "target_path": "scripts/test_multiomics_pathway_fdr.mjs",
+      "git_blob_sha": "b24bc0e00dd3301d5358538a1ae29c0c6004068f",
+      "bytes": 2446
+    },
+    {
+      "source_path": "scripts/test_multiomics_portable_project.mjs",
+      "target_path": "scripts/test_multiomics_portable_project.mjs",
+      "git_blob_sha": "9e87919da34bfda6e2cbab8f0602d3e6abd5205a",
+      "bytes": 3556
+    },
+    {
+      "source_path": "scripts/test_multiomics_prediction_foldsafe.mjs",
+      "target_path": "scripts/test_multiomics_prediction_foldsafe.mjs",
+      "git_blob_sha": "e5c76abe36e19920baaeacaca88f37a8c1250a91",
+      "bytes": 5665
+    },
+    {
+      "source_path": "scripts/test_multiomics_r_figures.mjs",
+      "target_path": "scripts/test_multiomics_r_figures.mjs",
+      "git_blob_sha": "2f71a68f046b6b5575a37d35668296f8bb6c6de4",
+      "bytes": 5450
+    },
+    {
+      "source_path": "scripts/test_multiomics_r_primary_results.mjs",
+      "target_path": "scripts/test_multiomics_r_primary_results.mjs",
+      "git_blob_sha": "d35f32ab263999243b2171c27b0bb32864d9a520",
+      "bytes": 2661
+    },
+    {
+      "source_path": "scripts/test_multiomics_r_source_replay.mjs",
+      "target_path": "scripts/test_multiomics_r_source_replay.mjs",
+      "git_blob_sha": "ad7d507814d8d44f62ff168c66103fc3d38e35bd",
+      "bytes": 4829
+    },
+    {
+      "source_path": "scripts/test_multiomics_research_export_package.mjs",
+      "target_path": "scripts/test_multiomics_research_export_package.mjs",
+      "git_blob_sha": "845164475ea7d4335b1913c871055429aa30b9a2",
+      "bytes": 13896
+    },
+    {
+      "source_path": "scripts/test_multiomics_research_report.mjs",
+      "target_path": "scripts/test_multiomics_research_report.mjs",
+      "git_blob_sha": "74dab1f390239ec0400d8b6eb078236fc36a3b42",
+      "bytes": 2819
+    },
+    {
+      "source_path": "scripts/test_multiomics_single_omic.mjs",
+      "target_path": "scripts/test_multiomics_single_omic.mjs",
+      "git_blob_sha": "c7707e056175bf01977e2308443660203920c75c",
+      "bytes": 4221
+    },
+    {
+      "source_path": "scripts/test_multiomics_statistical_calibration.mjs",
+      "target_path": "scripts/test_multiomics_statistical_calibration.mjs",
+      "git_blob_sha": "81925e9400c32f6ea41d6fb00eed58138bd34236",
+      "bytes": 5671
+    },
+    {
+      "source_path": "scripts/test_multiomics_visualizations.mjs",
+      "target_path": "scripts/test_multiomics_visualizations.mjs",
+      "git_blob_sha": "50b8d1761b5262de659982e967a109f8fa42141a",
+      "bytes": 16188
+    },
+    {
+      "source_path": "scripts/test_public_airway_website_r_numeric_figures.mjs",
+      "target_path": "scripts/test_public_airway_website_r_numeric_figures.mjs",
+      "git_blob_sha": "483f10a338fef49ad93da8d46576ef579bf9a493",
+      "bytes": 10600
+    },
+    {
+      "source_path": "scripts/test_public_omics_evidence.mjs",
+      "target_path": "scripts/test_public_omics_evidence.mjs",
+      "git_blob_sha": "1deb1f8081dd1aee7da73b712737b5c1f38d0694",
+      "bytes": 2725
+    },
+    {
+      "source_path": "scripts/test_validate_multiomics_exchange.py",
+      "target_path": "scripts/test_validate_multiomics_exchange.py",
+      "git_blob_sha": "34bae8d6c0b0d47cfb193a51739a2a448ee2769e",
+      "bytes": 5214
+    },
+    {
+      "source_path": "scripts/test_verify_multiomics_r_replay.py",
+      "target_path": "scripts/test_verify_multiomics_r_replay.py",
+      "git_blob_sha": "940a3843343c2fffad03280dbd421f087d26d25c",
+      "bytes": 1786
+    },
+    {
+      "source_path": "scripts/validate_multiomics_exchange.py",
+      "target_path": "scripts/validate_multiomics_exchange.py",
+      "git_blob_sha": "c424a6898431f0b4720b0fea4d3151f108f939f2",
+      "bytes": 7435
+    },
+    {
+      "source_path": "scripts/validate_multiomics_methodology.mjs",
+      "target_path": "scripts/validate_multiomics_methodology.mjs",
+      "git_blob_sha": "733992df7a9edd3f0c06f0e2a2a55cc7f125383d",
+      "bytes": 14581
+    },
+    {
+      "source_path": "scripts/verify_multiomics_r_replay.py",
+      "target_path": "scripts/verify_multiomics_r_replay.py",
+      "git_blob_sha": "f61b5ef7ffe135000073328d97891779936d0b81",
+      "bytes": 3670
+    },
+    {
+      "source_path": "src/lib/components/ExternalValidationPanel.svelte",
+      "target_path": "src/lib/components/ExternalValidationPanel.svelte",
+      "git_blob_sha": "c4da946adba674601aad4a5b5d380b14b2d761e6",
+      "bytes": 8091
+    },
+    {
+      "source_path": "src/lib/components/FocusedMetabolicNetwork.svelte",
+      "target_path": "src/lib/components/FocusedMetabolicNetwork.svelte",
+      "git_blob_sha": "f5de124901f2112661fe57477e8293cd61bde1f8",
+      "bytes": 13523
+    },
+    {
+      "source_path": "src/lib/components/MultiomicsVisualizations.svelte",
+      "target_path": "src/lib/components/MultiomicsVisualizations.svelte",
+      "git_blob_sha": "ed9574f8288390f9374d97ee9cc7052248949575",
+      "bytes": 34875
+    },
+    {
+      "source_path": "src/lib/multiomics/deterministic-core.js",
+      "target_path": "src/lib/multiomics/deterministic-core.js",
+      "git_blob_sha": "db2a03312253fec07384f063c9df3da0c6eb6584",
+      "bytes": 215129
+    },
+    {
+      "source_path": "src/lib/multiomics/deterministic-impl.js",
+      "target_path": "src/lib/multiomics/deterministic-impl.js",
+      "git_blob_sha": "98bb4ddd149829d4d0c1e05584ff03b947b25366",
+      "bytes": 27940
+    },
+    {
+      "source_path": "src/lib/multiomics/deterministic.js",
+      "target_path": "src/lib/multiomics/deterministic.js",
+      "git_blob_sha": "318a2dae78f405a1420044403b0515deada0f4a3",
+      "bytes": 12390
+    },
+    {
+      "source_path": "src/lib/multiomics/downstream-exchange.js",
+      "target_path": "src/lib/multiomics/downstream-exchange.js",
+      "git_blob_sha": "fcf0f31b46011f4ca8a4b4e251b37c3027d29b10",
+      "bytes": 6557
+    },
+    {
+      "source_path": "src/lib/multiomics/metabolic-network.js",
+      "target_path": "src/lib/multiomics/metabolic-network.js",
+      "git_blob_sha": "60c9e088a25c58cd6ea25b5e28a54ef076c1280c",
+      "bytes": 21705
+    },
+    {
+      "source_path": "src/lib/multiomics/metabolite-annotation.js",
+      "target_path": "src/lib/multiomics/metabolite-annotation.js",
+      "git_blob_sha": "54798b9e6f8be645929aac5fb71efe19cb82054d",
+      "bytes": 1540
+    },
+    {
+      "source_path": "src/lib/multiomics/ms-auc-import.js",
+      "target_path": "src/lib/multiomics/ms-auc-import.js",
+      "git_blob_sha": "5717eaf14866f82b2bb7591d6c32b927458911c4",
+      "bytes": 8018
+    },
+    {
+      "source_path": "src/lib/multiomics/paired-study-client.js",
+      "target_path": "src/lib/multiomics/paired-study-client.js",
+      "git_blob_sha": "f63835619c1267b6a55f0cc7ceee22ddce7dc733",
+      "bytes": 4123
+    },
+    {
+      "source_path": "src/lib/multiomics/portable-project.js",
+      "target_path": "src/lib/multiomics/portable-project.js",
+      "git_blob_sha": "17663f8435af1c33c8af56304cd5274bd058b768",
+      "bytes": 6991
+    },
+    {
+      "source_path": "src/lib/multiomics/r-figure-source.js",
+      "target_path": "src/lib/multiomics/r-figure-source.js",
+      "git_blob_sha": "39a7f22beab368f4df623b59a4e0535294b21043",
+      "bytes": 11187
+    },
+    {
+      "source_path": "src/lib/multiomics/r-markdown-renderer-source.js",
+      "target_path": "src/lib/multiomics/r-markdown-renderer-source.js",
+      "git_blob_sha": "14ec27b348ef443e748cf6157cfc5d05a6403396",
+      "bytes": 1588
+    },
+    {
+      "source_path": "src/lib/multiomics/r-markdown-source.js",
+      "target_path": "src/lib/multiomics/r-markdown-source.js",
+      "git_blob_sha": "2324296e0a86c5e54ff43c1a302de1e40f75265e",
+      "bytes": 8982
+    },
+    {
+      "source_path": "src/lib/multiomics/r-numeric-verifier-source.js",
+      "target_path": "src/lib/multiomics/r-numeric-verifier-source.js",
+      "git_blob_sha": "02c58197ab2e8c387ec67e4deb4b80745bcf7200",
+      "bytes": 3834
+    },
+    {
+      "source_path": "src/lib/multiomics/r-primary-results.js",
+      "target_path": "src/lib/multiomics/r-primary-results.js",
+      "git_blob_sha": "08ddecd6a5bedfd935187b7e4a10d475c245192b",
+      "bytes": 4402
+    },
+    {
+      "source_path": "src/lib/multiomics/r-run-all-source.js",
+      "target_path": "src/lib/multiomics/r-run-all-source.js",
+      "git_blob_sha": "6fcdd089c802890b98658d4b436f3d729363c0b9",
+      "bytes": 3033
+    },
+    {
+      "source_path": "src/lib/multiomics/reference-backend-integrity.js",
+      "target_path": "src/lib/multiomics/reference-backend-integrity.js",
+      "git_blob_sha": "1d5b21758bc69b16a02ea38e070862dc5c0e5678",
+      "bytes": 2395
+    },
+    {
+      "source_path": "src/lib/multiomics/reference-r-sources.js",
+      "target_path": "src/lib/multiomics/reference-r-sources.js",
+      "git_blob_sha": "255daffb52e4baa5910bdf5de3a52bdcdd1ea924",
+      "bytes": 155504
+    },
+    {
+      "source_path": "src/lib/multiomics/reference-replay-verifier-source.js",
+      "target_path": "src/lib/multiomics/reference-replay-verifier-source.js",
+      "git_blob_sha": "fa42e6f9c6d1b0332a5e0ae2476616a87037e557",
+      "bytes": 3969
+    },
+    {
+      "source_path": "src/lib/multiomics/reference-replay.js",
+      "target_path": "src/lib/multiomics/reference-replay.js",
+      "git_blob_sha": "c4bd0c960d3cdefe69ac437306140e41a9c5ea90",
+      "bytes": 7627
+    },
+    {
+      "source_path": "src/lib/multiomics/research-archive-verifier.js",
+      "target_path": "src/lib/multiomics/research-archive-verifier.js",
+      "git_blob_sha": "41cc7ce89db31d78cf09f30c027a2a90bb505af0",
+      "bytes": 7486
+    },
+    {
+      "source_path": "src/lib/multiomics/research-export-package.js",
+      "target_path": "src/lib/multiomics/research-export-package.js",
+      "git_blob_sha": "e61d132be733898094f729127e766c01f576ec9a",
+      "bytes": 38798
+    },
+    {
+      "source_path": "src/lib/multiomics/research-reference-csv.js",
+      "target_path": "src/lib/multiomics/research-reference-csv.js",
+      "git_blob_sha": "18dd62db7f571551d0f4258d1410b8b3e39a2e1b",
+      "bytes": 1917
+    },
+    {
+      "source_path": "src/lib/multiomics/research-report.js",
+      "target_path": "src/lib/multiomics/research-report.js",
+      "git_blob_sha": "2afb3b7fc67bc6400a1bd3a2da2ef8cbc02c8ade",
+      "bytes": 6110
+    },
+    {
+      "source_path": "src/lib/multiomics/scientific-assurance.js",
+      "target_path": "src/lib/multiomics/scientific-assurance.js",
+      "git_blob_sha": "e432f342f346ae448912978e6122a0d41400af32",
+      "bytes": 24450
+    },
+    {
+      "source_path": "src/lib/multiomics/visualization-data.js",
+      "target_path": "src/lib/multiomics/visualization-data.js",
+      "git_blob_sha": "a144c44b41f6c9130e04cd821f144fe310024faa",
+      "bytes": 31302
+    },
+    {
+      "source_path": "src/routes/multiomics/+page.svelte",
+      "target_path": "src/routes/multiomics/+page.svelte",
+      "git_blob_sha": "7cee67e809c5eeb17b587e09b42f09dd82754090",
+      "bytes": 20962
+    },
+    {
+      "source_path": "src/routes/multiomics/learn/+page.svelte",
+      "target_path": "src/routes/multiomics/learn/+page.svelte",
+      "git_blob_sha": "609b187b29ccf225698f419a21f9b97ddbf5d10d",
+      "bytes": 9544
+    },
+    {
+      "source_path": "src/routes/multiomics/tool/+page.svelte",
+      "target_path": "src/routes/multiomics/tool/+page.svelte",
+      "git_blob_sha": "8ef808c94dc09426016594db4082988a99ccb765",
+      "bytes": 284010
+    },
+    {
+      "source_path": "static/multiomics/README.txt",
+      "target_path": "static/multiomics/README.txt",
+      "git_blob_sha": "7df1cd83e1763ccbe15e9238c5a625f125ea828b",
+      "bytes": 25416
+    },
+    {
+      "source_path": "static/multiomics/demo_metabolomics.csv",
+      "target_path": "static/multiomics/demo_metabolomics.csv",
+      "git_blob_sha": "7c3c6cfb2fefd506097f00d68e8bb85afc252ec4",
+      "bytes": 428
+    },
+    {
+      "source_path": "static/multiomics/demo_metadata.csv",
+      "target_path": "static/multiomics/demo_metadata.csv",
+      "git_blob_sha": "1991af76b32d188e323548c7223b58bdf7285a62",
+      "bytes": 2823
+    },
+    {
+      "source_path": "static/multiomics/demo_proteomics.csv",
+      "target_path": "static/multiomics/demo_proteomics.csv",
+      "git_blob_sha": "29174b3d7f2acd67bba0f5d5a9583741250f6ddd",
+      "bytes": 394
+    },
+    {
+      "source_path": "static/multiomics/demo_transcriptomics.csv",
+      "target_path": "static/multiomics/demo_transcriptomics.csv",
+      "git_blob_sha": "810954b3626cf2c0fe79b6636cf1240dc91f541b",
+      "bytes": 435
+    },
+    {
+      "source_path": "static/multiomics/design-guide-ui.js",
+      "target_path": "static/multiomics/design-guide-ui.js",
+      "git_blob_sha": "0d214713db410ea69bb4e44e233435ae2e734a13",
+      "bytes": 13130
+    },
+    {
+      "source_path": "static/multiomics/fdr-policy-ui.js",
+      "target_path": "static/multiomics/fdr-policy-ui.js",
+      "git_blob_sha": "dfd5fb62973035dd46eaee403432be3130ad1564",
+      "bytes": 7507
+    },
+    {
+      "source_path": "static/multiomics/file-guide-ui.js",
+      "target_path": "static/multiomics/file-guide-ui.js",
+      "git_blob_sha": "8be8c1dd091f32dffec61f2c5d38b3641ddb89b1",
+      "bytes": 9385
+    },
+    {
+      "source_path": "static/multiomics/guided-ui.js",
+      "target_path": "static/multiomics/guided-ui.js",
+      "git_blob_sha": "9f3f729778dbd0af0d6607784e25b45b93767fd0",
+      "bytes": 21255
+    },
+    {
+      "source_path": "static/multiomics/metabolic-network-methods.md",
+      "target_path": "static/multiomics/metabolic-network-methods.md",
+      "git_blob_sha": "3c25759a2a64078b07762f61ff51137dee096451",
+      "bytes": 4239
+    },
+    {
+      "source_path": "static/multiomics/metabolomics-confidence-ui.js",
+      "target_path": "static/multiomics/metabolomics-confidence-ui.js",
+      "git_blob_sha": "afa00371887b9cc4b48a6b9059a7686f92bdf4f2",
+      "bytes": 14541
+    },
+    {
+      "source_path": "static/multiomics/metabolomics_template.csv",
+      "target_path": "static/multiomics/metabolomics_template.csv",
+      "git_blob_sha": "10925832471783fb23388f7f60b91645b720d5e1",
+      "bytes": 69
+    },
+    {
+      "source_path": "static/multiomics/metadata_template.csv",
+      "target_path": "static/multiomics/metadata_template.csv",
+      "git_blob_sha": "e095332cf920c40b05f3115c8ca0cef270d514b9",
+      "bytes": 779
+    },
+    {
+      "source_path": "static/multiomics/ms-auc-import-methods.md",
+      "target_path": "static/multiomics/ms-auc-import-methods.md",
+      "git_blob_sha": "3f26fbb8108aa2b215c72dee26bc728d328fa35d",
+      "bytes": 4652
+    },
+    {
+      "source_path": "static/multiomics/ms_peak_annotations_example.csv",
+      "target_path": "static/multiomics/ms_peak_annotations_example.csv",
+      "git_blob_sha": "e3c48f38e405412d212aaf0e5d04dd564d57a3ff",
+      "bytes": 56
+    },
+    {
+      "source_path": "static/multiomics/ms_peak_areas_example.csv",
+      "target_path": "static/multiomics/ms_peak_areas_example.csv",
+      "git_blob_sha": "7a7f2346bbb891198b254ec98b62c28db3825142",
+      "bytes": 1307
+    },
+    {
+      "source_path": "static/multiomics/plain-language-terms.js",
+      "target_path": "static/multiomics/plain-language-terms.js",
+      "git_blob_sha": "f217ffc01fde246b60e7b416ff42741ba38da97b",
+      "bytes": 7244
+    },
+    {
+      "source_path": "static/multiomics/plain-language-ui.js",
+      "target_path": "static/multiomics/plain-language-ui.js",
+      "git_blob_sha": "860f110763ad6c97e097d2a43a36fa0330d3fc38",
+      "bytes": 16101
+    },
+    {
+      "source_path": "static/multiomics/professional-readiness.md",
+      "target_path": "static/multiomics/professional-readiness.md",
+      "git_blob_sha": "4949c0345e7a591a77a97c34aaf7f8dac1e4afbb",
+      "bytes": 5370
+    },
+    {
+      "source_path": "static/multiomics/proteomics_template.csv",
+      "target_path": "static/multiomics/proteomics_template.csv",
+      "git_blob_sha": "853afc29bb34859f67be5660354e42053491b577",
+      "bytes": 59
+    },
+    {
+      "source_path": "static/multiomics/run-readiness-ui.js",
+      "target_path": "static/multiomics/run-readiness-ui.js",
+      "git_blob_sha": "2e5555e33bcbf515165ffdff7206cf2f9b89ba20",
+      "bytes": 6969
+    },
+    {
+      "source_path": "static/multiomics/scientific-summary-ui.js",
+      "target_path": "static/multiomics/scientific-summary-ui.js",
+      "git_blob_sha": "8d0211d09166ea911e5cd89e24d6fa7dc53a2b36",
+      "bytes": 34848
+    },
+    {
+      "source_path": "static/multiomics/scientific-validation.md",
+      "target_path": "static/multiomics/scientific-validation.md",
+      "git_blob_sha": "632fdded6859075fa7a7d1c028f432e03dcbcce2",
+      "bytes": 86234
+    },
+    {
+      "source_path": "static/multiomics/templates/external_validation_binary.json",
+      "target_path": "static/multiomics/templates/external_validation_binary.json",
+      "git_blob_sha": "ff660782c707cc35780c99bfe7aee2f078a2e7ec",
+      "bytes": 311
+    },
+    {
+      "source_path": "static/multiomics/templates/external_validation_predictions_binary.csv",
+      "target_path": "static/multiomics/templates/external_validation_predictions_binary.csv",
+      "git_blob_sha": "2368205ecb63a1e400005138aa5a01b83d4be553",
+      "bytes": 102
+    },
+    {
+      "source_path": "static/multiomics/templates/raw_ms_manifest.csv",
+      "target_path": "static/multiomics/templates/raw_ms_manifest.csv",
+      "git_blob_sha": "55d815b87d739c0f5abc27889555970c068c2716",
+      "bytes": 236
+    },
+    {
+      "source_path": "static/multiomics/templates/raw_ms_parameters.json",
+      "target_path": "static/multiomics/templates/raw_ms_parameters.json",
+      "git_blob_sha": "7d157178646eeb0d96c72e00a8e8b527a9a8713f",
+      "bytes": 752
+    },
+    {
+      "source_path": "static/multiomics/transcriptomics_template.csv",
+      "target_path": "static/multiomics/transcriptomics_template.csv",
+      "git_blob_sha": "2d0d496ed5886910895a4bdec3456980ffb8504e",
+      "bytes": 61
+    },
+    {
+      "source_path": "static/multiomics/validation-evidence-ui.js",
+      "target_path": "static/multiomics/validation-evidence-ui.js",
+      "git_blob_sha": "fa445e853014af86f9d227947b54bcab9162e69a",
+      "bytes": 25867
+    },
+    {
+      "source_path": "tests/e2e/cross-domain-omics-pkpd.spec.js",
+      "target_path": "tests/e2e/cross-domain-omics-pkpd.spec.js",
+      "git_blob_sha": "6cfae6a467ec79d8b8d37581079a56ccdf0c2610",
+      "bytes": 3199
+    },
+    {
+      "source_path": "tests/e2e/multiomics-beginner-clarity.spec.js",
+      "target_path": "tests/e2e/multiomics-beginner-clarity.spec.js",
+      "git_blob_sha": "6c8b8dd2dbb5841a4aa4493bb17bbb6aa1d55356",
+      "bytes": 3604
+    },
+    {
+      "source_path": "tests/e2e/multiomics-beginner-science.spec.js",
+      "target_path": "tests/e2e/multiomics-beginner-science.spec.js",
+      "git_blob_sha": "086c2ebf4f94cdf828002456e3b6551be087fd36",
+      "bytes": 13804
+    },
+    {
+      "source_path": "tests/e2e/multiomics-contrast.spec.js",
+      "target_path": "tests/e2e/multiomics-contrast.spec.js",
+      "git_blob_sha": "2a878c2c7754b26386eb4aaaf7e5e26eff2ea81e",
+      "bytes": 4854
+    },
+    {
+      "source_path": "tests/e2e/multiomics-design-guide.spec.js",
+      "target_path": "tests/e2e/multiomics-design-guide.spec.js",
+      "git_blob_sha": "6819ddc613ec9fb869cca07ffdd6958e8a35dd7a",
+      "bytes": 1938
+    },
+    {
+      "source_path": "tests/e2e/multiomics-fdr-finite-sample-guard.spec.js",
+      "target_path": "tests/e2e/multiomics-fdr-finite-sample-guard.spec.js",
+      "git_blob_sha": "3aeb427acef12789abfb5d49227514d910e87f46",
+      "bytes": 1331
+    },
+    {
+      "source_path": "tests/e2e/multiomics-file-guide.spec.js",
+      "target_path": "tests/e2e/multiomics-file-guide.spec.js",
+      "git_blob_sha": "957ea812bdc14fa233337a060db47745972dbdc7",
+      "bytes": 1509
+    },
+    {
+      "source_path": "tests/e2e/multiomics-live-r-to-zip.spec.js",
+      "target_path": "tests/e2e/multiomics-live-r-to-zip.spec.js",
+      "git_blob_sha": "ee0ba15bcfbd2717b45940af5c339de43f751c9b",
+      "bytes": 15122
+    },
+    {
+      "source_path": "tests/e2e/multiomics-methods-learning.spec.js",
+      "target_path": "tests/e2e/multiomics-methods-learning.spec.js",
+      "git_blob_sha": "a18e809313ea4832ef3d519159e0fbdb8a8361fb",
+      "bytes": 2757
+    },
+    {
+      "source_path": "tests/e2e/multiomics-missingness-caution.spec.js",
+      "target_path": "tests/e2e/multiomics-missingness-caution.spec.js",
+      "git_blob_sha": "ed544b5d97dbb84c0f97f5337253fd19eb56e26c",
+      "bytes": 1458
+    },
+    {
+      "source_path": "tests/e2e/multiomics-mofa-backend-compat.spec.js",
+      "target_path": "tests/e2e/multiomics-mofa-backend-compat.spec.js",
+      "git_blob_sha": "ef6608c7b64221bee9a4620b58f9f8e4519bc757",
+      "bytes": 1600
+    },
+    {
+      "source_path": "tests/e2e/multiomics-paired-beginner.spec.js",
+      "target_path": "tests/e2e/multiomics-paired-beginner.spec.js",
+      "git_blob_sha": "04e73939555c5d64e7441aebbf1541ec45ddc38b",
+      "bytes": 2772
+    },
+    {
+      "source_path": "tests/e2e/multiomics-plain-language.spec.js",
+      "target_path": "tests/e2e/multiomics-plain-language.spec.js",
+      "git_blob_sha": "4513e0370d4ae4d9646c4f61194e1166adcf45b7",
+      "bytes": 12296
+    },
+    {
+      "source_path": "tests/e2e/multiomics-portable-project.spec.js",
+      "target_path": "tests/e2e/multiomics-portable-project.spec.js",
+      "git_blob_sha": "5152fa20ae6b99ccfe6f13f73aef254e4b55d7f6",
+      "bytes": 3015
+    },
+    {
+      "source_path": "tests/e2e/multiomics-provenance.spec.js",
+      "target_path": "tests/e2e/multiomics-provenance.spec.js",
+      "git_blob_sha": "d3129771b36ef187a4214d9a8a7ad349c0f807b1",
+      "bytes": 5370
+    },
+    {
+      "source_path": "tests/e2e/multiomics-readiness.spec.js",
+      "target_path": "tests/e2e/multiomics-readiness.spec.js",
+      "git_blob_sha": "9dc495bb5fc64b99b894ad2abbccb6d5b4912a6a",
+      "bytes": 1241
+    },
+    {
+      "source_path": "tests/e2e/multiomics-research-bundle.spec.js",
+      "target_path": "tests/e2e/multiomics-research-bundle.spec.js",
+      "git_blob_sha": "7db580b84e100a51fa507e57b56b47a407a6dad8",
+      "bytes": 9466
+    },
+    {
+      "source_path": "tests/e2e/multiomics-research-output-acceptance.spec.js",
+      "target_path": "tests/e2e/multiomics-research-output-acceptance.spec.js",
+      "git_blob_sha": "2704820a4d11524fad37fcb28a64b100b08b7624",
+      "bytes": 8866
+    },
+    {
+      "source_path": "tests/e2e/multiomics-research-qualification.spec.js",
+      "target_path": "tests/e2e/multiomics-research-qualification.spec.js",
+      "git_blob_sha": "8fc07ff90d7af9e29e8414598f3308d1444cd0ff",
+      "bytes": 2355
+    },
+    {
+      "source_path": "tests/e2e/multiomics-rnaseq-mixed-truth-explanation.spec.js",
+      "target_path": "tests/e2e/multiomics-rnaseq-mixed-truth-explanation.spec.js",
+      "git_blob_sha": "6f5aa34295ec1bbe42ef6e0132e0dd5483119d0a",
+      "bytes": 1541
+    },
+    {
+      "source_path": "tests/e2e/multiomics-rnaseq-normalization-lock.spec.js",
+      "target_path": "tests/e2e/multiomics-rnaseq-normalization-lock.spec.js",
+      "git_blob_sha": "d42e73a7fc0fc109c672740fd4a483929c219eec",
+      "bytes": 1460
+    },
+    {
+      "source_path": "tests/e2e/multiomics-rnaseq-null-explanation.spec.js",
+      "target_path": "tests/e2e/multiomics-rnaseq-null-explanation.spec.js",
+      "git_blob_sha": "b8131d5d1175d83ab64f48316d6c0aa114d87d3c",
+      "bytes": 1314
+    },
+    {
+      "source_path": "tests/e2e/multiomics-rnaseq-prefilter-sensitivity.spec.js",
+      "target_path": "tests/e2e/multiomics-rnaseq-prefilter-sensitivity.spec.js",
+      "git_blob_sha": "438f427f8d9e660c888edc6764e1aac0034597ae",
+      "bytes": 1711
+    },
+    {
+      "source_path": "tests/e2e/multiomics-rnaseq-stress-explanation.spec.js",
+      "target_path": "tests/e2e/multiomics-rnaseq-stress-explanation.spec.js",
+      "git_blob_sha": "714975ee8104d1a1e669ab02134227d0ac048eb7",
+      "bytes": 1627
+    },
+    {
+      "source_path": "tests/e2e/multiomics-scientific-summary-safety.spec.js",
+      "target_path": "tests/e2e/multiomics-scientific-summary-safety.spec.js",
+      "git_blob_sha": "ccbc96e452dcd1bdcfd646f822958dae8e3ae44d",
+      "bytes": 3593
+    },
+    {
+      "source_path": "tests/e2e/multiomics-single-omic.spec.js",
+      "target_path": "tests/e2e/multiomics-single-omic.spec.js",
+      "git_blob_sha": "40a31cfbe099479acd7d591ab6017035a3f490f0",
+      "bytes": 4339
+    },
+    {
+      "source_path": "tests/e2e/multiomics-visualizations.spec.js",
+      "target_path": "tests/e2e/multiomics-visualizations.spec.js",
+      "git_blob_sha": "3c0b5bafc6172757724a5067c45b6e438836e955",
+      "bytes": 15317
+    },
+    {
+      "source_path": "tests/e2e/multiomics.spec.js",
+      "target_path": "tests/e2e/multiomics.spec.js",
+      "git_blob_sha": "2db8784119de7ddbaf03b34a825cc5cfd8f383bd",
+      "bytes": 20026
+    }
+  ]
+}
