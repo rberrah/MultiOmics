@@ -7,7 +7,7 @@
 - Dépôt cible : `rberrah/MultiOmics` ; branche `migration/import-validated-multiomics-20261016`.
 - **244 fichiers liés aux omiques transférés**, comprenant 206 fichiers actifs (moteur JS, pages, visualisations, R, données publiques, documentation, tests) et 38 workflows historiques.
 - Vérification Git blob : **242/244** identiques à la source avant ajustements autonomes ; les deux écarts initialement intentionnels portaient sur les commandes de clonage R dans la page d'analyse et le test supplémentaire de disposition UI. Le lien R de cette page a ensuite été réorienté vers le nouveau dépôt.
-- Les anciens workflows sont conservés **à titre documentaire** dans `validation/legacy-workflows/`. Aucun de ces 38 workflows n'est activé directement : plusieurs reposaient sur les pages et outils PMx Explain absents ici.
+- Les anciens workflows sont conservés **à titre documentaire** dans `migration/legacy-workflows/`. Aucun de ces 38 workflows n'est activé directement : plusieurs reposaient sur les pages et outils PMx Explain absents ici.
 
 ## Travail d'autonomisation réalisé
 
