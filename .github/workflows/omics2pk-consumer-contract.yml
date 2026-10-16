@@ -66,3 +66,26 @@ jobs:
           assert not (p.parent/'forbidden-sweet').exists()
           print('PASS: original ZIP -> Omics2PK reader, exact T0/T12, sample cardinality, no invented PK or SWEET claims')
           PY
+      - name: Validate optional real-assay signature schema against pinned Omics2PK
+        env:
+          PYTHONPATH: ${{ github.workspace }}/consumer/src
+        run: |
+          node multiomics/scripts/test_multiomics_individual_signatures.mjs "$RUNNER_TEMP/individual"
+          python3 multiomics/scripts/validate_multiomics_exchange.py "$RUNNER_TEMP/individual"
+          python3 - <<'PY'
+          import csv,os
+          from pathlib import Path
+          from omics2pk.exchange import inspect_exchange
+          from omics2pk.omic_signature_contract import qualify_individual_signatures
+          directory=Path(os.environ['RUNNER_TEMP'])/'individual'
+          report=inspect_exchange(directory)
+          with (directory/'individual_signatures.csv').open(newline='',encoding='utf8') as f:
+              rows=list(csv.DictReader(f))
+          qualified=qualify_individual_signatures(rows)
+          assert report['subjects']==2
+          assert qualified['status']=='QUALIFIED_INDIVIDUAL_SIGNATURE_SCHEMA_NOT_PREDICTIVE_EFFECT'
+          assert qualified['n_assay_signature_rows']==2
+          assert qualified['n_unique_independent_biological_subjects_at_most']==2
+          assert not qualified['no_patient_or_score_values_exported'] is False
+          print('PASS: original MultiOmics per-assay export parsed by independent Omics2PK schema contract')
+          PY
