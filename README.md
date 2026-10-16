@@ -29,7 +29,15 @@ npx playwright install chromium
 npx playwright test --config playwright.multiomics.config.js tests/e2e/multiomics-methods-learning.spec.js
 ```
 
-GitHub Pages is static: `BASE_PATH=/MultiOmics npm run build` is the deployment target when the public release has been independently qualified. A static Pages site **does not execute R on the server**.
+**The public MultiOmics URLs stay on rberrah.github.io under `/pharmacometrie/multiomics/`, `/tool/` and `/learn/`.** The standalone project produces a namespaced static compatibility payload instead of redirecting users to GitHub project Pages:
+
+```bash
+BASE_PATH=/pharmacometrie npm run build
+node scripts/build_pmx_compat_overlay.mjs
+node scripts/test_pmx_compat_overlay.mjs
+```
+
+This does **not** publish the website or change the PMx Explain repository. A separate, reviewed PMx integration PR will pin a vetted MultiOmics SHA and add only the verified pages and `_multiomics_app` assets to its existing deployment. See [fixed public URL integration](docs/FIXED_PUBLIC_URL_INTEGRATION.md). A static Pages site **does not execute R on the server**.
 
 ## Optional native R reference engine
 
@@ -57,7 +65,7 @@ The second command installs missing **reporting** dependencies where supported, 
 
 ## Scientific evidence and limits
 
-- **Public Airway / GSE52778:** four biological cell lines measured twice; independent DESeq2 numerical comparison of **17,199 fitted genes**, native R vs website-plotted data (30 features × 8 samples) and archived research ZIP/Rmd replay in the original integrated CI. The autonomous run must independently pass before release.
+- **Public Airway / GSE52778:** four biological cell lines measured twice; independent DESeq2 numerical comparison of **17,199 fitted genes**, native R vs website-plotted data (30 features × 8 samples) and archived research ZIP/Rmd replay in the original integrated CI. The independent R+Rmd CI has now succeeded on the migration branch ([run 38884213956](https://github.com/rberrah/MultiOmics/actions/runs/38884213956)); this is specific to the checked study and its environment, not universal validation.
 - **MOFA2:** exploratory latent factors; batch adjustment, normalization and external replication matter.
 - **DIABLO:** supervised learning needs patient-level splits, leakage controls and single-omic ablations. Its superiority is not universal.
 - **False discovery rate:** stress simulations revealed possible inflation in some designs; an algorithm running successfully is not proof of 5% frequentist control. Document assumptions and uncertainty.
