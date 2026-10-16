@@ -9,6 +9,7 @@
   import LanguageToggle from '$lib/components/LanguageToggle.svelte';
 
   let { children } = $props();
+  /** @param {string} fr @param {string} en */
   const t = (fr, en) => $language === 'en' ? en : fr;
   const mainSite = 'https://rberrah.github.io/';
 </script>

@@ -1,6 +1,7 @@
 <script>
   import { base } from '$app/paths';
   import { language } from '$lib/stores/language';
+  /** @param {string} fr @param {string} en */
   const t=(fr,en)=>$language==='en'?en:fr;
 </script>
 

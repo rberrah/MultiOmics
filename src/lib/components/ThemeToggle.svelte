@@ -3,8 +3,10 @@
   import { language } from '$lib/stores/language';
 
   const KEY = 'pk-theme';
+  /** @type {'system'|'light'|'dark'} */
   let mode = $state('system');
 
+  /** @param {'system'|'light'|'dark'} value */
   function apply(value) {
     const root = document.documentElement;
     if (value === 'system') root.removeAttribute('data-theme');
@@ -26,9 +28,14 @@
   }
 
   const label = () => {
-    const fr = { system: 'Thème : système', light: 'Thème : clair', dark: 'Thème : sombre' };
-    const en = { system: 'Theme: system', light: 'Theme: light', dark: 'Theme: dark' };
-    return ($language === 'en' ? en : fr)[mode];
+    if ($language === 'en') {
+      if (mode === 'light') return 'Theme: light';
+      if (mode === 'dark') return 'Theme: dark';
+      return 'Theme: system';
+    }
+    if (mode === 'light') return 'Thème : clair';
+    if (mode === 'dark') return 'Thème : sombre';
+    return 'Thème : système';
   };
 </script>
 

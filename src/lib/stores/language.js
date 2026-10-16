@@ -26,6 +26,7 @@ if(browser)source.subscribe(value=>{
 });
 export const language={
   subscribe:source.subscribe,
+  /** @param {string} value */
   set(value){
     const normalized=supported.has(value)?value:'fr';
     source.set(normalized);
