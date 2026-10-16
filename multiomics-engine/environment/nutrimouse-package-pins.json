@@ -1,0 +1,26 @@
+{
+  "schema": "multiomics.nutrimouse-r-lock.v1",
+  "rVersion": "4.5.2",
+  "bioconductorVersion": "3.22",
+  "container": "bioconductor/bioconductor_docker:RELEASE_3_22-r-4.5.2@sha256:e34177896c1579f66d48b756e4229b58237499183a089da084af72d7aba1d40a",
+  "profiles": {
+    "diablo": {
+      "requiredPackages": [
+        "mixOmics"
+      ],
+      "versionLock": {
+        "mixOmics": "6.34.0"
+      },
+      "strictLockReady": true
+    },
+    "mofa": {
+      "requiredPackages": [
+        "MOFA2",
+        "basilisk"
+      ],
+      "versionLock": {},
+      "strictLockReady": false
+    }
+  },
+  "note": "mixOmics was downloaded as version 6.34.0 in successful real Nutrimouse validation run 38902770148. MOFA2/basilisk versions must be captured from actual CI before enabling strict mode."
+}
