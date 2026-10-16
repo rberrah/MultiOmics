@@ -15,7 +15,18 @@
     "rmarkdown",
     "knitr"
   ],
-  "versionLock": {},
-  "strictLockReady": false,
-  "note": "Capture actual package versions in CI before turning on strict verification. Image digest freezes the base, not packages installed later."
+  "versionLock": {
+    "BiocManager": "1.30.27",
+    "DESeq2": "1.50.2",
+    "edgeR": "4.8.2",
+    "limma": "3.66.0",
+    "airway": "1.30.0",
+    "statmod": "1.5.2",
+    "jsonlite": "2.0.0",
+    "plumber": "1.3.3",
+    "rmarkdown": "2.30",
+    "knitr": "1.50"
+  },
+  "strictLockReady": true,
+  "note": "Exact versions captured on 2026-10-16 from GitHub Actions run 38902769446 using the immutable image and validated native null/mixed-truth suites; fail closed on drift. The full installed package inventory is archived with each run; upstream package mirrors remain mutable."
 }
