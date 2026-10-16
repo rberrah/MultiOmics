@@ -11,17 +11,12 @@ on:
       - 'multiomics-engine/mofa_real_metadata_audit.R'
       - 'multiomics-engine/tests/test_mofa_real_nutrimouse_audit.R'
       - 'multiomics-engine/tests/test_mofa_real_nutrimouse.R'
+  # The release assembler requires an independently reproducible passing
+  # scientific result on the *exact* immutable published SHA, even when a
+  # commit changes only JS/UI/other methods. Path-filtered main pushes gave
+  # a permanently stale source pin and prevented visible header updates.
   push:
     branches: [main]
-    paths:
-      - '.github/workflows/nutrimouse-mofa-validation.yml'
-      - 'multiomics-engine/advanced_methods.R'
-      - 'multiomics-engine/environment/**'
-      - 'scripts/verify_mofa_basilisk_evidence.py'
-      - 'scripts/test_mofa_python_lock.py'
-      - 'multiomics-engine/mofa_real_metadata_audit.R'
-      - 'multiomics-engine/tests/test_mofa_real_nutrimouse_audit.R'
-      - 'multiomics-engine/tests/test_mofa_real_nutrimouse.R'
   workflow_dispatch:
 
 permissions:
