@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/geo-gse22871-external-validation.yml'
       - 'scripts/qualify_geo_gse22871.py'
+      - 'scripts/qualify_gpl1261_annotation.py'
       - 'docs/multiomics/GSE22871_EXTERNAL_VALIDATION_PROTOCOL.md'
   push:
     branches: [main]
@@ -28,6 +29,30 @@ jobs:
       - name: Download GEO original independent cohort and validate all its biological samples and probe rows
         run: |
           python3 scripts/qualify_geo_gse22871.py tmp/multiomics/real-external-GSE22871
+      - name: Reject first-hit mapping of multi-gene probes and malformed annotation tables
+        run: python3 scripts/qualify_gpl1261_annotation.py --self-test
+      - name: Qualify genuine NCBI GPL1261 platform annotation and all 45,101 matrix probe identities
+        run: |
+          python3 scripts/qualify_gpl1261_annotation.py tmp/multiomics/real-external-GSE22871
+      - name: Refuse external signature scores without pinned annotation and cross-platform calibration
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path('tmp/multiomics/real-external-GSE22871')
+          r=json.loads((root/'GPL1261_annotation_mapping_audit.json').read_text())
+          assert r['matrix_probe_ids_with_official_row'] >= 35000
+          assert r['official_annotation_rows'] >= 30000
+          assert r['external_cohort_source_sha256']=='630706c5d3778068a9e08af01ce315b4886de17abefbfaae32708e7ed3d2d861'
+          assert len(r['official_annotation_gzip_sha256'])==64
+          assert r['cross_platform_score_projection']=='BLOCKED_SCALE_AND_PROBE_COLLAPSE_NOT_VALIDATED'
+          assert r['per_animal_scores_generated']==0
+          for name in ['GPL1261_probe_to_gene_all.csv','GPL1261_gene_to_probe_multiplicity.csv',
+                       'GPL1261_unmapped_probe_ids.csv','GPL1261_unmapped_symbol_ids.csv',
+                       'GPL1261_ambiguous_probe_ids.csv']:
+            assert (root/name).is_file(), 'Missing explicit ambiguity audit: '+name
+          print('PASS: 45k-probe source-annotated crosswalk audited, no external biological scores claimed')
+          PY
       - name: Assert real external-cohort evidence and explicitly blocked unqualified cross-platform scores
         run: |
           python3 - <<'PY'
