@@ -10,6 +10,7 @@ on:
       - 'scripts/qualify_gpl1261_entrez_concordance.py'
       - 'scripts/qualify_geo_native_probe_evidence.py'
       - 'scripts/qualify_geo_native_pfos_contrasts.py'
+      - 'multiomics-engine/tests/test_geo_native_pfos_contrasts.R'
       - 'multiomics-engine/tests/test_geo_native_probe_replay.R'
       - 'docs/multiomics/GSE22871_EXTERNAL_VALIDATION_PROTOCOL.md'
   push:
@@ -180,6 +181,11 @@ jobs:
           python3 scripts/qualify_geo_native_pfos_contrasts.py --self-test
           python3 scripts/qualify_geo_native_pfos_contrasts.py \
             tmp/multiomics/real-external-GSE22871
+      - name: Independently reproduce the exact external permutation p-values and two-comparison BH correction in native R
+        run: |
+          Rscript multiomics-engine/tests/test_geo_native_pfos_contrasts.R --self-test
+          Rscript multiomics-engine/tests/test_geo_native_pfos_contrasts.R \
+            tmp/multiomics/real-external-GSE22871
       - name: Assert exploratory biological effects are not mislabeled as PK or Nutrimouse transfer
         run: |
           python3 - <<'PY'
@@ -194,6 +200,7 @@ jobs:
           assert r['frozen_Nutrimouse_model_scores_generated']==0
           assert r['biologically_validated_PK_scores']==0 and not r['PK_concentrations_available']
           assert r['requires_cross_platform_bridge_for_Nutrimouse_projection']
+          assert (root/'independent_R_contrast_replay.txt').is_file()
           print('PASS: native predeclared external association only; no transferred or PK scores')
           PY
       - name: Preserve favorable and unfavorable exploratory source-related external phenotypic contrasts
