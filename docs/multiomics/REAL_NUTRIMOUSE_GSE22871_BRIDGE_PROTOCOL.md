@@ -123,9 +123,22 @@ Le candidat Affymetrix `1424853_s_at` est annoté simultanément
 **Cyp4a10 (Entrez 13117)** et **Cyp4a31 (Entrez 666168)** dans
 les deux références NCBI et Bioconductor. Même si cet identifiant
 partage le gène d'intérêt, le signal n'est pas spécifique ; il reste
-rejeté pour la projection **exacte** du modèle source. Le nombre
-de gènes identifiés avec une sonde strictement unique reste à recalculer
-après la correction FAS (CI de la PR de résolution primaire).
+rejeté pour la projection **exacte** du modèle source.
+
+**Résultat observé sur les vrais fichiers : 3/4 gènes correspondent à une
+sonde unique de GPL1261**, recalculés dans deux programmes indépendants
+([CI GEO exacte, 17 octobre 2026](https://github.com/rberrah/MultiOmics/actions/runs/39029657615)) :
+
+| Colonne source | Cible biologique vérifiée | Entrez | Sonde externe unique |
+| --- | --- | ---: | --- |
+| CYP3A11 | Cyp3a11 | 13112 | `1416809_at` |
+| FAS | **Fasn (RefSeq NM_007988, Martin 2007 Table 4)** | **14104** | **`1423828_at`** |
+| CYP4A14 | Cyp4a14 | 13119 | `1423257_at` |
+| CYP4A10 | Cyp4a10 / Cyp4a31 (hybridation non spécifique) | 13117 / 666168 | **`1424853_s_at` rejetée** |
+
+Ces correspondances représentent une **vérification d'identifiant**, et
+non une validation de la spécificité de la sonde macroarray source, ni
+un modèle d'équivalence des intensités ou de transfert de signature.
 
 Le fichier `all_possible_source_gene_GEO_probe_matches_no_selection.csv`
 conserve les alternatives sans les choisir selon le génotype,
