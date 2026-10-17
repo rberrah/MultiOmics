@@ -22,9 +22,18 @@ A dedicated pipeline fetches the original NCBI GEO platform annotation
 [`GPL1261.annot.gz`](https://ftp.ncbi.nlm.nih.gov/geo/platforms/GPL1nnn/GPL1261/annot/GPL1261.annot.gz).
 It is independently validated against the exact **45,101 original measured
 probe IDs** in the SHA-256-locked GSE22871 source. The full annotation gzip
-is preserved, and its **actual** SHA-256 recorded in
-`GPL1261_annotation_mapping_audit.json`. Once checked, a further candidate
-release should also pin its exact digest and reject subsequent source drift.
+is preserved. Its qualified, immutable SHA-256 is
+`394c103cf4ca99500d06369e4fb2b9b9bffc2c10fd3cbeb0b0d64c51c3fc95f8`,
+independently observed from official NCBI bytes in
+[Actions 39018594337](https://github.com/rberrah/MultiOmics/actions/runs/39018594337).
+Future downloads **fail closed on digest drift**. The full observed digest is also
+recorded in `GPL1261_annotation_mapping_audit.json`.
+
+The genuine audit matched **45,101/45,101 source probes** against **45,101
+official platform annotation rows**, yielded **22,587 distinct parsed gene-symbol
+labels** and **1,196 probes with more than one gene symbol**. The prespecified
+`Cyp3a11` anchor has **one candidate platform probe**, which is NOT by itself
+evidence that the underlying expression measurements are on the same scale.
 
 - Preserve every platform probe→gene-symbol pair from the *official* GEO
   annotation. Ambiguous probes mapping to multiple genes are retained with
