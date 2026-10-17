@@ -4,6 +4,8 @@
 
 The public National Center for Biotechnology Information GEO study **GSE22871** measures liver expression from **30 individual mice**, with wild-type versus PPARα-null genotype, exposed for seven days to 0, 3 or 10 mg/kg/day PFOS, **five biological animals per genotype × dose group**. The microarray is **Affymetrix GPL1261 Mouse Genome 430 2.0**. Read the actual original GEO sample title/GSM metadata; do not infer genotype/dose from sample order or chromosome patterns. Official record: https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE22871.
 
+The source archive is SHA-256 **`630706c5d3778068a9e08af01ce315b4886de17abefbfaae32708e7ed3d2d861`**, computed after an independent successful NCBI download in GitHub Actions [run 39016729326](https://github.com/rberrah/MultiOmics/actions/runs/39016729326). Subsequent downloads are **rejected** if any source byte changes, rather than silently interpreting a reprocessed version.
+
 The original public **processed series matrix** is retrieved from `https://ftp.ncbi.nlm.nih.gov/geo/series/GSE22nnn/GSE22871/matrix/GSE22871_series_matrix.txt.gz` and archived with its observed SHA-256. It represents published **RMA, log2-transformed microarray probe intensities**, not raw CEL files or RNA-seq counts. The code does not masquerade as reprocessing the source CEL acquisitions. The source GitHub SHA and GEO downloaded-data SHA are separate provenance assertions; re-check if NCBI republishes data.
 
 ## Acceptance: real cohort intake (not validation of signature transfer)
