@@ -30,8 +30,15 @@ ids <- function(value) {
 }
 lines <- c("GENUINE four-feature original Nutrimouse to GEO two-reference R audit")
 for(i in seq_len(4L)) {
-  name <- a$gene_symbol[[i]]
+  source_label <- a$gene_symbol[[i]]
+  name <- a$source_canonical_symbol[[i]]
   sid <- ids(a$source_entrez_ids[[i]])
+  if(toupper(source_label)=="FAS") {
+    stopifnot(identical(name,"Fasn"),identical(sid,"14104"),
+              identical(a$original_primary_refseq[[i]],"NM_007988"),
+              grepl("DOI_10.1002/hep.21510",
+                    a$original_primary_refseq_citation[[i]],fixed=TRUE))
+  }
   chosen <- character()
   if(length(sid)==1L && a$source_annotation_status[[i]]=="unique") {
     for(j in seq_len(nrow(p))) {
@@ -49,10 +56,11 @@ for(i in seq_len(4L)) {
   expected <- py$matching_geo_probe_ids[[i]]
   expected <- if(is.na(expected) || !nzchar(expected))character() else
     sort(unlist(strsplit(expected,"\\|")),method="radix")
-  if(!identical(chosen,expected) || length(chosen)!=py$strict_probe_count[[i]])
-    stop(sprintf("Independent four-gene real crosswalk mismatch for %s",name))
-  lines <- c(lines,sprintf("%s: %d uniquely acceptable target probes [%s]",
-                           name,length(chosen),paste(chosen,collapse="|")))
+  if(!identical(chosen,expected) || length(chosen)!=py$strict_probe_count[[i]] ||
+     !identical(py$resolved_target_gene_symbol[[i]],name))
+    stop(sprintf("Independent four-gene real crosswalk mismatch for %s (%s)",source_label,name))
+  lines <- c(lines,sprintf("%s -> %s: %d strictly acceptable target probes [%s]",
+                           source_label,name,length(chosen),paste(chosen,collapse="|")))
 }
 lines <- c(lines,"Zero cross-platform standardised scores; no calibration, PK or group-label optimisation")
 writeLines(lines,file.path(out,"independent_R_source_target_gene_bridge_replay.txt"))

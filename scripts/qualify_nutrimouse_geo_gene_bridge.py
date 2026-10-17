@@ -141,6 +141,19 @@ def qualify(model_dir, source_ref_dir, geo_ref_dir, out_dir):
     require(all(x["source_annotation_version"] ==
                 ident_report["source_annotation_version"] for x in source_ids),
             "Genuine org.Mm.eg.db source annotation changed")
+    # Verify external publication's ORIGINAL accession, not the phenotype:
+    # Martin et al. Hepatology 45 (2007) Table 4 p772: FAS -> NM_007988
+    # NCBI mouse RefSeq NM_007988 uniquely resolves to Fasn/Entrez 14104.
+    fas = [x for x in source_ids if x["gene_symbol"].casefold()=="fas"]
+    require(len(fas)==1 and fas[0]["source_canonical_symbol"]=="Fasn"
+            and fas[0]["source_entrez_ids"]=="14104"
+            and fas[0]["original_primary_refseq"]=="NM_007988"
+            and "DOI_10.1002/hep.21510" in fas[0]["original_primary_refseq_citation"]
+            and ident_report["primary_FAS_refseq_verified_against_orgMmEgDb"] is True
+            and ident_report["unresolved_historical_FAS_acronym"] is False,
+            "Primary original FAS->Fasn accession not verified; reject false Fas/CD95 14102")
+    require(len({x["source_canonical_symbol"].casefold() for x in source_ids})==4,
+            "Alias resolution collapsed multiple frozen model features")
 
     geo_audit = json.loads((geo_ref_dir / "GPL1261_entrez_id_concordance_audit.json").read_text())
     require(geo_audit["source_original_gpl1261_sha256"] == PINNED_GPL1261_SHA256 and
@@ -158,13 +171,14 @@ def qualify(model_dir, source_ref_dir, geo_ref_dir, out_dir):
     candidates = []
     near_rows = []
     for x in source_ids:
-        gene = x["gene_symbol"]
+        gene = x["gene_symbol"]  # Frozen model's ORIGINAL macroarray column.
+        canonical = x["source_canonical_symbol"]  # Resolved ID for matching only.
         ids = stable_ids(x["source_entrez_ids"])
         if x["source_annotation_status"] == "unique" and len(ids) == 1:
-            matched, discord = probe_candidates(gene, next(iter(ids)), target_rows)
+            matched, discord = probe_candidates(canonical, next(iter(ids)), target_rows)
         else:
             matched, discord = [], {"source_gene_id_missing_or_multi": 1}
-        possible = near_source_candidates(gene, ids, target_rows, set(matched))
+        possible = near_source_candidates(canonical, ids, target_rows, set(matched))
         near_rows.extend(possible)
         if len(matched) == 1:
             status = "gene_to_target_probe_strict_unique"
@@ -175,6 +189,8 @@ def qualify(model_dir, source_ref_dir, geo_ref_dir, out_dir):
         candidates.append({
             "frozen_feature_index": x["model_feature_index"],
             "source_gene_symbol": gene,
+            "resolved_target_gene_symbol": canonical,
+            "primary_original_refseq": x["original_primary_refseq"],
             "source_entrez_ids": x["source_entrez_ids"],
             "source_annotation_status": x["source_annotation_status"],
             "matching_geo_probe_ids": "|".join(matched),
@@ -205,6 +221,8 @@ def qualify(model_dir, source_ref_dir, geo_ref_dir, out_dir):
         "source_train_only_model_sha256": digest(model_file),
         "source_model_definition_sha256": digest(def_file),
         "source_mouse_gene_annotation_version": ident_report["source_annotation_version"],
+        "primary_FAS_gene_provenance": "Martin_2007_Table4_FAS_NM_007988_Fasn_Entrez14104",
+        "primary_FAS_refseq_verified": True,
         "external_gpl1261_source_sha256": PINNED_GPL1261_SHA256,
         "external_original_gse22871_sha256": PINNED_GEO_SOURCE_SHA256,
         "n_source_train_mice": 30,
@@ -243,7 +261,7 @@ def qualify(model_dir, source_ref_dir, geo_ref_dir, out_dir):
           report["source_train_only_model_sha256"][:12],sep="")
     for entry in candidates:
         gene=entry["source_gene_symbol"]
-        close=[x for x in near_rows if x["source_gene"]==gene]
+        close=[x for x in near_rows if x["source_gene"]==entry["resolved_target_gene_symbol"]]
         print(gene,entry["technical_crosswalk_status"],
               entry["matching_geo_probe_ids"],
               "source_rejected_mapping_reasons=",entry["excluded_mapping_disagreements"],
@@ -279,6 +297,11 @@ def selftest():
     except ValueError:
         pass
     assert "cyp3a11" not in symbols("Cyp3a110")
+    # Negative control: the source FAS acronym must NOT point at death receptor.
+    assert probe_candidates("Fasn","14104",[dict(base,probe_id="x",
+        geo_symbols_existing_audit="Fas",
+        bioc_symbols_existing_audit="Fas",
+        geo_entrez_ids="14102",bioc_entrez_ids="14102")])[0] == []
     print("PASS: independent source gene matching; wrong ID, target disagreement, duplicated/multi probes, malformed gene ID blocked")
 
 
