@@ -3,8 +3,10 @@
 # Works only from original individual measurements and registered design; not PK.
 args <- commandArgs(trailingOnly=TRUE)
 if (identical(args,"--self-test")) {
-  stopifnot(identical(p.adjust(c(46/252,6/252),method="BH"),c(46/252,12/252)),
-            identical(p.adjust(c(.2,.01,.01),method="BH"),c(.2,.015,.015)))
+  stopifnot(max(abs(p.adjust(c(46/252,6/252),method="BH")-
+                    c(46/252,12/252)))<1e-14,
+            max(abs(p.adjust(c(.2,.01,.01),method="BH")-
+                    c(.2,.015,.015)))<1e-14)
   cat("PASS: independent base-R BH unsorted/duplicate/null safeguards\n")
   quit(save="no")
 }
