@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { resolve } from '$app/paths';
+  import { resolve, asset } from '$app/paths';
   import { language } from '#lib/stores/language.js';
   import { runDeterministicAnalysis } from '#lib/multiomics/deterministic.js';
   import { buildResearchBundle, fullLayerCsv, referencePreviewAudit } from '#lib/multiomics/research-export-package.js';
@@ -752,9 +752,17 @@
       proteomics: null,
       metabolomics: null
     };
+    // Static file paths are explicitly declared to Kit 3's AssetPath types.
+    // No ad-hoc string cast; each path is validated against the static tree.
+    const demoAssets = {
+      'demo_metadata.csv': asset('multiomics/demo_metadata.csv'),
+      'demo_transcriptomics.csv': asset('multiomics/demo_transcriptomics.csv'),
+      'demo_proteomics.csv': asset('multiomics/demo_proteomics.csv'),
+      'demo_metabolomics.csv': asset('multiomics/demo_metabolomics.csv')
+    };
     for (const [layer, filename] of demoFiles) {
       if (onlyLayer && layer !== 'metadata' && layer !== onlyLayer) continue;
-      const response = await fetch(resolve(`multiomics/${filename}`));
+      const response = await fetch(demoAssets[filename]);
       if (!response.ok) throw new Error('Demo file unavailable: ' + filename);
       let text = await response.text();
       if (layer === 'metadata' && onlyLayer) {
@@ -1171,7 +1179,8 @@
       'technical_replicate'
     ];
 
-    const quote = (/** @type {unknown} */ (value)) => '"' + String(value ?? '').replaceAll('"', '""') + '"';
+    /** @param {unknown} value */
+    const quote = (value) => '"' + String(value ?? '').replaceAll('"', '""') + '"';
 
     const text = [
       header.map(quote).join(','),
@@ -1468,7 +1477,8 @@
     individualSignatureRows = [];
     individualSignatureFilename = '';
     individualSignatureError = '';
-    const file = /** @type {HTMLInputElement} */ (event.currentTarget?.files?.[0]);
+    const input = event.currentTarget;
+    const file = input instanceof HTMLInputElement ? input.files?.[0] : null;
     if (!file) return;
     try {
       individualSignatureRows = parseIndividualSignatureCsv(await file.text());
@@ -1991,7 +2001,7 @@
 </svelte:head>
 
 <section class="hero">
-  <a class="tool-back" href={resolve(`multiomics`)}>← {t('Présentation de l’outil', 'Tool overview')}</a>
+  <a class="tool-back" href={resolve('multiomics/')}>← {t('Présentation de l’outil', 'Tool overview')}</a>
   <p class="eyebrow">{t('Prototype expérimental · omique unique ou multi-omique', 'Experimental prototype · single-omics or multi-omics')}</p>
   <h1>{t('Analyser une ou plusieurs omiques et comprendre les résultats.', 'Analyze one or several omics layers and understand the results.')}</h1>
   <p class="lede">{t('Choisissez ce que vous voulez comprendre, ajoutez vos données et consultez les graphiques. Les vérifications scientifiques restent accessibles.', 'Choose your question, add your data and explore the figures. All scientific checks remain available.')}</p>
@@ -2559,39 +2569,39 @@
 
           <a
             class="btn btn-outline"
-            href={resolve(`multiomics/metadata_template.csv`)}
+            href={asset('multiomics/metadata_template.csv')}
             download
           >{t('Template générique de métadonnées', 'Generic metadata template')}</a>
 
           <a
             class="btn btn-outline"
-            href={resolve(`multiomics/transcriptomics_template.csv`)}
+            href={asset('multiomics/transcriptomics_template.csv')}
             download
           >{t('Template matrice RNA', 'RNA matrix template')}</a>
 
           <a
             class="btn btn-outline"
-            href={resolve(`multiomics/proteomics_template.csv`)}
+            href={asset('multiomics/proteomics_template.csv')}
             download
           >{t('Template matrice protéines', 'Protein matrix template')}</a>
 
           <a
             class="btn btn-outline"
-            href={resolve(`multiomics/metabolomics_template.csv`)}
+            href={asset('multiomics/metabolomics_template.csv')}
             download
           >{t('Template matrice métabolites', 'Metabolite matrix template')}</a>
 
           <a
             class="btn btn-outline"
             data-testid="raw-ms-manifest-template"
-            href={resolve(`multiomics/templates/raw_ms_manifest.csv`)}
+            href={asset('multiomics/templates/raw_ms_manifest.csv')}
             download
           >{t('Template MS brute', 'Raw MS manifest')}</a>
 
           <a
             class="btn btn-outline"
             data-testid="external-validation-template"
-            href={resolve(`multiomics/templates/external_validation_predictions_binary.csv`)}
+            href={asset('multiomics/templates/external_validation_predictions_binary.csv')}
             download
           >{t('Template validation externe', 'External validation template')}</a>
         </div>
@@ -2614,22 +2624,22 @@
         <summary>{t('Télécharger les données de démonstration', 'Download demo data')}</summary>
         <div class="demo-links">
           <a
-            href={resolve(`multiomics/demo_metadata.csv`)}
+            href={asset('multiomics/demo_metadata.csv')}
             download
           >{t('métadonnées', 'metadata')}</a>
 
           <a
-            href={resolve(`multiomics/demo_transcriptomics.csv`)}
+            href={asset('multiomics/demo_transcriptomics.csv')}
             download
           >RNA</a>
 
           <a
-            href={resolve(`multiomics/demo_proteomics.csv`)}
+            href={asset('multiomics/demo_proteomics.csv')}
             download
           >{t('protéines', 'protein')}</a>
 
           <a
-            href={resolve(`multiomics/demo_metabolomics.csv`)}
+            href={asset('multiomics/demo_metabolomics.csv')}
             download
           >{t('métabolites', 'metabolites')}</a>
         </div>
@@ -2647,13 +2657,13 @@
         <div class="actions">
           <a
             class="btn btn-outline"
-            href={resolve(`multiomics/templates/raw_ms_manifest.csv`)}
+            href={asset('multiomics/templates/raw_ms_manifest.csv')}
             download
           >{t('Manifeste exemple', 'Example manifest')}</a>
 
           <a
             class="btn btn-outline"
-            href={resolve(`multiomics/templates/raw_ms_parameters.json`)}
+            href={asset('multiomics/templates/raw_ms_parameters.json')}
             download
           >{t('Paramètres xcms', 'xcms parameters')}</a>
         </div>
@@ -2668,13 +2678,13 @@
         <div class="actions">
           <a
             class="btn btn-outline"
-            href={resolve(`multiomics/templates/external_validation_predictions_binary.csv`)}
+            href={asset('multiomics/templates/external_validation_predictions_binary.csv')}
             download
           >{t('Prédictions exemple', 'Example predictions')}</a>
 
           <a
             class="btn btn-outline"
-            href={resolve(`multiomics/templates/external_validation_binary.json`)}
+            href={asset('multiomics/templates/external_validation_binary.json')}
             download
           >{t('Configuration', 'Configuration')}</a>
         </div>
@@ -2758,7 +2768,7 @@
       <small>{files.metabolomics ? files.metabolomics.name : 'No file selected'}</small>
 
       <a
-        href={resolve(`multiomics/ms_peak_areas_example.csv`)}
+        href={asset('multiomics/ms_peak_areas_example.csv')}
         download
       >{t('Exemple CSV AUC (données fictives)', 'Example AUC CSV (illustrative synthetic data)')}</a>
 
@@ -2771,7 +2781,7 @@
       <small>{annotationFileName || t('CSV : feature_id,chebi_id', 'CSV: feature_id,chebi_id')}</small>
 
       <a
-        href={resolve(`multiomics/ms_peak_annotations_example.csv`)}
+        href={asset('multiomics/ms_peak_annotations_example.csv')}
         download
       >{t('Exemple d’annotations', 'Annotation template')}</a>
 
@@ -3139,7 +3149,7 @@ Rscript multiomics-engine/run_backend.R</code></pre>
         </h2>
 
         <a
-          href={resolve(`multiomics/learn`)}
+          href={resolve('multiomics/learn/')}
           class="simple-hint"
         >{t('Comprendre ces méthodes et figures', 'Learn how to interpret methods and figures')}</a>
       </div>
