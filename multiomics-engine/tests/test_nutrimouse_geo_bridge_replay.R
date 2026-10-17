@@ -21,6 +21,7 @@ symbols <- function(value) {
   tolower(unlist(strsplit(value,"[,;|[:space:]/]+"),use.names=FALSE))
 }
 ids <- function(value) {
+  value <- as.character(value)
   if(is.na(value) || !nzchar(value))return(character())
   values <- unlist(strsplit(value,"\\|",fixed=FALSE))
   if(any(!grepl("^[1-9][0-9]*$",values)))
