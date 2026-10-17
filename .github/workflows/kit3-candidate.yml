@@ -33,6 +33,10 @@ jobs:
       - name: Install minimum supported v3 toolchain without bypassing dependency conflicts
         run: |
           set -euo pipefail
+          # Layercake 10 declares TypeScript 5 as a peer and is not imported by
+          # any application file (verified by GitHub code search). Remove it
+          # from this candidate, rather than overriding npm peer protection.
+          npm pkg delete dependencies.layercake
           npm install --save-dev '@sveltejs/kit@^3.1.0' '@sveltejs/vite-plugin-svelte@^7.0.0' \
             'svelte@^5.57.1' 'vite@^8.0.12' 'typescript@^6.0.0' \
             '@sveltejs/adapter-auto@^8.0.0' '@types/node@^24.0.0'
