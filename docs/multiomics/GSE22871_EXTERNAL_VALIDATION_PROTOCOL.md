@@ -130,6 +130,18 @@ Failure of historical/current ID agreement is **recorded**, not "repaired"
 through label-guided probe selection. Changes in retired/replaced Entrez IDs
 may legitimately explain mismatches and require separate curator review.
 
+The **real pinned-source results**, from
+[GitHub Actions 39020750915](https://github.com/rberrah/MultiOmics/actions/runs/39020750915),
+are **36,818** probe ID-set agreements, **1,121** partial overlaps, **367**
+disjoint nonempty ID sets, **1,554** originally assigned only by NCBI,
+**290** only by Bioconductor and **4,951** entirely unassigned. There were
+**0 unparseable original Entrez entries**; all categories sum to the
+original **45,101** measured probe IDs. Exactly **1,834 probes with
+discordant gene symbol sets nevertheless have identical nonempty Entrez
+sets**. This documents a real naming/reference-discrepancy subgroup;
+it does **not** prove that each corresponding hybridization probe is
+specific, or that the across-platform expression scales are comparable.
+
 **Biological source article:** Rosen MB et al. (2010),
 *Gene Expression Profiling in Wild-Type and PPARα-Null Mice Exposed to
 Perfluorooctane Sulfonate Reveals PPARα-Independent Effects*,
