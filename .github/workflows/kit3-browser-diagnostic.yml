@@ -5,6 +5,7 @@ on:
     branches: [migration/sveltekit3-candidate-20261017]
     paths:
       - tests/e2e/multiomics-kit3-diagnostics.spec.js
+      - src/routes/multiomics/tool/+page.js
       - .github/workflows/kit3-browser-diagnostic.yml
   workflow_dispatch:
 
