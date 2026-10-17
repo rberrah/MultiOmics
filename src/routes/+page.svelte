@@ -1,7 +1,7 @@
 <script>
- import {base} from '$app/paths';
- import {language} from '$lib/stores/language';
- /** @param {string} fr @param {string} en */
+  import { resolve } from '$app/paths';
+  import { language } from '#lib/stores/language.js';
+  /** @param {string} fr @param {string} en */
  const t=(fr,en)=>$language==='en'?en:fr;
 </script>
 <svelte:head><title>MultiOmics — {t('Recherche reproductible','Reproducible research')}</title></svelte:head>
@@ -10,8 +10,12 @@
   <h1>{t('Explorer une ou plusieurs omiques','Explore single or multiple omics')}</h1>
   <p>{t('Transcriptomique, protéomique et métabolomique. Analyses exploratoires transparentes, résultats de référence R quand le moteur local est disponible, et rapports scientifiques reproductibles.', 'Transcriptomics, proteomics and metabolomics. Transparent exploratory analyses, native reference R results when a local engine is available, and reproducible research reports.')}</p>
   <div class="actions">
-    <a class="primary" href={base+'/multiomics/tool/'}>{t('Ouvrir l’outil','Open analysis tool')}</a>
-    <a class="secondary" href={base+'/multiomics/learn/'}>{t('Comprendre les méthodes','Learn the methods')}</a>
+    <a class="primary" href={resolve('multiomics/tool/')}>{t('Ouvrir l’outil', 'Open analysis tool')}</a>
+
+    <a
+      class="secondary"
+      href={resolve('multiomics/learn/')}
+    >{t('Comprendre les méthodes', 'Learn the methods')}</a>
   </div>
   <p class="disclaimer">{t('Une CI réussie ne garantit ni une FDR universellement contrôlée ni une validité clinique.', 'Passing CI does not guarantee universally calibrated FDR or clinical validity.')}</p>
 </section>

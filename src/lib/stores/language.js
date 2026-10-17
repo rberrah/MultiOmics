@@ -1,8 +1,8 @@
-import {browser} from '$app/environment';
-import {writable} from 'svelte/store';
-const sharedKey='pharmacometrie-language';
-const legacyKey='multiomics-language';
-const supported=new Set(['fr','en']);
+import { browser } from '$app/env';
+import { writable } from 'svelte/store';
+const sharedKey = 'pharmacometrie-language';
+const legacyKey = 'multiomics-language';
+const supported = new Set(['fr', 'en']);
 function initial() {
   if(!browser)return 'fr';
   const fromUrl=new URLSearchParams(window.location.search).get('lang');
@@ -15,9 +15,9 @@ function initial() {
   } catch {}
   return 'fr';
 }
-const source=writable(initial());
-if(browser)source.subscribe(value=>{
-  const normalized=supported.has(value)?value:'fr';
+const source = writable(initial());
+if (browser) source.subscribe((value) => {
+  const normalized = supported.has(value) ? value : 'fr';
   try {
     localStorage.setItem(sharedKey,normalized);
     localStorage.setItem(legacyKey,normalized);

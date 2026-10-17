@@ -71,7 +71,7 @@ dans le nouveau dépôt, et non dupliquées.
 | `.github/workflows/multiomics-*.yml` | `.github/workflows/` du nouveau dépôt |
 | `docs/multiomics/**` | `docs/` |
 
-Les imports vers `$lib/stores/language`, la gestion du `base` SvelteKit,
+Les imports vers `#lib/stores/language`, la gestion du `base` SvelteKit,
 les styles globaux et les utilitaires partagés doivent être recensés
 puis convertis en petits adaptateurs explicites. Les scripts ou
 composants du portail non omiques ne doivent pas être copiés par défaut.

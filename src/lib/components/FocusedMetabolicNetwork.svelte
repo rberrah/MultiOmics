@@ -1,6 +1,6 @@
 <script>
   // @ts-nocheck
-  import { focusMetabolicRegion } from '$lib/multiomics/metabolic-network.js';
+  import { focusMetabolicRegion } from '#lib/multiomics/metabolic-network.js';
   export let graph = null;
   export let language = 'fr';
 

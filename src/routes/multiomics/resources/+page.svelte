@@ -1,6 +1,6 @@
 <script>
-  import { base } from '$app/paths';
-  import { language } from '$lib/stores/language';
+  import { resolve } from '$app/paths';
+  import { language } from '#lib/stores/language.js';
   /** @param {string} fr @param {string} en */
   const t=(fr,en)=>$language==='en'?en:fr;
 </script>
@@ -19,22 +19,34 @@
     <article class="card">
       <h2>{t('Méthodes et interprétation','Methods and interpretation')}</h2>
       <p>{t('Cours bilingue sur le plan d’étude, le QC, les tests, l’intégration et les limites.', 'Bilingual guidance on study design, QC, statistical testing, integration and limitations.')}</p>
-      <a href={base + '/multiomics/learn/'}>{t('Ouvrir le cours','Open learning resources')} →</a>
+      <a href={resolve('multiomics/learn/')}>{t('Ouvrir le cours', 'Open learning resources')} →</a>
     </article>
     <article class="card">
       <h2>{t('Formats de fichiers','File formats')}</h2>
       <p>{t('Structure attendue des matrices et du tableau des échantillons.', 'Expected structure for matrices and sample metadata.')}</p>
-      <a href={base + '/multiomics/README.txt'} target="_blank">{t('Voir les formats','View formats')} ↗</a>
+
+      <a
+        href={resolve('multiomics/README.txt')}
+        target="_blank"
+      >{t('Voir les formats', 'View formats')} ↗</a>
     </article>
     <article class="card">
       <h2>{t('Glossaire scientifique','Scientific glossary')}</h2>
       <p>{t('Définitions des omiques, statistiques et liens PK/PD, avec limites méthodologiques.', 'Clear terminology for omics, statistics and PK/PD with methodological caveats.')}</p>
-      <a href={base + '/multiomics/glossary/'} data-testid="resource-glossary">{t('Ouvrir le glossaire','Open glossary')} →</a>
+
+      <a
+        href={resolve('multiomics/glossary/')}
+        data-testid="resource-glossary"
+      >{t('Ouvrir le glossaire', 'Open glossary')} →</a>
     </article>
     <article class="card">
       <h2>{t('Références scientifiques','Scientific references')}</h2>
       <p>{t('Articles de référence des méthodes réellement proposées et données de citation du logiciel.', 'Original methodological references and software citation information.')}</p>
-      <a href={base + '/multiomics/references/'} data-testid="resource-references">{t('Voir les références','View references')} →</a>
+
+      <a
+        href={resolve('multiomics/references/')}
+        data-testid="resource-references"
+      >{t('Voir les références', 'View references')} →</a>
     </article>
     <article class="card">
       <h2>{t('Code et versions','Code and releases')}</h2>

@@ -1,5 +1,5 @@
 <script>
-  import { language } from '$lib/stores/language';
+  import { language } from '#lib/stores/language.js';
   const terms = [
     ['Omique / Omics','Étude globale d’une classe de molécules mesurées (ARN, protéines, métabolites).','System-wide measurement of a class of molecules (RNA, proteins, metabolites).'],
     ['Échantillon biologique / Specimen','Prélèvement physique identifié par sample_id, qui peut être analysé plusieurs fois.','Physical biospecimen identified by sample_id, potentially assayed more than once.'],

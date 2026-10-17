@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { language } from '$lib/stores/language';
+  import { language } from '#lib/stores/language.js';
 
   const KEY = 'pk-theme';
   /** @type {'system'|'light'|'dark'} */

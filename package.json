@@ -19,29 +19,36 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
     "@playwright/test": "^1.62.1",
-    "@sveltejs/adapter-auto": "^7.0.0",
-    "@sveltejs/kit": "^2.50.2",
-    "@sveltejs/vite-plugin-svelte": "^6.2.4",
-    "svelte": "^5.49.2",
-    "svelte-check": "^4.3.6",
-    "typescript": "^5.9.3",
-    "vite": "^7.3.1"
+    "@sveltejs/adapter-auto": "^8.0.0",
+    "@sveltejs/adapter-static": "^4.0.0",
+    "@sveltejs/kit": "^3.1.0",
+    "@sveltejs/vite-plugin-svelte": "^7.3.1",
+    "@types/node": "^24.19.2",
+    "svelte": "^5.57.2",
+    "svelte-check": "^4.7.5",
+    "typescript": "^6.0.3",
+    "vite": "^8.3.4"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.2.8",
     "@fontsource-variable/jetbrains-mono": "^5.2.8",
     "@fontsource-variable/source-serif-4": "^5.2.9",
     "@lucide/svelte": "^1.45.0",
-    "@sveltejs/adapter-static": "^3.0.10",
     "d3": "^7.9.0",
     "d3-scale": "^4.0.2",
     "d3-selection": "^3.0.0",
     "d3-shape": "^3.2.0",
     "js-yaml": "^4.1.0",
     "jsep": "^1.4.0",
-    "layercake": "^10.0.2",
     "markdown-it": "^14.1.0",
     "zod": "^3.23.8"
   },
-  "description": "Reproducible single- and multi-omics research environment"
+  "description": "Reproducible single- and multi-omics research environment",
+  "imports": {
+    "#lib": "./src/lib/index.js",
+    "#lib/*": "./src/lib/*"
+  },
+  "engines": {
+    "node": ">=22.17.0"
+  }
 }

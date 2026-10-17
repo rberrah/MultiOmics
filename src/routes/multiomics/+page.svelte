@@ -1,6 +1,6 @@
 <script>
-  import { base } from '$app/paths';
-  import { language } from '$lib/stores/language';
+  import { resolve } from '$app/paths';
+  import { language } from '#lib/stores/language.js';
   /** @param {string} fr @param {string} en */
   const t = (fr, en) => $language === 'en' ? en : fr;
 
@@ -62,9 +62,21 @@
     'Choose RNA, proteins, metabolites, or a combination. The engine follows auditable rules informed by your study design and public scientific databases, without an LLM. One omics layer is enough to explore, compare or predict when the design supports it.'
   )}</p>
   <div class="actions">
-    <a class="btn btn-primary" href={`${base}/multiomics/tool`}>{t('Ouvrir l’outil', 'Open the tool')}</a>
-    <a class="btn btn-outline" href={`${base}/multiomics/README.txt`} target="_blank">{t('Voir le format des fichiers', 'See file formats')}</a>
-    <a class="btn btn-outline" href={`${base}/multiomics/learn`}>{t('Cours : méthodes et résultats', 'Learn methods and interpretation')}</a>
+    <a
+      class="btn btn-primary"
+      href={resolve(`multiomics/tool`)}
+    >{t('Ouvrir l’outil', 'Open the tool')}</a>
+
+    <a
+      class="btn btn-outline"
+      href={resolve(`multiomics/README.txt`)}
+      target="_blank"
+    >{t('Voir le format des fichiers', 'See file formats')}</a>
+
+    <a
+      class="btn btn-outline"
+      href={resolve(`multiomics/learn`)}
+    >{t('Cours : méthodes et résultats', 'Learn methods and interpretation')}</a>
   </div>
 </section>
 
@@ -215,7 +227,11 @@
     <h2>{t('Le pipeline est testé sur plusieurs jeux de données publics', 'The pipeline is tested on several public datasets')}</h2>
   </div>
   <p>{t('La suite automatisée couvre notamment Nutrimouse, TCGA breast, IntLIM NCI-60/BRCA, AgingHFCD, STATegra, LRRK2, PaintOmics à signal planté et missRows.', 'The automated suite covers Nutrimouse, TCGA breast, IntLIM NCI-60/BRCA, AgingHFCD, STATegra, LRRK2, a planted-signal PaintOmics dataset and missRows.')}</p>
-  <a class="btn btn-primary" href={`${base}/multiomics/tool`}>{t('Lancer une analyse', 'Run an analysis')}</a>
+
+  <a
+    class="btn btn-primary"
+    href={resolve(`multiomics/tool`)}
+  >{t('Lancer une analyse', 'Run an analysis')}</a>
 </section>
 
 <style>
