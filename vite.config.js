@@ -1,6 +1,5 @@
 import adapter from '@sveltejs/adapter-static';
 
-// @ts-nocheck
 import { sveltekit } from '@sveltejs/kit/vite';
 
 import { defineConfig } from 'vite';
@@ -24,7 +23,7 @@ export default defineConfig({
       // Separate from PMx Explain's /_app assets when both builds share one domain.
       appDir: '_multiomics_app',
       adapter: adapter({ fallback: '404.html' }),
-      paths: { base: process.env.BASE_PATH || '' },
+      paths: { base: /** @type {'' | `/${string}`} */ (process.env.BASE_PATH || '') },
       prerender: {
         entries: [
           '*',
