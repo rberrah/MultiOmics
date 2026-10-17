@@ -223,7 +223,8 @@ def run(outdir):
             "External model projection MUST remain blocked without qualified gene mappings")
     print("REAL GSE22871: 30/30 original animals, six verified groups, "
           f"{report['n_processed_affymetrix_probe_ids']} genuine probe rows "
-          "and source SHA-256 PASS; Nutrimouse external scoring BLOCKED (correct).")
+          f"source_SHA256={report['source_archive_sha256']} "
+          "and source data integrity PASS; Nutrimouse external scoring BLOCKED (correct).")
 
 
 def selftest():
