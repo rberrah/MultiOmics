@@ -178,3 +178,46 @@ python3 scripts/qualify_gpl1261_annotation.py tmp/multiomics/real-external-GSE22
 ```
 
 All reproducibility and publication claims remain tied to the exact successful GitHub SHA and the original GEO gzip SHA. This work updates only MultiOmics, not the source/consumer repositories.
+
+## Native quantitative observations of the external cohort — 17 October 2026
+
+The new [external qualification workflow](https://github.com/rberrah/MultiOmics/actions/runs/39023264547)
+passes its **authentic numerical** follow-on (independent of the Nutrimouse
+macroarray measurement scale):
+
+- Using *gene labels only*, before any phenotype association, it retains the
+  unique source-described `Cyp3a11` candidate platform probe. The complete
+  historical NCBI and modern Bioconductor gene/Entrez concordance data remain
+  attached, including any mapping disagreements; candidate identification alone
+  does not establish probe specificity.
+- It extracts the original processed RMA/log2 probe intensity on **all 30
+  original GSM assays** from the SHA-frozen matrix, without re-normalizing,
+  imputing or substituting patient data. These measurements are **probe signal**,
+  not CYP expression copies, catalytic activity or frozen model predictions.
+- As a secondary *descriptive* column only, it computes the midrank percentile
+  of that probe among the **45,101 original probes within each individual
+  array**, with ties handled explicitly. This percentile does **not**
+  automatically transport the Nutrimouse scale or qualify any multi-gene score.
+- A second source parser in native R reconstructs all 45,101 × 30 values,
+  re-identifies the original probe and checks every external intensity and
+  sample-specific percentile against the independent Python pipeline with
+  absolute tolerance 1e-12. The observed CI audit passed; the archived original
+  bytes and probe/SHA evidence remain a prerequisite to every run.
+
+The reproducibility artifact contains
+`native_external_probe_observations/native_Cyp3a11_probe_measurements_not_model_scores.csv`,
+`external_native_measurement_audit.json` and
+`independent_R_replay.txt`. The CSV deliberately labels the model-score
+column `NOT_COMPUTED` and declares **zero external biological signature
+scores**; no PK concentrations are present. Genotype/PFOS descriptors are
+preserved but were **not used** for probe selection, modeling or outcome
+optimization. The original source and publication identifiers remain unchanged.
+
+**Next acceptance gate (issue #20)**: establish an appropriate **frozen,
+non-leaking macroarray-to-Affymetrix measurement bridge** with prespecified
+stable ID / probe aggregation and diagnostics on original specimens, then
+test an a priori biological hypothesis on an actual independent external
+population, including null, permutation, subgroup and uncertainty reporting.
+Only after successful transfer checks could a genuine transferred per-subject
+signature be evaluated. PK/PD predictive claims require a separate dataset
+containing measured PK/PD and corresponding individual omics.
