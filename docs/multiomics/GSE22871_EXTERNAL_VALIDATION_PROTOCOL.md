@@ -104,6 +104,61 @@ predefine a representative-probe aggregation rule, train/test nonleaking
 cross-platform measurement-scale transport and an external endpoint analysis,
 all before using external group labels.
 
+## Third reference audit — original NCBI Entrez Gene IDs, independently compared with Bioconductor
+
+An additional Python verification reads the **actual `ENTREZ_GENE_ID` column
+from the immutable NCBI GEO `GPL1261.annot.gz` archive**, without inferring
+gene IDs from names or using gene-expression and animal group outcomes.
+It compares every available numerical Gene ID against **genuine**
+`AnnotationDbi::select(mouse4302.db, keytype="PROBEID", columns="ENTREZID")`
+results produced by the separate pinned Bioconductor R job.
+
+For **all 45,101 original platform probes**, the resulting report preserves
+both sets of stable IDs, original raw GEO text, any unparseable entries and
+the six cases *exact*, *partial*, *disjoint*, *GEO-only*, *Bioconductor-only*
+and *both missing* (plus a seventh invalid-ID category). No "first ID" is
+chosen when a probe maps to several genes. The independent audit also counts
+cases where **Entrez IDs agree but symbol strings differ**. Such cases can
+explain some name discrepancies without proving equivalent probe selectivity,
+isoform measurement or cross-platform expression calibration.
+
+Outputs: `original_NCBI_vs_Bioc_Entrez_ID/GPL1261_all_probe_entrez_concordance.csv`,
+the full disagreements CSV, the CYP3A11 candidate subset, and the numerical
+source-linked audit JSON. The original GEO/annotation SHA-256 and the
+Bioconductor package version must match the prior validated evidence.
+Failure of historical/current ID agreement is **recorded**, not "repaired"
+through label-guided probe selection. Changes in retired/replaced Entrez IDs
+may legitimately explain mismatches and require separate curator review.
+
+The **real pinned-source results**, from
+[GitHub Actions 39020750915](https://github.com/rberrah/MultiOmics/actions/runs/39020750915),
+are **36,818** probe ID-set agreements, **1,121** partial overlaps, **367**
+disjoint nonempty ID sets, **1,554** originally assigned only by NCBI,
+**290** only by Bioconductor and **4,951** entirely unassigned. There were
+**0 unparseable original Entrez entries**; all categories sum to the
+original **45,101** measured probe IDs. Exactly **1,834 probes with
+discordant gene symbol sets nevertheless have identical nonempty Entrez
+sets**. This documents a real naming/reference-discrepancy subgroup;
+it does **not** prove that each corresponding hybridization probe is
+specific, or that the across-platform expression scales are comparable.
+
+**Biological source article:** Rosen MB et al. (2010),
+*Gene Expression Profiling in Wild-Type and PPARα-Null Mice Exposed to
+Perfluorooctane Sulfonate Reveals PPARα-Independent Effects*,
+*PPAR Research*, DOI
+[`10.1155/2010/794739`](https://doi.org/10.1155/2010/794739).
+The complete paper is openly accessible via
+[PMC2948942](https://pmc.ncbi.nlm.nih.gov/articles/PMC2948942/);
+no institutional credential or uploaded full text is currently required.
+
+Even a perfect Entrez match is **not external validation of a numerical
+biomarker**. The scientific status remains
+`STABLE_ENTREZ_ID_COMPARISON_ONLY_EXTERNAL_PROJECTION_BLOCKED`:
+no gene-level collapse, frozen cross-platform correction, PopPK prediction or
+PK outcomes have been estimated. GSE22871 is a genuine new biological
+cohort, but it is **not** a multiomics/PK cohort and cannot support clinical
+pharmacokinetic claims.
+
 ## Remaining scientific gates for issue #20
 
 - Freeze actual file SHA and annotation publication version and audit multi-probe ambiguity (one-to-many gene mapping). No manual selection of the probe with the strongest genotype correlation.
