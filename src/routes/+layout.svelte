@@ -30,7 +30,7 @@
     { key:'workflow',href:'/multiomics/tool/',label:t('Découvrir en 1 clic','One-click demos') },
     { key:'disciplines',href:'/multiomics/disciplines/',label:t('Omiques vers PK/PD','Omics to PK/PD') },
     { key:'pmx',href:pmxExplain,label:'PMx Explain ↗',external:true },
-    { key:'omics2pk',href:'https://github.com/rberrah/Omics2PK',label:'Omics2PK ↗',external:true },
+    { key:'omics2pk',href:'https://rberrah.github.io/Omics2PK/',label:'Omics2PK ↗',external:true },
     { key:'resources',href:'/multiomics/resources/',label:t('Documentation','Documentation') },
     { key:'glossary',href:'/multiomics/glossary/',label:t('Glossaire','Glossary') },
     { key:'references',href:'/multiomics/references/',label:t('Références scientifiques','Scientific references') },
