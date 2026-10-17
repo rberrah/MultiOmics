@@ -12,6 +12,7 @@ on:
       - 'scripts/qualify_geo_native_pfos_contrasts.py'
       - 'scripts/qualify_nutrimouse_geo_gene_bridge.py'
       - 'multiomics-engine/tests/test_nutrimouse_source_gene_identity.R'
+      - 'multiomics-engine/tests/test_nutrimouse_geo_bridge_replay.R'
       - 'docs/multiomics/REAL_NUTRIMOUSE_GSE22871_BRIDGE_PROTOCOL.md'
       - 'multiomics-engine/tests/test_geo_native_pfos_contrasts.R'
       - 'multiomics-engine/tests/test_geo_native_probe_replay.R'
@@ -175,6 +176,12 @@ jobs:
             tmp/multiomics/real-external-GSE22871/independent-bioc-concordance/nutrimouse_source_identity \
             tmp/multiomics/real-external-GSE22871/independent-bioc-concordance/original_NCBI_vs_Bioc_Entrez_ID \
             tmp/multiomics/real-external-GSE22871/independent-bioc-concordance/real_source_to_target_gene_bridge
+      - name: Independently recompute all four source-to-GEO gene/probe matches in native R
+        run: |
+          Rscript multiomics-engine/tests/test_nutrimouse_geo_bridge_replay.R \
+            tmp/multiomics/real-external-GSE22871/independent-bioc-concordance/nutrimouse_source_identity \
+            tmp/multiomics/real-external-GSE22871/independent-bioc-concordance/original_NCBI_vs_Bioc_Entrez_ID \
+            tmp/multiomics/real-external-GSE22871/independent-bioc-concordance/real_source_to_target_gene_bridge
       - name: Enforce scale transfer and clinical-validation BLOCK regardless of identity overlap
         run: |
           python3 - <<'PY'
@@ -195,6 +202,7 @@ jobs:
             'IDENTIFIERS_MATCH_SCALE_UNCALIBRATED',
             'BLOCKED_UNMAPPED_OR_AMBIGUOUS_GENES_AND_SCALE')
           assert (d/'locked_panel_to_external_probe_crosswalk.csv').is_file()
+          assert (d/'independent_R_source_target_gene_bridge_replay.txt').is_file()
           print('PASS: REAL 4-gene source model audited against GEO without outcome leakage; uncalibrated scores BLOCKED')
           PY
       - name: Predeclared genuine external Cyp3a11 native probe measurements (never projected model scores)
