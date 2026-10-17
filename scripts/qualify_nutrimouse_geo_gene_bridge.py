@@ -63,6 +63,34 @@ def probe_candidates(gene, entrez, crosswalk):
     return sorted(set(matched)), dict(sorted(disagreements.items()))
 
 
+
+def near_source_candidates(gene, entrez, crosswalk, accepted):
+    """Diagnostics ONLY: rejected associations are never used to pick a probe."""
+    out = []
+    for row in crosswalk:
+        gs = gene.casefold() in symbols(row["geo_symbols_existing_audit"])
+        bs = gene.casefold() in symbols(row["bioc_symbols_existing_audit"])
+        gi = bool(entrez) and entrez in stable_ids(row["geo_entrez_ids"])
+        bi = bool(entrez) and entrez in stable_ids(row["bioc_entrez_ids"])
+        if not (gs or bs or gi or bi):
+            continue
+        out.append({
+            "source_gene": gene,
+            "source_entrez": entrez,
+            "probe_id": row["probe_id"],
+            "geo_symbol": row["geo_symbols_existing_audit"],
+            "bioc_symbol": row["bioc_symbols_existing_audit"],
+            "geo_entrez_ids": row["geo_entrez_ids"],
+            "bioc_entrez_ids": row["bioc_entrez_ids"],
+            "entrez_concordance": row["entrez_concordance"],
+            "reference_symbol_match": f"NCBI={gs};Bioc={bs}",
+            "reference_id_match": f"NCBI={gi};Bioc={bi}",
+            "multi_gene": row["multi_entrez_ambiguous"],
+            "accepted_as_unique_strict_probe": "YES" if row["probe_id"] in accepted else "NO",
+            "diagnostic_only_no_probe_rescue": "TRUE",
+        })
+    return sorted(out, key=lambda x:x["probe_id"])
+
 def qualify(model_dir, source_ref_dir, geo_ref_dir, out_dir):
     model_dir, source_ref_dir, geo_ref_dir, out_dir = map(
         Path, (model_dir, source_ref_dir, geo_ref_dir, out_dir))
@@ -121,6 +149,7 @@ def qualify(model_dir, source_ref_dir, geo_ref_dir, out_dir):
             "Incomplete/duplicated actual 45,101 target probes")
 
     candidates = []
+    near_rows = []
     for x in source_ids:
         gene = x["gene_symbol"]
         ids = stable_ids(x["source_entrez_ids"])
@@ -128,6 +157,9 @@ def qualify(model_dir, source_ref_dir, geo_ref_dir, out_dir):
             matched, discord = probe_candidates(gene, next(iter(ids)), target_rows)
         else:
             matched, discord = [], {"source_gene_id_missing_or_multi": 1}
+        possible = near_source_candidates(gene, next(iter(ids)) if len(ids)==1 else "",
+                                          target_rows, set(matched))
+        near_rows.extend(possible)
         if len(matched) == 1:
             status = "gene_to_target_probe_strict_unique"
         elif len(matched) > 1:
@@ -146,6 +178,12 @@ def qualify(model_dir, source_ref_dir, geo_ref_dir, out_dir):
             "trained_zscore_direct_transport_permitted": "NO",
             "clinically_validated": "NO",
         })
+    diag_file = out_dir / "all_possible_source_gene_GEO_probe_matches_no_selection.csv"
+    require(bool(near_rows), "Even source CYP3A11 has no original GEO/Entrez evidence")
+    with diag_file.open("w",encoding="utf-8",newline="") as f:
+        w=csv.DictWriter(f,fieldnames=list(near_rows[0]))
+        w.writeheader()
+        w.writerows(near_rows)
     # Gate on all four without optimizing any probe based on external outcomes.
     all_unique = all(x["strict_probe_count"] == 1 for x in candidates)
     rows_file = out_dir / "locked_panel_to_external_probe_crosswalk.csv"
@@ -187,7 +225,9 @@ def qualify(model_dir, source_ref_dir, geo_ref_dir, out_dir):
             "No sign or significance of the source or external intervention is "
             "used to select or discard genes/probes."
         ),
-        "candidate_table_sha256": digest(rows_file)
+        "candidate_table_sha256": digest(rows_file),
+        "all_proximity_diagnostics_sha256": digest(diag_file),
+        "n_diagnostic_probe_rows_including_rejections": len(near_rows)
     }
     (out_dir / "frozen_panel_external_transport_readiness.json").write_text(
         json.dumps(report,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")
@@ -196,8 +236,21 @@ def qualify(model_dir, source_ref_dir, geo_ref_dir, out_dir):
           report["transport_status"],"; 0 claimed transferred signature scores; model=",
           report["source_train_only_model_sha256"][:12],sep="")
     for entry in candidates:
-        print(entry["source_gene_symbol"],entry["technical_crosswalk_status"],
-              entry["matching_geo_probe_ids"])
+        gene=entry["source_gene_symbol"]
+        close=[x for x in near_rows if x["source_gene"]==gene]
+        print(gene,entry["technical_crosswalk_status"],
+              entry["matching_geo_probe_ids"],
+              "source_rejected_mapping_reasons=",entry["excluded_mapping_disagreements"],
+              "all_potential_probe_rows=",len(close))
+        if not entry["strict_probe_count"]:
+            for match in close[:12]:
+                print("REJECTED_OR_AMBIGUOUS_REFERENCE",match["probe_id"],
+                      "NCBIgene=",match["geo_symbol"],
+                      "BiocGene=",match["bioc_symbol"],
+                      "NCBIentrez=",match["geo_entrez_ids"],
+                      "BiocEntrez=",match["bioc_entrez_ids"],
+                      "ids=",match["entrez_concordance"],
+                      "multigene=",match["multi_gene"])
     return report
 
 
