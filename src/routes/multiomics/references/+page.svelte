@@ -1,5 +1,5 @@
 <script>
-  import {language} from '$lib/stores/language';
+  import {language} from '#lib/stores/language.js';
   const refs = [
     {name:'DESeq2 — Love, Huber & Anders (2014)',journal:'Genome Biology 15:550',url:'https://doi.org/10.1186/s13059-014-0550-8',scope:'RNA-seq differential expression'},
     {name:'limma — Ritchie et al. (2015)',journal:'Nucleic Acids Research 43:e47',url:'https://doi.org/10.1093/nar/gkv007',scope:'Linear modelling and empirical Bayes'},

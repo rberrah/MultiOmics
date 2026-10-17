@@ -1,15 +1,15 @@
 <script>
-  import '$lib/styles/theme.css';
-  import '@fontsource-variable/inter';
-  import '@fontsource-variable/source-serif-4';
-  import '@fontsource-variable/jetbrains-mono';
+  import '#lib/styles/theme.css';
+  import '@fontsource-variable/inter/index.css';
+  import '@fontsource-variable/source-serif-4/index.css';
+  import '@fontsource-variable/jetbrains-mono/index.css';
   import { BookOpen, ChartNoAxesCombined, Library, ChevronDown } from '@lucide/svelte';
-  import { base } from '$app/paths';
-  import { page } from '$app/stores';
+  import { resolve } from '$app/paths';
+  import { page } from '$app/state';
   import { afterNavigate } from '$app/navigation';
-  import { language } from '$lib/stores/language';
-  import ThemeToggle from '$lib/components/ThemeToggle.svelte';
-  import LanguageToggle from '$lib/components/LanguageToggle.svelte';
+  import { language } from '#lib/stores/language.js';
+  import ThemeToggle from '#lib/components/ThemeToggle.svelte';
+  import LanguageToggle from '#lib/components/LanguageToggle.svelte';
 
   let { children } = $props();
   /** @param {string} fr @param {string} en */
@@ -43,16 +43,21 @@
     {key:'disciplines',label:t('Autres disciplines','Other disciplines'),icon:Library,keys:['disciplines','pmx','omics2pk']},
     {key:'resources',label:t('Ressources','Resources'),icon:Library,keys:['resources','glossary','references','source','main-site']}
   ]);
+  // SvelteKit 3 only types concrete route IDs; menu hrefs are dynamic.
+  // The prefix is resolved from an actual prerendered route, keeping both
+  // standalone and PMx legacy base paths intact.
   /** @param {string} href */
-  const isActive = href => {
-    if (/^https?:/.test(href)) return false;
-    const pathname = $page.url.pathname;
-    const route = base + href;
+  const internalPath = href => resolve('multiomics/') + href.slice('/multiomics/'.length);
+  /** @param {string} href */
+  const isActive = (href) => {
+    if ((/^https?:/).test(href)) return false;
+    const pathname = page.url.pathname;
+    const route = internalPath(href);
     return href === '/multiomics/' ? pathname === route : pathname.startsWith(route);
   };
   function closeNavigation() {
     menuOpen = false;
-    navigation?.querySelectorAll('details[open]').forEach(item => item.removeAttribute('open'));
+    navigation?.querySelectorAll('details[open]').forEach((item) => item.removeAttribute('open'));
   }
   /** @param {MouseEvent} event */
   function handleOutsideClick(event) {
@@ -76,34 +81,62 @@
   $effect(() => { document.documentElement.lang = $language === 'en' ? 'en' : 'fr'; });
 </script>
 
-<svelte:window onclick={handleOutsideClick} onkeydown={handleEscape} />
+<svelte:window
+  onclick={handleOutsideClick}
+  onkeydown={handleEscape}
+></svelte:window>
+
 <a class="skip-link" href="#content">{t('Aller au contenu', 'Skip to content')}</a>
 
 <div class="app">
   <header class="site-header" data-testid="site-header">
-    <a class="logo" href={base + '/multiomics/'} aria-label="MultiOmics" data-testid="logo-link">
+    <a
+      class="logo"
+      href={resolve('multiomics/')}
+      aria-label="MultiOmics"
+      data-testid="logo-link"
+    >
       <span class="mark" aria-hidden="true">mO</span>
       <span class="word">Multi<em>Omics</em></span>
     </a>
-    <button class="burger" type="button" aria-label={t('Ouvrir le menu','Open menu')}
-      aria-expanded={menuOpen} aria-controls="site-nav"
-      onclick={() => (menuOpen = !menuOpen)} data-testid="nav-toggle">
-      <span></span><span></span><span></span>
-    </button>
-    <nav id="site-nav" bind:this={navigation} class:open={menuOpen}
-      aria-label={t('Navigation principale','Main navigation')} data-testid="primary-nav">
+
+    <button
+      class="burger"
+      type="button"
+      aria-label={t('Ouvrir le menu', 'Open menu')}
+      aria-expanded={menuOpen}
+      aria-controls="site-nav"
+      onclick={() => menuOpen = !menuOpen}
+      data-testid="nav-toggle"
+    ><span></span><span></span><span></span></button>
+
+    <nav
+      id="site-nav"
+      bind:this={navigation}
+      class:open={menuOpen}
+      aria-label={t('Navigation principale', 'Main navigation')}
+      data-testid="primary-nav"
+    >
       {#each groups as group}
-        <details class="goal" name="site-objective" data-testid={'goal-' + group.key}>
-          <summary class:active={links.some(link => group.keys.includes(link.key) && isActive(link.href))}>
-            <group.icon size={16}/>{group.label}<ChevronDown size={13}/>
+        <details
+          class="goal"
+          name="site-objective"
+          data-testid={'goal-' + group.key}
+        >
+          <summary
+            class:active={links.some((link) => group.keys.includes(link.key) && isActive(link.href))}
+          >
+            <group.icon size={16} />
+            {group.label}
+            <ChevronDown size={13} />
           </summary>
           <div class="goal-links">
             {#each group.keys as key}
-              {@const link = links.find(item => item.key === key)}
+              {@const link = links.find((item) => item.key === key)}
               {#if link}
                 <a class:active={isActive(link.href)}
                   aria-current={isActive(link.href) ? 'page' : undefined}
-                  href={link.external ? link.href : base + link.href}
+                  href={link.external ? link.href : internalPath(link.href)}
                   target={link.external ? '_blank' : undefined}
                   rel={link.external ? 'noopener noreferrer' : undefined}
                   onclick={closeNavigation} data-testid={'nav-' + link.key}>{link.label}</a>
@@ -181,21 +214,96 @@
     padding: var(--space-2) var(--space-3); border-radius: 6px; font-weight: 600;
     font-size: var(--text-sm); transition: background-color .2s ease, color .2s ease;
   }
-  nav#site-nav a:hover { color: var(--text-primary); background: var(--bg-secondary); }
-  nav#site-nav a.active { color: var(--accent-pk); background: rgba(184,92,56,.1); }
-  .burger { display: none; flex-direction: column; gap: 4px; background: none; border: none; cursor: pointer; padding: 8px; }
-  .burger span { width: 22px; height: 2px; background: var(--text-primary); display: block; }
-  .page-shell { flex: 1; width: 100%; max-width: var(--maxw); margin: 0 auto; padding: var(--space-8) var(--space-6) var(--space-24); }
-  .site-footer { border-top: 1px solid var(--border-subtle); background: var(--bg-secondary); color: var(--text-secondary); }
-  .footer-shell { max-width: var(--maxw); margin: 0 auto; padding: var(--space-8) var(--space-6); display: flex; justify-content: space-between; align-items: start; gap: var(--space-8); }
-  .footer-shell strong { color: var(--text-primary); }
-  .footer-shell p { font-size: var(--text-sm); max-width: 62ch; margin: var(--space-2) 0 0; }
-  .footer-shell nav { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-4); }
-  .footer-shell a { font-size: var(--text-sm); }
-  .disclaimer { text-align: center; padding: 6px var(--space-4); background: var(--disclaimer-bg); color: var(--disclaimer-text); font-family: var(--font-mono); font-size: var(--text-xs); }
-  .logo:focus-visible, .burger:focus-visible, .goal summary:focus-visible, nav#site-nav a:focus-visible {
-    outline: 2px solid var(--focus-ring); outline-offset: 3px;
+
+  nav#site-nav a:hover {
+    color: var(--text-primary);
+    background: var(--bg-secondary);
   }
+
+  nav#site-nav a.active {
+    color: var(--accent-pk);
+    background: rgba(184,92,56,.1);
+  }
+
+  .burger {
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+  }
+
+  .burger span {
+    width: 22px;
+    height: 2px;
+    background: var(--text-primary);
+    display: block;
+  }
+
+  .page-shell {
+    flex: 1;
+    width: 100%;
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding: var(--space-8) var(--space-6) var(--space-24);
+  }
+
+  .site-footer {
+    border-top: 1px solid var(--border-subtle);
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+  }
+
+  .footer-shell {
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding: var(--space-8) var(--space-6);
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    gap: var(--space-8);
+  }
+
+  .footer-shell strong {
+    color: var(--text-primary);
+  }
+
+  .footer-shell p {
+    font-size: var(--text-sm);
+    max-width: 62ch;
+    margin: var(--space-2) 0 0;
+  }
+
+  .footer-shell nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--space-4);
+  }
+
+  .footer-shell a {
+    font-size: var(--text-sm);
+  }
+
+  .disclaimer {
+    text-align: center;
+    padding: 6px var(--space-4);
+    background: var(--disclaimer-bg);
+    color: var(--disclaimer-text);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+  }
+
+  .logo:focus-visible,
+  .burger:focus-visible,
+  .goal summary:focus-visible,
+  nav#site-nav a:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 3px;
+  }
+
   @media (max-width: 1100px) {
     .burger { display: flex; }
     nav#site-nav { position: absolute; top: 100%; right: 0; left: 0; flex-direction: column; align-items: stretch;
