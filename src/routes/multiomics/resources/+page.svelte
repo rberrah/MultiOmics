@@ -1,5 +1,5 @@
 <script>
-  import { resolve } from '$app/paths';
+  import { resolve, asset } from '$app/paths';
   import { language } from '#lib/stores/language.js';
   /** @param {string} fr @param {string} en */
   const t=(fr,en)=>$language==='en'?en:fr;
@@ -26,7 +26,7 @@
       <p>{t('Structure attendue des matrices et du tableau des échantillons.', 'Expected structure for matrices and sample metadata.')}</p>
 
       <a
-        href={resolve('multiomics/README.txt')}
+        href={asset('multiomics/README.txt')}
         target="_blank"
       >{t('Voir les formats', 'View formats')} ↗</a>
     </article>
