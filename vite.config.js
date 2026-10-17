@@ -19,7 +19,6 @@ const commit=process.env.VITE_MULTIOMICS_SOURCE_SHA||sourceCommit();
 export default defineConfig({
   plugins: [
     sveltekit({
-      trailingSlash: 'always',
       // Separate from PMx Explain's /_app assets when both builds share one domain.
       appDir: '_multiomics_app',
       adapter: adapter({ fallback: '404.html' }),
