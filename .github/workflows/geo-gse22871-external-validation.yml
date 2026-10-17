@@ -1,0 +1,54 @@
+name: Independent external GEO GSE22871 source qualification
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/geo-gse22871-external-validation.yml'
+      - 'scripts/qualify_geo_gse22871.py'
+      - 'docs/multiomics/GSE22871_EXTERNAL_VALIDATION_PROTOCOL.md'
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  authentic-external-cohort:
+    name: Actual GEO GSE22871 independent 30-mouse original processed matrix
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Reject invented metadata, wrong platform, missing subjects, and nonfinite expression
+        run: python3 scripts/qualify_geo_gse22871.py --self-test
+      - name: Download GEO original independent cohort and validate all its biological samples and probe rows
+        run: |
+          python3 scripts/qualify_geo_gse22871.py tmp/multiomics/real-external-GSE22871
+      - name: Assert real external-cohort evidence and explicitly blocked unqualified cross-platform scores
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('tmp/multiomics/real-external-GSE22871/external_geo_intake_audit.json')
+          r=json.loads(p.read_text())
+          assert r['n_biological_subjects']==30
+          assert r['n_processed_affymetrix_probe_ids']>=40000
+          assert r['platform_id']=='GPL1261'
+          assert len(r['genotype_dose_groups'])==6
+          assert all(z['n']==5 for z in r['genotype_dose_groups'])
+          assert r['projection']['status']=='BLOCKED_UNTIL_ANNOTATION_AND_SCALE_BRIDGE'
+          assert r['projection']['score_rows_exported']==0
+          assert r['analysis_status']=='intake_qualified_external_projection_blocked'
+          print('PASS: independent biological source admitted; unverified cross-platform model projection BLOCKED')
+          PY
+      - name: Archive source bytes and all original dataset checksums, including unfavorable or blocked outcomes
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: external-GSE22871-authentic-probe-level-GEO-metadata-no-PK-claims
+          path: tmp/multiomics/real-external-GSE22871/
+          if-no-files-found: warn
