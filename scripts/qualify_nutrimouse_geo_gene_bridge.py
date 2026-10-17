@@ -64,19 +64,19 @@ def probe_candidates(gene, entrez, crosswalk):
 
 
 
-def near_source_candidates(gene, entrez, crosswalk, accepted):
+def near_source_candidates(gene, entrez_ids, crosswalk, accepted):
     """Diagnostics ONLY: rejected associations are never used to pick a probe."""
     out = []
     for row in crosswalk:
         gs = gene.casefold() in symbols(row["geo_symbols_existing_audit"])
         bs = gene.casefold() in symbols(row["bioc_symbols_existing_audit"])
-        gi = bool(entrez) and entrez in stable_ids(row["geo_entrez_ids"])
-        bi = bool(entrez) and entrez in stable_ids(row["bioc_entrez_ids"])
+        gi = bool(entrez_ids & stable_ids(row["geo_entrez_ids"]))
+        bi = bool(entrez_ids & stable_ids(row["bioc_entrez_ids"]))
         if not (gs or bs or gi or bi):
             continue
         out.append({
             "source_gene": gene,
-            "source_entrez": entrez,
+            "source_entrez": "|".join(sorted(entrez_ids)),
             "probe_id": row["probe_id"],
             "geo_symbol": row["geo_symbols_existing_audit"],
             "bioc_symbol": row["bioc_symbols_existing_audit"],
@@ -157,8 +157,7 @@ def qualify(model_dir, source_ref_dir, geo_ref_dir, out_dir):
             matched, discord = probe_candidates(gene, next(iter(ids)), target_rows)
         else:
             matched, discord = [], {"source_gene_id_missing_or_multi": 1}
-        possible = near_source_candidates(gene, next(iter(ids)) if len(ids)==1 else "",
-                                          target_rows, set(matched))
+        possible = near_source_candidates(gene, ids, target_rows, set(matched))
         near_rows.extend(possible)
         if len(matched) == 1:
             status = "gene_to_target_probe_strict_unique"
