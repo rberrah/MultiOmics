@@ -8,6 +8,8 @@ on:
       - 'scripts/qualify_gpl1261_annotation.py'
       - 'multiomics-engine/tests/test_geo_gpl1261_mouse4302_concordance.R'
       - 'scripts/qualify_gpl1261_entrez_concordance.py'
+      - 'scripts/qualify_geo_native_probe_evidence.py'
+      - 'multiomics-engine/tests/test_geo_native_probe_replay.R'
       - 'docs/multiomics/GSE22871_EXTERNAL_VALIDATION_PROTOCOL.md'
   push:
     branches: [main]
@@ -141,6 +143,36 @@ jobs:
                     'Cyp3a11_entrez_candidate_reference.csv']:
             assert (p/n).is_file(), n
           print('PASS: original NCBI versus independent Bioconductor stable IDs audited without invented external scores')
+          PY
+      - name: Predeclared genuine external Cyp3a11 native probe measurements (never projected model scores)
+        run: |
+          python3 scripts/qualify_geo_native_probe_evidence.py --self-test
+          python3 scripts/qualify_geo_native_probe_evidence.py \
+            tmp/multiomics/real-external-GSE22871 \
+            tmp/multiomics/real-external-GSE22871/independent-bioc-concordance
+      - name: Independent real RMA-probe numeric replay against all 45,101 original rows
+        run: |
+          Rscript multiomics-engine/tests/test_geo_native_probe_replay.R --self-test
+          Rscript multiomics-engine/tests/test_geo_native_probe_replay.R \
+            tmp/multiomics/real-external-GSE22871 \
+            tmp/multiomics/real-external-GSE22871/independent-bioc-concordance
+      - name: Assert true native measurements without silently relabelling any score as validated
+        run: |
+          python3 - <<'PY'
+          import csv,json
+          from pathlib import Path
+          d=Path('tmp/multiomics/real-external-GSE22871/independent-bioc-concordance/native_external_probe_observations')
+          audit=json.loads((d/'external_native_measurement_audit.json').read_text())
+          obs=list(csv.DictReader((d/'native_Cyp3a11_probe_measurements_not_model_scores.csv').open()))
+          assert audit['n_independent_mice']==30 and audit['n_original_measured_probes']==45101
+          assert len(obs)==30*audit['n_anchor_candidates']
+          assert len({x['assay_id'] for x in obs})==30
+          assert not audit['nutrimouse_frozen_model_applied']
+          assert not audit['selection_used_dose_or_genotype']
+          assert audit['external_biological_signature_scores_exported']==0
+          assert all(x['cross_platform_model_score']=='NOT_COMPUTED' for x in obs)
+          assert (d/'independent_R_replay.txt').is_file()
+          print('PASS: measured independent external expression only, no PK/biological score claim')
           PY
       - name: Preserve genuine concordance, source discrepancies, candidate gene mappings and blocked claim
         if: always()
