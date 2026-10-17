@@ -22,8 +22,8 @@ jobs:
           cache: npm
       - name: Reproducible install from independent lockfile
         run: npm ci
-      - name: Fail CI on npm high or critical security advisories
-        run: npm audit --audit-level=high
+      - name: Fail CI on any npm advisory including low severity (Kit3 zero advisory gate)
+        run: npm audit --audit-level=low
       - name: Check standalone imports and Svelte interfaces
         run: npm run check
       - name: Exercise real deterministic JS and method guardrails
