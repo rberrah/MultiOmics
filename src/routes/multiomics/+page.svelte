@@ -1,5 +1,5 @@
 <script>
-  import { resolve } from '$app/paths';
+  import { resolve, asset } from '$app/paths';
   import { language } from '#lib/stores/language.js';
   /** @param {string} fr @param {string} en */
   const t = (fr, en) => $language === 'en' ? en : fr;
@@ -64,18 +64,18 @@
   <div class="actions">
     <a
       class="btn btn-primary"
-      href={resolve(`multiomics/tool`)}
+      href={resolve('multiomics/tool/')}
     >{t('Ouvrir l’outil', 'Open the tool')}</a>
 
     <a
       class="btn btn-outline"
-      href={resolve(`multiomics/README.txt`)}
+      href={asset('multiomics/README.txt')}
       target="_blank"
     >{t('Voir le format des fichiers', 'See file formats')}</a>
 
     <a
       class="btn btn-outline"
-      href={resolve(`multiomics/learn`)}
+      href={resolve('multiomics/learn/')}
     >{t('Cours : méthodes et résultats', 'Learn methods and interpretation')}</a>
   </div>
 </section>
@@ -230,7 +230,7 @@
 
   <a
     class="btn btn-primary"
-    href={resolve(`multiomics/tool`)}
+    href={resolve('multiomics/tool/')}
   >{t('Lancer une analyse', 'Run an analysis')}</a>
 </section>
 
