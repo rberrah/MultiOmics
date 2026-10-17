@@ -1,6 +1,7 @@
 import {test,expect} from '@playwright/test';
 
 test('static analyzer boots without hydration errors and remains interactive', async ({page}) => {
+  /** @type {string[]} */
   const javascriptErrors = [];
   page.on('pageerror',error=>javascriptErrors.push(error.message));
   page.on('console',message=>{
