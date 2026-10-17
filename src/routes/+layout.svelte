@@ -1,8 +1,8 @@
 <script>
   import '#lib/styles/theme.css';
-  import '@fontsource-variable/inter';
-  import '@fontsource-variable/source-serif-4';
-  import '@fontsource-variable/jetbrains-mono';
+  import '@fontsource-variable/inter/index.css';
+  import '@fontsource-variable/source-serif-4/index.css';
+  import '@fontsource-variable/jetbrains-mono/index.css';
   import { BookOpen, ChartNoAxesCombined, Library, ChevronDown } from '@lucide/svelte';
   import { resolve } from '$app/paths';
   import { page } from '$app/state';
@@ -43,11 +43,16 @@
     {key:'disciplines',label:t('Autres disciplines','Other disciplines'),icon:Library,keys:['disciplines','pmx','omics2pk']},
     {key:'resources',label:t('Ressources','Resources'),icon:Library,keys:['resources','glossary','references','source','main-site']}
   ]);
+  // SvelteKit 3 only types concrete route IDs; menu hrefs are dynamic.
+  // The prefix is resolved from an actual prerendered route, keeping both
+  // standalone and PMx legacy base paths intact.
+  /** @param {string} href */
+  const internalPath = href => resolve('multiomics/') + href.slice('/multiomics/'.length);
   /** @param {string} href */
   const isActive = (href) => {
     if ((/^https?:/).test(href)) return false;
     const pathname = page.url.pathname;
-    const route = resolve(href.slice(1));
+    const route = internalPath(href);
     return href === '/multiomics/' ? pathname === route : pathname.startsWith(route);
   };
   function closeNavigation() {
@@ -131,7 +136,7 @@
               {#if link}
                 <a class:active={isActive(link.href)}
                   aria-current={isActive(link.href) ? 'page' : undefined}
-                  href={link.external ? link.href : resolve(link.href.slice(1))}
+                  href={link.external ? link.href : internalPath(link.href)}
                   target={link.external ? '_blank' : undefined}
                   rel={link.external ? 'noopener noreferrer' : undefined}
                   onclick={closeNavigation} data-testid={'nav-' + link.key}>{link.label}</a>
