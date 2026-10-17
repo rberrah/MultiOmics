@@ -76,49 +76,58 @@ dépôts et ne prétend pas que le contrat d'export Omics2PK suffit à établir
 une validation biologique.
 
 
-## Résultat original et ambiguïté FAS — 17 octobre 2026
+## Résolution de l'identité FAS par la source primaire — 17 octobre 2026
 
-Le modèle réellement figé sur les 30 animaux d'apprentissage contient
-**CYP3A11, FAS, CYP4A14 et CYP4A10** (et non quatre cibles
-biologiquement présélectionnées). Le premier audit automatique,
-recalculé en R et Python sur les 45 101 sondes GSE22871, a établi :
-CYP3A11 → `1416809_at` (Entrez 13112),
-FAS → `1460251_at` (Entrez 14102),
-CYP4A14 → `1423257_at` (Entrez 13119),
-CYP4A10 → aucune sonde satisfaisant **simultanément** toutes les
-contraintes d'identité.
+La colonne `FAS` dans le modèle original gelé pouvait désigner deux gènes
+murins distincts selon un dictionnaire général : récepteur apoptotique
+**Fas / Entrez 14102** ou synthase des acides gras
+**Fasn / Entrez 14104**, dont l'alias historique est `FAS`.
+La PR #37 a correctement bloqué une affectation **sur le seul symbole**.
 
-**Correction de curation critique** : le troisième champ ci-dessus
-(`FAS → 14102`) était seulement une **correspondance littérale** de symbole,
-pas une identification valable de la cible macroarray Nutrimouse.
-En effet, **Fas/CD95** est le récepteur de mort cellulaire murin
-[NCBI Gene 14102](https://www.ncbi.nlm.nih.gov/gene/14102),
-mais la **fatty acid synthase Fasn** est le gène
-[NCBI Gene 14104](https://www.ncbi.nlm.nih.gov/gene/14104), qui utilise
-également l'acronyme historique **FAS**. La matrice Nutrimouse ne fournit
-ici que l'étiquette `FAS`, pas la séquence ou l'identifiant de la sonde
-macroarray. Il est scientifiquement incorrect d'en déduire avec certitude
-`Fas` ou `Fasn`.
+**Une preuve primaire lève cette ambiguïté de nom**, sans regarder aucun
+résultat de l'analyse : **Martin et al., Hepatology 2007, vol. 45, p. 772,
+tableau 4**, utilisent pour la ligne **FAS** l'accession RefSeq
+**`NM_007988`**, classée dans la **synthèse des acides gras**.
+L'identifiant [NM_007988 est le transcript de Fasn, Entrez 14104](
+https://www.ncbi.nlm.nih.gov/gene/14104), et non celui de Fas/CD95.
+Sources : [article primaire, PDF, page 6, tableau 4](
+https://onlinelibrary.wiley.com/doi/pdfdirect/10.1002/hep.21510) ;
+[PubMed DOI 10.1002/hep.21510](
+https://pubmed.ncbi.nlm.nih.gov/17326203/).
 
-L'audit croise désormais non seulement les symboles officiels de
-`org.Mm.eg.db`, mais également les **collisions avec les alias**,
-sans sélectionner arbitrairement un gène. `FAS` est marqué comme
-**identité source non résolue** même si le référentiel local ne signalait
-pas son alias historique. Seuls CYP3A11 et CYP4A14 disposaient jusque-là
-d'une correspondance non ambiguë aux critères stricts ;
-CYP4A10 et FAS empêchent la projection 4/4 du modèle source.
+La nouvelle vérification impose simultanément :
 
-Le fichier supplémentaire
-`all_possible_source_gene_GEO_probe_matches_no_selection.csv`
-conserve aussi les sondes seulement partiellement compatibles pour
-diagnostiquer notamment CYP4A10, **sans les utiliser comme substitutions**.
-La correspondance génétique est une condition *nécessaire, non
-suffisante* : les paramètres du score source ne sont toujours pas
-transférables en l'absence de calibration interplateforme.
+- `FAS` demeure l'**étiquette et la valeur numérique d'origine** dans le
+  modèle Nutrimouse ; aucun modèle ni score n'est réestimé.
+- RefSeq **`NM_007988`** doit être retrouvé dans la version figée
+  de `org.Mm.eg.db` avec l'unique triplet
+  **`Fasn / Entrez 14104 / NM_007988`** ; la simple concordance de
+  `Fas / 14102` est un **contrôle négatif**.
+- La recherche de sondes sur GPL1261 utilise le symbole canonique
+  `Fasn` et l'Entrez 14104, exige une annotation identique dans
+  les deux sources officielles NCBI et Bioconductor, et n'accepte
+  automatiquement que **une** sonde sans ambiguïté. Toute autre
+  possibilité, y compris les sondes multiples, est archivée et rejetée.
 
-**Pour lever le blocage FAS :** retrouver la table d'identité de la
-macroarray ou le supplément méthodologique original associé à
-[Martin et al., Hepatology 2007, DOI:10.1002/hep.21510](https://doi.org/10.1002/hep.21510),
-puis documenter le véritable gène et vérifier indépendamment la sonde.
-Le nom historique `FAS` et l'article sur le métabolisme lipidique ne
-suffisent pas à affecter un identifiant Entrez à la mesure.
+**Ce qui reste incertain :** le tableau 4 établit l'identité du transcrit
+**visé par l'auteur**, mais ne fournit pas, à lui seul, la séquence exacte
+du clone nylon INRARRAY ; une validation d'hybridation des sondes ne peut
+donc pas être déduite. De plus les signaux macroarray de Nutrimouse et
+Affymetrix RMA log2 de GSE22871 n'ont **aucune calibration interplateforme**
+gelée. Une correspondance correcte `FAS→Fasn` n'autorise donc pas
+la projection du score à quatre gènes ni une conclusion CYP/PK.
+
+### Deuxième obstacle indépendant — CYP4A10
+
+Le candidat Affymetrix `1424853_s_at` est annoté simultanément
+**Cyp4a10 (Entrez 13117)** et **Cyp4a31 (Entrez 666168)** dans
+les deux références NCBI et Bioconductor. Même si cet identifiant
+partage le gène d'intérêt, le signal n'est pas spécifique ; il reste
+rejeté pour la projection **exacte** du modèle source. Le nombre
+de gènes identifiés avec une sonde strictement unique reste à recalculer
+après la correction FAS (CI de la PR de résolution primaire).
+
+Le fichier `all_possible_source_gene_GEO_probe_matches_no_selection.csv`
+conserve les alternatives sans les choisir selon le génotype,
+l'exposition PFOS ou les valeurs d'expression. La définition du modèle
+gelé et ses SHA ne changent pas. **Zéro score externe exporté.**
