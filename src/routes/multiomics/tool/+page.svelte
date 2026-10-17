@@ -754,6 +754,7 @@
     };
     // Static file paths are explicitly declared to Kit 3's AssetPath types.
     // No ad-hoc string cast; each path is validated against the static tree.
+    /** @type {Record<string, string>} */
     const demoAssets = {
       'demo_metadata.csv': asset('multiomics/demo_metadata.csv'),
       'demo_transcriptomics.csv': asset('multiomics/demo_transcriptomics.csv'),
