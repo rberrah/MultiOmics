@@ -202,6 +202,8 @@ jobs:
             'IDENTIFIERS_MATCH_SCALE_UNCALIBRATED',
             'BLOCKED_UNMAPPED_OR_AMBIGUOUS_GENES_AND_SCALE')
           assert (d/'locked_panel_to_external_probe_crosswalk.csv').is_file()
+          assert (d/'all_possible_source_gene_GEO_probe_matches_no_selection.csv').is_file()
+          assert r['n_diagnostic_probe_rows_including_rejections']>=3
           assert (d/'independent_R_source_target_gene_bridge_replay.txt').is_file()
           print('PASS: REAL 4-gene source model audited against GEO without outcome leakage; uncalibrated scores BLOCKED')
           PY
