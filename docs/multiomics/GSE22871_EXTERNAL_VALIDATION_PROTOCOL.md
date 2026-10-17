@@ -16,6 +16,48 @@ The original public **processed series matrix** is retrieved from `https://ftp.n
 4. **Explicitly block** `Nutrimouse → GSE22871` model projection. Nutrimouse features are liver macroarray **gene symbols** among a preselected 120-feature panel; GSE22871 measurements are Affymetrix **probe IDs** on a different scale. Without a **versioned, independently checked probe-to-gene annotation**, mapping of multiple probes to one gene, and a frozen cross-platform scaling/normalization bridge, there is **no valid direct external score**.
 5. No genotype-label-driven post hoc selection, no imputation claimed as raw, no assumed same physical sample across studies, no pooled pseudo-replicates, and **no patient-level PK data or concentrations**. The output declares `BLOCKED_UNTIL_ANNOTATION_AND_SCALE_BRIDGE` and zero exported per-sample signature scores by design.
 
+## Independent official GPL1261 probe annotation audit
+
+A dedicated pipeline fetches the original NCBI GEO platform annotation
+[`GPL1261.annot.gz`](https://ftp.ncbi.nlm.nih.gov/geo/platforms/GPL1nnn/GPL1261/annot/GPL1261.annot.gz).
+It is independently validated against the exact **45,101 original measured
+probe IDs** in the SHA-256-locked GSE22871 source. The full annotation gzip
+is preserved. Its qualified, immutable SHA-256 is
+`394c103cf4ca99500d06369e4fb2b9b9bffc2c10fd3cbeb0b0d64c51c3fc95f8`,
+independently observed from official NCBI bytes in
+[Actions 39018594337](https://github.com/rberrah/MultiOmics/actions/runs/39018594337).
+Future downloads **fail closed on digest drift**. The full observed digest is also
+recorded in `GPL1261_annotation_mapping_audit.json`.
+
+The genuine audit matched **45,101/45,101 source probes** against **45,101
+official platform annotation rows**, yielded **22,587 distinct parsed gene-symbol
+labels** and **1,196 probes with more than one gene symbol**. The prespecified
+`Cyp3a11` anchor has **one candidate platform probe**, which is NOT by itself
+evidence that the underlying expression measurements are on the same scale.
+
+- Preserve every platform probe→gene-symbol pair from the *official* GEO
+  annotation. Ambiguous probes mapping to multiple genes are retained with
+  `multiple_genes` status; no arbitrary first-hit assignment.
+- Preserve genes with multiple probe IDs and report how many source probes
+  have missing annotation rows or missing/unparseable gene symbols.
+  Separate machine-readable CSVs keep the ambiguous, missing and full
+  mappings, rather than removing failures.
+- Audit the prespecified original Nutrimouse `Cyp3a11` anchor only as
+  **candidate platform symbols**. A same-named gene is neither equivalent
+  to the original Nutrimouse measurement nor proof of enzyme activity.
+- No gene/probe collapse is chosen by genotype/dose association, no
+  average/maximum signal is computed without a declared bridge, and **zero
+  external scores** are exported. The explicit status is
+  `BLOCKED_SCALE_AND_PROBE_COLLAPSE_NOT_VALIDATED`.
+
+The annotation source is an Affymetrix GPL mapping snapshot, not a clinical
+genomic annotation reference; Gene Symbol aliases and updates can disagree
+with modern Bioconductor `mouse4302.db`. An independent
+`mouse4302.db` (version-pinned) concordance check and stable gene IDs
+are an additional qualification gate before any publication-level
+external projection. Annotation mapping is a necessary step, not proof of
+biological transfer.
+
 ## Remaining scientific gates for issue #20
 
 - Freeze actual file SHA and annotation publication version and audit multi-probe ambiguity (one-to-many gene mapping). No manual selection of the probe with the strongest genotype correlation.
@@ -30,6 +72,8 @@ The other proposed GEO **GSE73298** must not be silently treated as 36 analyzed 
 ```bash
 python3 scripts/qualify_geo_gse22871.py --self-test
 python3 scripts/qualify_geo_gse22871.py tmp/multiomics/real-external-GSE22871
+python3 scripts/qualify_gpl1261_annotation.py --self-test
+python3 scripts/qualify_gpl1261_annotation.py tmp/multiomics/real-external-GSE22871
 ```
 
 All reproducibility and publication claims remain tied to the exact successful GitHub SHA and the original GEO gzip SHA. This work updates only MultiOmics, not the source/consumer repositories.
