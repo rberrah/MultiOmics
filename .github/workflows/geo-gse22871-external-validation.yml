@@ -9,6 +9,7 @@ on:
       - 'multiomics-engine/tests/test_geo_gpl1261_mouse4302_concordance.R'
       - 'scripts/qualify_gpl1261_entrez_concordance.py'
       - 'scripts/qualify_geo_native_probe_evidence.py'
+      - 'scripts/qualify_geo_native_pfos_contrasts.py'
       - 'multiomics-engine/tests/test_geo_native_probe_replay.R'
       - 'docs/multiomics/GSE22871_EXTERNAL_VALIDATION_PROTOCOL.md'
   push:
@@ -174,6 +175,34 @@ jobs:
           assert (d/'independent_R_replay.txt').is_file()
           print('PASS: measured independent external expression only, no PK/biological score claim')
           PY
+      - name: Real external Cyp3a11/PFOS exposure contrasts, exact independent-mouse permutation and BH
+        run: |
+          python3 scripts/qualify_geo_native_pfos_contrasts.py --self-test
+          python3 scripts/qualify_geo_native_pfos_contrasts.py \
+            tmp/multiomics/real-external-GSE22871
+      - name: Assert exploratory biological effects are not mislabeled as PK or Nutrimouse transfer
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          root=Path('tmp/multiomics/real-external-GSE22871/external_native_PFOS_exploratory_contrasts')
+          r=json.loads((root/'native_contrast_report.json').read_text())
+          assert r['n_mice']==30 and r['n_primary_contrasts']==2
+          assert len(r['results'])==2 and all(x['permutations']==252 for x in r['results'])
+          assert all(0 <= x['exact_two_sided_permutation_p'] <= 1 for x in r['results'])
+          assert all(0 <= x['BH_q_two_predefined_contrasts'] <= 1 for x in r['results'])
+          assert r['frozen_Nutrimouse_model_scores_generated']==0
+          assert r['biologically_validated_PK_scores']==0 and not r['PK_concentrations_available']
+          assert r['requires_cross_platform_bridge_for_Nutrimouse_projection']
+          print('PASS: native predeclared external association only; no transferred or PK scores')
+          PY
+      - name: Preserve favorable and unfavorable exploratory source-related external phenotypic contrasts
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: genuine-GSE22871-Cyp3a11-exposure-contrasts-not-PK-validation
+          path: tmp/multiomics/real-external-GSE22871/external_native_PFOS_exploratory_contrasts/
+          if-no-files-found: warn
       - name: Preserve genuine concordance, source discrepancies, candidate gene mappings and blocked claim
         if: always()
         uses: actions/upload-artifact@v6
