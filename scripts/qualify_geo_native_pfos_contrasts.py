@@ -43,10 +43,12 @@ def bh(pvals):
     m = len(pvals)
     out = [0.0] * m
     last = 1.0
-    for i in sorted(range(m), key=lambda k: pvals[k], reverse=True):
-        rank = 1 + sum(pvals[k] < pvals[i] for k in range(m))
-        # Equal p-values use largest rank, as in standard BH.
-        rank = max(j + 1 for j in range(m) if pvals[j] <= pvals[i])
+    # Rank by ORDERED p-value, not source CSV row index. For equal p-values
+    # the reversed pass starts from the largest rank, exactly as p.adjust(BH).
+    order = sorted(range(m), key=lambda k: (pvals[k], k))
+    for position in range(m - 1, -1, -1):
+        i = order[position]
+        rank = position + 1
         last = min(last, pvals[i] * m / rank)
         out[i] = min(1.0, last)
     return out
@@ -99,6 +101,9 @@ def selftest():
     y = [9,10,11,12,13]
     assert abs(exact_p(x,y) - 2/252) < 1e-14
     assert bh([.01,.03]) == [.02,.03]
+    assert bh([.18253968253968253,.023809523809523808]) == [46/252, 12/252]
+    assert bh([.2,.01,.01]) == [.2,.015,.015]
+    assert bh([1,1,1]) == [1,1,1]
     try:
         exact_p([1,2,3,4], y)
     except ValueError:
