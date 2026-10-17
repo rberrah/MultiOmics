@@ -50,26 +50,73 @@ ref <- if(length(official_unique)) {
 }
 if (!all(c("SYMBOL","ENTREZID") %in% names(ref)))
   stop("Independent mouse reference did not supply symbol/Entrez IDs")
-id_by_gene <- setNames(lapply(genes,function(symbol) {
+# The source may use an acronym that is ALSO an alias of a different
+# official mouse gene. Example: FAS can refer to Fas/CD95 (14102), or
+# fatty-acid synthase Fasn (14104). Do not silently promote the exact
+# official-SYMBOL match to biological identity without the original
+# Nutrimouse macroarray probe sequence or primary probe metadata.
+if(!("ALIAS" %in% AnnotationDbi::keytypes(org.Mm.eg.db::org.Mm.eg.db)))
+  stop("Cannot audit alternate source names; refuse identity inference")
+official_aliases <- AnnotationDbi::keys(org.Mm.eg.db::org.Mm.eg.db,keytype="ALIAS")
+official_aliases <- unique(as.character(official_aliases[!is.na(official_aliases)]))
+alias_keys_by_source <- setNames(lapply(genes,function(symbol) {
+  official_aliases[tolower(official_aliases)==tolower(symbol)]
+}),genes)
+alias_lookup <- unique(unlist(alias_keys_by_source,use.names=FALSE))
+alias_ref <- if(length(alias_lookup)) {
+  suppressMessages(AnnotationDbi::select(org.Mm.eg.db::org.Mm.eg.db,
+                keys=alias_lookup,keytype="ALIAS",columns=c("SYMBOL","ENTREZID")))
+} else data.frame(ALIAS=character(),SYMBOL=character(),ENTREZID=character())
+if(!all(c("ALIAS","ENTREZID") %in% names(alias_ref)))
+  stop("Cannot trace original source alias collisions")
+numeric_ids <- function(values) {
+  values <- as.character(values)
+  values <- values[!is.na(values) & grepl("^[0-9]+$",values)]
+  sort(unique(values),method="radix")
+}
+exact_ids <- setNames(lapply(genes,function(symbol) {
   exact_keys <- keys_by_source[[symbol]]
   if(length(exact_keys)!=1L)return(character())
-  ids <- as.character(ref$ENTREZID[!is.na(ref$SYMBOL) & ref$SYMBOL==exact_keys[[1L]]])
-  ids <- ids[!is.na(ids) & grepl("^[0-9]+$",ids)]
-  sort(unique(ids),method="radix")
-}), genes)
+  numeric_ids(ref$ENTREZID[!is.na(ref$SYMBOL) & ref$SYMBOL==exact_keys[[1L]]])
+}),genes)
+alias_ids <- setNames(lapply(genes,function(symbol) {
+  matches <- alias_keys_by_source[[symbol]]
+  if(!length(matches))return(character())
+  numeric_ids(alias_ref$ENTREZID[!is.na(alias_ref$ALIAS) & alias_ref$ALIAS %in% matches])
+}),genes)
+id_by_gene <- setNames(lapply(genes,function(symbol) {
+  sort(unique(c(exact_ids[[symbol]],alias_ids[[symbol]])),method="radix")
+}),genes)
+statuses <- vapply(genes,function(symbol) {
+  matches <- keys_by_source[[symbol]]
+  official_ids <- exact_ids[[symbol]]
+  alternatives <- alias_ids[[symbol]]
+  # Explicit historical source-label collision, supported by NCBI mouse
+  # Entrez Fas (14102) and Fasn (14104, FAS alias); no rescue by outcome.
+  if(toupper(symbol)=="FAS")return("historical_FAS_Fasn_acronym_unresolved")
+  if(length(matches)==1L && length(official_ids)==1L &&
+     !length(setdiff(alternatives,official_ids)))return("unique")
+  if(length(matches)==1L && length(setdiff(alternatives,official_ids))>0L)
+    return("official_symbol_vs_alias_conflict")
+  if(length(matches)>1L)return("multiple_casefold_official_symbols")
+  if(length(matches)==0L && length(alternatives)>0L)
+    return("alias_only_requires_primary_probe_identity")
+  if(length(id_by_gene[[symbol]])>1L)return("multi_gene_ambiguous")
+  "unmapped"
+},character(1))
 rows <- data.frame(
   model_feature_index=seq_along(genes),
   gene_symbol=genes,
   source_entrez_ids=vapply(id_by_gene,paste,collapse="|",FUN.VALUE=character(1)),
   source_entrez_count=vapply(id_by_gene,length,FUN.VALUE=integer(1)),
-  source_annotation_status=vapply(id_by_gene,function(ids) {
-    if(length(ids)==0L) "unmapped"
-    else if(length(ids)==1L) "unique"
-    else "multi_gene_ambiguous"
-  },character(1)),
-  source_annotation="org.Mm.eg.db SYMBOL->ENTREZID",
+  source_annotation_status=unname(statuses),
+  exact_official_entrez=vapply(exact_ids,paste,collapse="|",FUN.VALUE=character(1)),
+  alias_entrez_candidates=vapply(alias_ids,paste,collapse="|",FUN.VALUE=character(1)),
+  source_annotation="org.Mm.eg.db SYMBOL plus ALIAS collision screen",
   source_annotation_version=as.character(utils::packageVersion("org.Mm.eg.db")),
   stringsAsFactors=FALSE)
+if(any(toupper(genes)=="FAS" & rows$source_annotation_status=="unique"))
+  stop("Scientific safety gate failed: Nutrimouse FAS acronym not disambiguated")
 utils::write.csv(rows,file.path(out,"frozen_nutrimouse_genes_source_entrez.csv"),
                  row.names=FALSE,na="NA")
 source_sha <- function(f) {
@@ -90,12 +137,13 @@ aud <- list(source_dataset="real_public_mixOmics_nutrimouse",
   biological_feature_selection=FALSE,
   source_annotation_version=as.character(utils::packageVersion("org.Mm.eg.db")),
   source_mapping_is_pheno_blind=TRUE,
-  any_incomplete_source_mapping=any(rows$source_entrez_count!=1L),
+  any_incomplete_source_mapping=any(rows$source_annotation_status!="unique"),
+  unresolved_historical_FAS_acronym=any(toupper(genes)=="FAS"),
   status="SOURCE_GENE_IDS_ONLY_NO_CROSS_PLATFORM_EXPRESSION_CALIBRATION",
   external_signature_scores=0L)
 jsonlite::write_json(aud,file.path(out,"frozen_source_gene_identity_audit.json"),
                      auto_unbox=TRUE,pretty=TRUE)
 cat("REAL frozen Nutrimouse 30/10 model genes + independent org.Mm.eg.db: ",
     paste(paste(genes,rows$source_entrez_ids,sep=":"),collapse=", "),
-    "; mapped uniquely=",sum(rows$source_entrez_count==1L),
+    "; mapped uniquely=",sum(rows$source_annotation_status=="unique"),
     "; no external signatures or PK claims\n",sep="")
