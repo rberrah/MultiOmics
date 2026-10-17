@@ -6,6 +6,7 @@ on:
       - '.github/workflows/geo-gse22871-external-validation.yml'
       - 'scripts/qualify_geo_gse22871.py'
       - 'scripts/qualify_gpl1261_annotation.py'
+      - 'multiomics-engine/tests/test_geo_gpl1261_mouse4302_concordance.R'
       - 'docs/multiomics/GSE22871_EXTERNAL_VALIDATION_PROTOCOL.md'
   push:
     branches: [main]
@@ -76,4 +77,43 @@ jobs:
         with:
           name: external-GSE22871-authentic-probe-level-GEO-metadata-no-PK-claims
           path: tmp/multiomics/real-external-GSE22871/
+          if-no-files-found: warn
+
+  independent-bioc-probe-concordance:
+    name: Genuine mouse4302.db/AnnotationDbi independent concordance against full GEO GPL1261
+    runs-on: ubuntu-latest
+    needs: authentic-external-cohort
+    container:
+      image: bioconductor/bioconductor_docker:RELEASE_3_22-r-4.5.2@sha256:e34177896c1579f66d48b756e4229b58237499183a089da084af72d7aba1d40a
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v5
+      - name: Download exact genuine GPL1261 and 30-mouse source from preceding job
+        uses: actions/download-artifact@v6
+        with:
+          name: external-GSE22871-authentic-probe-level-GEO-metadata-no-PK-claims
+          path: tmp/multiomics/real-external-GSE22871
+      - name: Verify pinned R 4.5.2 and Bioconductor 3.22
+        run: |
+          Rscript -e 'stopifnot(identical(as.character(getRversion()),"4.5.2"),requireNamespace("BiocManager",quietly=TRUE),identical(as.character(BiocManager::version()),"3.22"))'
+      - name: Install original Bioconductor mouse4302.db annotation and reference packages
+        run: |
+          Rscript -e 'if(!requireNamespace("jsonlite",quietly=TRUE)) install.packages("jsonlite",repos="https://cloud.r-project.org"); BiocManager::install(c("mouse4302.db","AnnotationDbi"),version="3.22",ask=FALSE,update=FALSE); stopifnot(requireNamespace("mouse4302.db",quietly=TRUE),requireNamespace("AnnotationDbi",quietly=TRUE),requireNamespace("org.Mm.eg.db",quietly=TRUE),identical(as.character(packageVersion("mouse4302.db")),"3.13.0"))'
+      - name: Test independent annotation agreement/disagreement and ambiguous symbol retention
+        run: |
+          Rscript multiomics-engine/tests/test_geo_gpl1261_mouse4302_concordance.R --self-test
+      - name: Compare all 45,101 original GEO probe mappings with genuine mouse4302.db without replacing discrepancies
+        run: |
+          Rscript multiomics-engine/tests/test_geo_gpl1261_mouse4302_concordance.R \
+            tmp/multiomics/real-external-GSE22871 \
+            tmp/multiomics/real-external-GSE22871/independent-bioc-concordance
+      - name: Require comprehensive real independent reference audit and zero invented external scores
+        run: |
+          Rscript -e 'library(jsonlite); a<-fromJSON("tmp/multiomics/real-external-GSE22871/independent-bioc-concordance/GPL1261_mouse4302_db_concordance_audit.json");stopifnot(a$probes_compared==45101,a$score_rows_generated==0,a$cross_platform_projection=="BLOCKED_UNTIL_ANNOTATION_CONSENSUS_AND_SCALE_TRANSFER",sum(unlist(a$statuses))==45101);cat("PASS: 45,101 real probes audited against true mouse4302.db; 0 projected biological signatures\n")'
+      - name: Preserve genuine concordance, source discrepancies, candidate gene mappings and blocked claim
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: independent-Bioconductor-mouse4302-GPL1261-probe-gene-disagreements
+          path: tmp/multiomics/real-external-GSE22871/independent-bioc-concordance/
           if-no-files-found: warn
