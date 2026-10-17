@@ -221,3 +221,44 @@ population, including null, permutation, subgroup and uncertainty reporting.
 Only after successful transfer checks could a genuine transferred per-subject
 signature be evaluated. PK/PD predictive claims require a separate dataset
 containing measured PK/PD and corresponding individual omics.
+
+## Exploration externe préspécifiée du signal natif Cyp3a11 — 17 octobre 2026
+
+En complément du contrôle d'annotation et du rejeu indépendant des intensités,
+nous avons exécuté exactement **deux contrastes exploratoires** dans la véritable
+cohorte GSE22871 de 30 souris : PFOS 10 versus 0 mg/kg/jour, séparément chez
+les souris sauvages et PPARα-null. Chaque comparaison comporte **5 versus 5
+animaux**. La variable est l'intensité **RMA log2 d'une sonde Affymetrix**
+Cyp3a11 native, et non un score Nutrimouse ou une activité enzymatique.
+
+Le test bilatéral est fondé sur les **252 allocations exactes** de cinq
+animaux parmi dix, sans approximation asymptotique ; les deux p-values sont
+corrigées ensemble par Benjamini–Hochberg. Le recalcul dans un programme R
+**indépendant** a reproduit les différences, p-values et q-values de Python
+à 1e-12. L'ancien ajustement erroné dû à l'ordre non trié des contrastes a
+été détecté, corrigé et protégé par des tests de non-régression. Résultats
+sur les données et références SHA figées (GitHub Actions
+[qualification réelle](https://github.com/rberrah/MultiOmics/actions/runs/39026608284)) :
+
+| Contraste | Δ intensité log2 RMA (10 − 0) | p permutation exacte | q BH, 2 contrastes |
+| --- | ---: | ---: | ---: |
+| Sauvages | +0,0798218 | 0,182540 | 0,182540 |
+| PPARα-null | +0,1132012 | 0,023810 | **0,047619** |
+
+**Interprétation strictement exploratoire.** Le contraste PPARα-null atteint
+numériquement le seuil q<0,05 pour **ces deux tests définis**, mais avec
+5 animaux par bras et une seule sonde : pas de validation indépendante de la
+biologie CYP, pas de contrôle d'une famille de tests plus étendue ou de
+réplication du modèle, aucune conclusion PK/PD ni causalité. L'étude publiée
+d'origine et le présent rejeu correspondent aux mêmes 30 souris ; notre
+analyse n'est donc **pas une réplication intercohortes** de l'association PFOS.
+
+Le groupe dose 3 mg/kg/jour reste présent dans les métadonnées mais n'entre
+pas dans ces deux tests principaux ; aucun choix de sonde fondé sur les
+étiquettes expérimentales n'a été effectué. Toute valeur, favorable ou
+défavorable, est archivée dans
+`external_native_PFOS_exploratory_contrasts/`, comprenant les mesures,
+`Cyp3a11_native_primary_contrasts.csv`, `native_contrast_report.json` et
+`independent_R_contrast_replay.txt`. Le statut de projection Nutrimouse reste
+**BLOCKED** : aucune harmonisation d'échelles macroarray–Affymetrix gelée,
+aucun score biologique externe exporté et aucune concentration PK disponible.
