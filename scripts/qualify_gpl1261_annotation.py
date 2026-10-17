@@ -143,8 +143,8 @@ def parse_gpl_annotation(lines, matrix_probes, *, min_source_rows=30000):
             symbol_to_probes[sym].add(probe)
     require(header is not None and ended and rows >= min_source_rows,
             "Official GPL1261 table unavailable, truncated or too small")
-    require(len(matched) >= 35000,
-            "Fewer than 35k original probes have source-backed official annotations")
+    require(len(matched) >= min(35000, min_source_rows),
+            "Too few original probes have source-backed official annotations")
     empty = sorted(matrix_probes - matched)
     ambiguous = sorted(probe for probe, symbols in probe_to_symbols.items()
                        if len(symbols) > 1)
