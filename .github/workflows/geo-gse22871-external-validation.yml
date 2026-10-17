@@ -7,6 +7,7 @@ on:
       - 'scripts/qualify_geo_gse22871.py'
       - 'scripts/qualify_gpl1261_annotation.py'
       - 'multiomics-engine/tests/test_geo_gpl1261_mouse4302_concordance.R'
+      - 'scripts/qualify_gpl1261_entrez_concordance.py'
       - 'docs/multiomics/GSE22871_EXTERNAL_VALIDATION_PROTOCOL.md'
   push:
     branches: [main]
@@ -110,6 +111,37 @@ jobs:
       - name: Require comprehensive real independent reference audit and zero invented external scores
         run: |
           Rscript -e 'library(jsonlite); a<-fromJSON("tmp/multiomics/real-external-GSE22871/independent-bioc-concordance/GPL1261_mouse4302_db_concordance_audit.json");stopifnot(a$probes_compared==45101,a$score_rows_generated==0,a$cross_platform_projection=="BLOCKED_UNTIL_ANNOTATION_CONSENSUS_AND_SCALE_TRANSFER",sum(unlist(a$statuses))==45101);cat("PASS: 45,101 real probes audited against true mouse4302.db; 0 projected biological signatures\n")'
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Fail-closed identifier parser and all seven stable-ID concordance cases
+        run: |
+          python3 scripts/qualify_gpl1261_entrez_concordance.py --self-test
+      - name: Audit historical official NCBI Entrez Gene ID vs independent Bioconductor Entrez IDs on 45,101 probes
+        run: |
+          python3 scripts/qualify_gpl1261_entrez_concordance.py \
+            tmp/multiomics/real-external-GSE22871 \
+            tmp/multiomics/real-external-GSE22871/independent-bioc-concordance
+      - name: Enforce no gene projection or phenotype use; retain all numeric and unparseable ID disagreements
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('tmp/multiomics/real-external-GSE22871/independent-bioc-concordance/original_NCBI_vs_Bioc_Entrez_ID')
+          d=json.loads((p/'GPL1261_entrez_id_concordance_audit.json').read_text())
+          assert d['source_probe_measurements']==45101
+          assert sum(d['entrez_concordance_counts'].values())==45101
+          assert d['external_scores_produced']==0
+          assert d['all_id_compared_without_outcome_labels']
+          assert d['status']=='STABLE_ENTREZ_ID_COMPARISON_ONLY_EXTERNAL_PROJECTION_BLOCKED'
+          assert len(d['source_original_gpl1261_sha256'])==64
+          assert len(d['source_original_geo_series_sha256'])==64
+          for n in ['GPL1261_all_probe_entrez_concordance.csv',
+                    'GPL1261_entrez_disagreements_all.csv',
+                    'Cyp3a11_entrez_candidate_reference.csv']:
+            assert (p/n).is_file(), n
+          print('PASS: original NCBI versus independent Bioconductor stable IDs audited without invented external scores')
+          PY
       - name: Preserve genuine concordance, source discrepancies, candidate gene mappings and blocked claim
         if: always()
         uses: actions/upload-artifact@v6
