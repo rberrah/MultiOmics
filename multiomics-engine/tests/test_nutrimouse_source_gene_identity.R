@@ -87,13 +87,50 @@ alias_ids <- setNames(lapply(genes,function(symbol) {
 id_by_gene <- setNames(lapply(genes,function(symbol) {
   sort(unique(c(exact_ids[[symbol]],alias_ids[[symbol]])),method="radix")
 }),genes)
+# Primary original experimental source (Martin et al., Hepatology 2007,
+# doi:10.1002/hep.21510, Table 4, journal page 772 / PDF page 6) explicitly
+# annotates the original INRARRAY "FAS" row with mouse RefSeq NM_007988.
+# This transcript belongs to fatty-acid synthase Fasn (14104), NOT to the
+# cell-death receptor Fas (14102). Cross-verify BOTH with the pinned mouse
+# gene database; refuse any disagreement rather than guessing from biology.
+primary_refseq <- "NM_007988"
+primary_entrez <- "14104"
+primary_symbol <- "Fasn"
+if(sum(toupper(genes)=="FAS")!=1L ||
+   !("REFSEQ" %in% AnnotationDbi::columns(org.Mm.eg.db::org.Mm.eg.db)) ||
+   !("ENTREZID" %in% AnnotationDbi::keytypes(org.Mm.eg.db::org.Mm.eg.db)))
+  stop("Original FAS primary RefSeq cannot be independently verified")
+primary_annotation <- suppressMessages(AnnotationDbi::select(
+  org.Mm.eg.db::org.Mm.eg.db, keys=c("14102","14104"),
+  keytype="ENTREZID", columns=c("REFSEQ","SYMBOL")))
+transcript <- as.character(primary_annotation$REFSEQ)
+transcript <- sub("\\.[0-9]+$", "", transcript)
+verified_entrez <- unique(as.character(primary_annotation$ENTREZID[
+  !is.na(transcript) & transcript==primary_refseq]))
+verified_symbol <- unique(as.character(primary_annotation$SYMBOL[
+  !is.na(transcript) & transcript==primary_refseq]))
+if(!identical(verified_entrez, primary_entrez) ||
+   !identical(verified_symbol,primary_symbol) ||
+   !(primary_entrez %in% alias_ids[["FAS"]]) ||
+   !(primary_entrez %in% id_by_gene[["FAS"]]) ||
+   !( "14102" %in% exact_ids[["FAS"]]) )
+  stop("Primary original FAS NM_007988 is not uniquely assigned to Fasn/14104")
+id_by_gene[["FAS"]] <- primary_entrez
+canonical_by_gene <- setNames(vapply(genes,function(symbol) {
+  if(toupper(symbol)=="FAS")return(primary_symbol)
+  matches <- keys_by_source[[symbol]]
+  if(length(matches)==1L)matches[[1L]] else symbol
+},character(1)),genes)
+source_refseq <- setNames(ifelse(toupper(genes)=="FAS", primary_refseq, ""),genes)
+
 statuses <- vapply(genes,function(symbol) {
   matches <- keys_by_source[[symbol]]
   official_ids <- exact_ids[[symbol]]
   alternatives <- alias_ids[[symbol]]
-  # Explicit historical source-label collision, supported by NCBI mouse
-  # Entrez Fas (14102) and Fasn (14104, FAS alias); no rescue by outcome.
-  if(toupper(symbol)=="FAS")return("historical_FAS_Fasn_acronym_unresolved")
+  # RefSeq in the ORIGINAL publication resolves the "FAS" label.
+  # This makes gene ID technically traceable, but NOT its exact nylon probe
+  # sequence/specificity, nor the Affymetrix measurement-scale equivalence.
+  if(toupper(symbol)=="FAS")return("unique")
   if(length(matches)==1L && length(official_ids)==1L &&
      !length(setdiff(alternatives,official_ids)))return("unique")
   if(length(matches)==1L && length(setdiff(alternatives,official_ids))>0L)
@@ -107,6 +144,11 @@ statuses <- vapply(genes,function(symbol) {
 rows <- data.frame(
   model_feature_index=seq_along(genes),
   gene_symbol=genes,
+  source_canonical_symbol=unname(canonical_by_gene),
+  original_primary_refseq=unname(source_refseq),
+  original_primary_refseq_citation=ifelse(toupper(genes)=="FAS",
+    "Martin_2007_Hepatology_45_767_777_Table4_p772_DOI_10.1002/hep.21510",
+    "not_specified_in_primary_table_for_this_frozen_feature"),
   source_entrez_ids=vapply(id_by_gene,paste,collapse="|",FUN.VALUE=character(1)),
   source_entrez_count=vapply(id_by_gene,length,FUN.VALUE=integer(1)),
   source_annotation_status=unname(statuses),
@@ -115,8 +157,10 @@ rows <- data.frame(
   source_annotation="org.Mm.eg.db SYMBOL plus ALIAS collision screen",
   source_annotation_version=as.character(utils::packageVersion("org.Mm.eg.db")),
   stringsAsFactors=FALSE)
-if(any(toupper(genes)=="FAS" & rows$source_annotation_status=="unique"))
-  stop("Scientific safety gate failed: Nutrimouse FAS acronym not disambiguated")
+if(!identical(rows$source_entrez_ids[rows$gene_symbol=="FAS"],"14104") ||
+   !identical(rows$source_canonical_symbol[rows$gene_symbol=="FAS"],"Fasn") ||
+   !identical(rows$original_primary_refseq[rows$gene_symbol=="FAS"],"NM_007988"))
+  stop("Original published probe annotation still ambiguous: refuse false Fas 14102 mapping")
 utils::write.csv(rows,file.path(out,"frozen_nutrimouse_genes_source_entrez.csv"),
                  row.names=FALSE,na="NA")
 source_sha <- function(f) {
@@ -138,7 +182,12 @@ aud <- list(source_dataset="real_public_mixOmics_nutrimouse",
   source_annotation_version=as.character(utils::packageVersion("org.Mm.eg.db")),
   source_mapping_is_pheno_blind=TRUE,
   any_incomplete_source_mapping=any(rows$source_annotation_status!="unique"),
-  unresolved_historical_FAS_acronym=any(toupper(genes)=="FAS"),
+  unresolved_historical_FAS_acronym=FALSE,
+  original_FAS_primary_refseq="NM_007988",
+  original_FAS_source_gene_canonical="Fasn",
+  original_FAS_gene_entrez="14104",
+  primary_FAS_refseq_verified_against_orgMmEgDb=TRUE,
+  primary_source_citation="https://doi.org/10.1002/hep.21510#Table-4-page-772",
   status="SOURCE_GENE_IDS_ONLY_NO_CROSS_PLATFORM_EXPRESSION_CALIBRATION",
   external_signature_scores=0L)
 jsonlite::write_json(aud,file.path(out,"frozen_source_gene_identity_audit.json"),
