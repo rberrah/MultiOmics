@@ -53,6 +53,21 @@ jobs:
             -n "from '\$app/stores'\|from \"\$app/stores\"" src; then
             echo "::error::Kit3 removed legacy \$app/stores"; exit 1
           fi
+          # sv codemod rewrites blocks containing historic trailing spaces;
+          # normalize these only in migrated code, then insist on a clean diff.
+          python3 - <<'PY'
+          from pathlib import Path
+          import subprocess
+          files=subprocess.check_output(['git','diff','--name-only','-z']).decode().split('\\0')
+          for name in files:
+              if not name or Path(name).suffix not in ('.svelte','.js','.ts'): continue
+              p=Path(name)
+              if not p.exists(): continue
+              value=p.read_text()
+              cleaned='\\n'.join(x.rstrip(' \\t') for x in value.split('\\n'))
+              if cleaned!=value:
+                  p.write_text(cleaned)
+          PY
           git diff --check
       - name: Save migration candidate in dedicated branch only
         run: |
