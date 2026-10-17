@@ -28,6 +28,8 @@ SAMPLE_IDS = tuple("GSM" + str(i) for i in range(565106, 565136))
 EXPECTED_PROBES_MIN = 40000
 EXPECTED_PROBES_MAX = 50000
 MAX_GZIP_BYTES = 50_000_000
+# Exact original bytes from independently downloaded NCBI GEO, checked on CI.
+PINNED_GEO_SOURCE_SHA256 = "630706c5d3778068a9e08af01ce315b4886de17abefbfaae32708e7ed3d2d861"
 
 
 def require(ok, message):
@@ -202,6 +204,9 @@ def run(outdir):
     out.mkdir(parents=True, exist_ok=True)
     content = download_bytes()
     archive = out / "GSE22871_series_matrix.txt.gz"
+    actual_sha256 = hashlib.sha256(content).hexdigest()
+    require(actual_sha256 == PINNED_GEO_SOURCE_SHA256,
+            "Downloaded NCBI data SHA-256 changed from scientifically qualified snapshot")
     archive.write_bytes(content)
     with gzip.open(archive, "rt", encoding="utf-8", errors="strict",
                    newline="") as stream:
