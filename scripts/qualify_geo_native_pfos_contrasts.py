@@ -100,10 +100,14 @@ def selftest():
     assert exact_p(x, x) == 1
     y = [9,10,11,12,13]
     assert abs(exact_p(x,y) - 2/252) < 1e-14
-    assert bh([.01,.03]) == [.02,.03]
-    assert bh([.18253968253968253,.023809523809523808]) == [46/252, 12/252]
-    assert bh([.2,.01,.01]) == [.2,.015,.015]
-    assert bh([1,1,1]) == [1,1,1]
+    for observed, expected in (
+        (bh([.01,.03]), [.02,.03]),
+        (bh([46/252,6/252]), [46/252,12/252]),
+        (bh([.2,.01,.01]), [.2,.015,.015]),
+        (bh([1,1,1]), [1,1,1]),
+    ):
+        assert len(observed) == len(expected)
+        assert max(abs(a-b) for a,b in zip(observed,expected)) < 1e-14
     try:
         exact_p([1,2,3,4], y)
     except ValueError:
