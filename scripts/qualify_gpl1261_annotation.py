@@ -21,6 +21,8 @@ from qualify_geo_gse22871 import PINNED_GEO_SOURCE_SHA256, require
 ANNOT_URL = ("https://ftp.ncbi.nlm.nih.gov/geo/platforms/"
              "GPL1nnn/GPL1261/annot/GPL1261.annot.gz")
 ANNOT_LIMIT = 35_000_000
+# Frozen byte-for-byte after real NCBI download and complete 45,101-row audit.
+PINNED_GPL1261_SHA256 = "394c103cf4ca99500d06369e4fb2b9b9bffc2c10fd3cbeb0b0d64c51c3fc95f8"
 INVALID = {"", "---", "NA", "N/A", "NULL", "NONE", "NAN", "?"}
 MAX_PROBES = 55000
 
@@ -179,6 +181,8 @@ def qualify(outdir):
             "Original externally qualified GSE22871 source artifact is absent")
     probes = verified_matrix_probes(out / "GSE22871_series_matrix.txt.gz")
     content = download_annotation()
+    require(sha(content) == PINNED_GPL1261_SHA256,
+            "Official NCBI GPL1261 annotation bytes changed from qualified snapshot")
     archive = out / "GPL1261.annot.gz"
     archive.write_bytes(content)
     try:
