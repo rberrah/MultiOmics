@@ -32,12 +32,28 @@ if (length(genes)!=4L || anyNA(genes) || anyDuplicated(tolower(genes)) ||
   stop("Model gene feature/split identity is not the original frozen 30/10 training-only artifact")
 if (!all(c("SYMBOL","ENTREZID") %in% AnnotationDbi::columns(org.Mm.eg.db::org.Mm.eg.db)))
   stop("Mouse source annotation reference lacks SYMBOL/ENTREZID")
-ref <- suppressMessages(AnnotationDbi::select(org.Mm.eg.db::org.Mm.eg.db,
-               keys=genes,keytype="SYMBOL",columns="ENTREZID"))
+# The REAL frozen macroarray stores source gene symbols in UPPERCASE
+# (e.g. CYP3A11), while official mouse SYMBOL uses Cyp3a11. Resolve by
+# strictly case-insensitive EXACT official SYMBOL equality, never ALIAS or
+# substring, and reject multiple keys instead of choosing the first.
+official <- AnnotationDbi::keys(org.Mm.eg.db::org.Mm.eg.db,keytype="SYMBOL")
+official <- unique(as.character(official[!is.na(official)]))
+keys_by_source <- setNames(lapply(genes,function(symbol) {
+  official[tolower(official)==tolower(symbol)]
+}),genes)
+official_unique <- unique(unlist(keys_by_source[vapply(keys_by_source,length,integer(1))==1L]))
+ref <- if(length(official_unique)) {
+  suppressMessages(AnnotationDbi::select(org.Mm.eg.db::org.Mm.eg.db,
+                 keys=official_unique,keytype="SYMBOL",columns="ENTREZID"))
+} else {
+  data.frame(SYMBOL=character(),ENTREZID=character())
+}
 if (!all(c("SYMBOL","ENTREZID") %in% names(ref)))
   stop("Independent mouse reference did not supply symbol/Entrez IDs")
 id_by_gene <- setNames(lapply(genes,function(symbol) {
-  ids <- as.character(ref$ENTREZID[!is.na(ref$SYMBOL) & ref$SYMBOL==symbol])
+  exact_keys <- keys_by_source[[symbol]]
+  if(length(exact_keys)!=1L)return(character())
+  ids <- as.character(ref$ENTREZID[!is.na(ref$SYMBOL) & ref$SYMBOL==exact_keys[[1L]]])
   ids <- ids[!is.na(ids) & grepl("^[0-9]+$",ids)]
   sort(unique(ids),method="radix")
 }), genes)
