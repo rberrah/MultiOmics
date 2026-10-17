@@ -10,6 +10,10 @@ on:
       - 'scripts/qualify_gpl1261_entrez_concordance.py'
       - 'scripts/qualify_geo_native_probe_evidence.py'
       - 'scripts/qualify_geo_native_pfos_contrasts.py'
+      - 'scripts/qualify_nutrimouse_geo_gene_bridge.py'
+      - 'multiomics-engine/tests/test_nutrimouse_source_gene_identity.R'
+      - 'multiomics-engine/tests/test_nutrimouse_geo_bridge_replay.R'
+      - 'docs/multiomics/REAL_NUTRIMOUSE_GSE22871_BRIDGE_PROTOCOL.md'
       - 'multiomics-engine/tests/test_geo_native_pfos_contrasts.R'
       - 'multiomics-engine/tests/test_geo_native_probe_replay.R'
       - 'docs/multiomics/GSE22871_EXTERNAL_VALIDATION_PROTOCOL.md'
@@ -145,6 +149,63 @@ jobs:
                     'Cyp3a11_entrez_candidate_reference.csv']:
             assert (p/n).is_file(), n
           print('PASS: original NCBI versus independent Bioconductor stable IDs audited without invented external scores')
+          PY
+      - name: Retrieve the immutable ORIGINAL 40-mouse Nutrimouse macroarray gene matrix
+        uses: actions/checkout@v5
+        with:
+          repository: mixOmics-org/mixOmics
+          ref: ef3e760526623d9e91e945e4b50be48d764efc40
+          path: external/mixOmics
+          sparse-checkout: |
+            data/nutrimouse.rda
+      - name: Recover the actual frozen 30-subject-only Nutrimouse four-gene model
+        run: |
+          Rscript multiomics-engine/tests/test_real_nutrimouse_frozen_individual_score.R \
+            external/mixOmics \
+            tmp/multiomics/real-external-GSE22871/independent-bioc-concordance/nutrimouse_frozen_source
+      - name: Independently resolve each training-selected source gene via mouse reference Entrez IDs
+        run: |
+          Rscript multiomics-engine/tests/test_nutrimouse_source_gene_identity.R \
+            tmp/multiomics/real-external-GSE22871/independent-bioc-concordance/nutrimouse_frozen_source \
+            tmp/multiomics/real-external-GSE22871/independent-bioc-concordance/nutrimouse_source_identity
+      - name: Audit original source four-gene identities against full genuine two-reference GPL1261 probe annotations
+        run: |
+          python3 scripts/qualify_nutrimouse_geo_gene_bridge.py --self-test
+          python3 scripts/qualify_nutrimouse_geo_gene_bridge.py \
+            tmp/multiomics/real-external-GSE22871/independent-bioc-concordance/nutrimouse_frozen_source \
+            tmp/multiomics/real-external-GSE22871/independent-bioc-concordance/nutrimouse_source_identity \
+            tmp/multiomics/real-external-GSE22871/independent-bioc-concordance/original_NCBI_vs_Bioc_Entrez_ID \
+            tmp/multiomics/real-external-GSE22871/independent-bioc-concordance/real_source_to_target_gene_bridge
+      - name: Independently recompute all four source-to-GEO gene/probe matches in native R
+        run: |
+          Rscript multiomics-engine/tests/test_nutrimouse_geo_bridge_replay.R \
+            tmp/multiomics/real-external-GSE22871/independent-bioc-concordance/nutrimouse_source_identity \
+            tmp/multiomics/real-external-GSE22871/independent-bioc-concordance/original_NCBI_vs_Bioc_Entrez_ID \
+            tmp/multiomics/real-external-GSE22871/independent-bioc-concordance/real_source_to_target_gene_bridge
+      - name: Enforce scale transfer and clinical-validation BLOCK regardless of identity overlap
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          d=Path('tmp/multiomics/real-external-GSE22871/independent-bioc-concordance/real_source_to_target_gene_bridge')
+          r=json.loads((d/'frozen_panel_external_transport_readiness.json').read_text())
+          assert r['panel_n_frozen_genes']==4
+          assert r['n_source_train_mice']==30 and r['n_source_holdout_mice']==10
+          assert r['n_independent_target_mice']==30
+          assert 0<=r['strictly_mapped_feature_count']<=4
+          assert r['n_external_signature_scores_exported']==0
+          assert not r['direct_source_zscore_to_target_is_justified']
+          assert not r['cross_platform_reference_bridge_fitted']
+          assert not r['external_phenotype_used_for_probe_matching']
+          assert not r['n_PK_concentration_outcomes']
+          assert r['transport_status'] in (
+            'IDENTIFIERS_MATCH_SCALE_UNCALIBRATED',
+            'BLOCKED_UNMAPPED_OR_AMBIGUOUS_GENES_AND_SCALE')
+          assert (d/'locked_panel_to_external_probe_crosswalk.csv').is_file()
+          assert (d/'all_possible_source_gene_GEO_probe_matches_no_selection.csv').is_file()
+          assert r['n_diagnostic_probe_rows_including_rejections']>=3
+          assert (d/'independent_R_source_target_gene_bridge_replay.txt').is_file()
+          print('PASS: REAL 4-gene source model audited against GEO without outcome leakage; uncalibrated scores BLOCKED')
           PY
       - name: Predeclared genuine external Cyp3a11 native probe measurements (never projected model scores)
         run: |
