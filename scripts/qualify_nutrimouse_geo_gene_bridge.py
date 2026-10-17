@@ -70,8 +70,15 @@ def near_source_candidates(gene, entrez_ids, crosswalk, accepted):
     for row in crosswalk:
         gs = gene.casefold() in symbols(row["geo_symbols_existing_audit"])
         bs = gene.casefold() in symbols(row["bioc_symbols_existing_audit"])
-        gi = bool(entrez_ids & stable_ids(row["geo_entrez_ids"]))
-        bi = bool(entrez_ids & stable_ids(row["bioc_entrez_ids"]))
+        # Diagnostics span ALL 45k probes, even unrelated invalid/stale IDs.
+        # An unrelated malformed source token is reported in the full
+        # concordance archive rather than interrupting this nonselective scan.
+        # Only the strictly accepted probe path uses fail-closed stable_ids().
+        def diagnostic_ids(value):
+            return {v for v in (value or "").split("|")
+                    if re.fullmatch(r"[1-9][0-9]*", v)}
+        gi = bool(entrez_ids & diagnostic_ids(row["geo_entrez_ids"]))
+        bi = bool(entrez_ids & diagnostic_ids(row["bioc_entrez_ids"]))
         if not (gs or bs or gi or bi):
             continue
         out.append({
