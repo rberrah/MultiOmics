@@ -47,7 +47,7 @@
     <p class="eyebrow">MultiOmics · {t('Apprendre','Learn')}</p>
     <h1>{t('Choisir une méthode et comprendre ses résultats','Choose a method and interpret its results')}</h1>
     <p>{t('Des fiches courtes pour comprendre la démarche, sans programmation et sans multiplier les réglages.', 'Short lessons explaining each decision without coding or unnecessary settings.')}</p>
-    <a class="primary" href={resolve('multiomics/tool')}>{t('Ouvrir MultiOmics', 'Open MultiOmics')}</a>
+    <a class="primary" href={resolve('multiomics/tool/')}>{t('Ouvrir MultiOmics', 'Open MultiOmics')}</a>
   </header>
 
   <section>
