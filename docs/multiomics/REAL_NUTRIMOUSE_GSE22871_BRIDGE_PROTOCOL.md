@@ -74,3 +74,51 @@ ouverte jusqu'à une démonstration adéquate.
 Ce contrôle est autonome dans MultiOmics ; il ne touche pas les autres
 dépôts et ne prétend pas que le contrat d'export Omics2PK suffit à établir
 une validation biologique.
+
+
+## Résultat original et ambiguïté FAS — 17 octobre 2026
+
+Le modèle réellement figé sur les 30 animaux d'apprentissage contient
+**CYP3A11, FAS, CYP4A14 et CYP4A10** (et non quatre cibles
+biologiquement présélectionnées). Le premier audit automatique,
+recalculé en R et Python sur les 45 101 sondes GSE22871, a établi :
+CYP3A11 → `1416809_at` (Entrez 13112),
+FAS → `1460251_at` (Entrez 14102),
+CYP4A14 → `1423257_at` (Entrez 13119),
+CYP4A10 → aucune sonde satisfaisant **simultanément** toutes les
+contraintes d'identité.
+
+**Correction de curation critique** : le troisième champ ci-dessus
+(`FAS → 14102`) était seulement une **correspondance littérale** de symbole,
+pas une identification valable de la cible macroarray Nutrimouse.
+En effet, **Fas/CD95** est le récepteur de mort cellulaire murin
+[NCBI Gene 14102](https://www.ncbi.nlm.nih.gov/gene/14102),
+mais la **fatty acid synthase Fasn** est le gène
+[NCBI Gene 14104](https://www.ncbi.nlm.nih.gov/gene/14104), qui utilise
+également l'acronyme historique **FAS**. La matrice Nutrimouse ne fournit
+ici que l'étiquette `FAS`, pas la séquence ou l'identifiant de la sonde
+macroarray. Il est scientifiquement incorrect d'en déduire avec certitude
+`Fas` ou `Fasn`.
+
+L'audit croise désormais non seulement les symboles officiels de
+`org.Mm.eg.db`, mais également les **collisions avec les alias**,
+sans sélectionner arbitrairement un gène. `FAS` est marqué comme
+**identité source non résolue** même si le référentiel local ne signalait
+pas son alias historique. Seuls CYP3A11 et CYP4A14 disposaient jusque-là
+d'une correspondance non ambiguë aux critères stricts ;
+CYP4A10 et FAS empêchent la projection 4/4 du modèle source.
+
+Le fichier supplémentaire
+`all_possible_source_gene_GEO_probe_matches_no_selection.csv`
+conserve aussi les sondes seulement partiellement compatibles pour
+diagnostiquer notamment CYP4A10, **sans les utiliser comme substitutions**.
+La correspondance génétique est une condition *nécessaire, non
+suffisante* : les paramètres du score source ne sont toujours pas
+transférables en l'absence de calibration interplateforme.
+
+**Pour lever le blocage FAS :** retrouver la table d'identité de la
+macroarray ou le supplément méthodologique original associé à
+[Martin et al., Hepatology 2007, DOI:10.1002/hep.21510](https://doi.org/10.1002/hep.21510),
+puis documenter le véritable gène et vérifier indépendamment la sonde.
+Le nom historique `FAS` et l'article sur le métabolisme lipidique ne
+suffisent pas à affecter un identifiant Entrez à la mesure.
