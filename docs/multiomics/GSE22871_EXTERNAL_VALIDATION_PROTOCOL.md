@@ -58,6 +58,39 @@ are an additional qualification gate before any publication-level
 external projection. Annotation mapping is a necessary step, not proof of
 biological transfer.
 
+## Independent Bioconductor `mouse4302.db` second-reference audit
+
+The latest release gate runs the **real Bioconductor** `mouse4302.db` 3.13.0
+and `AnnotationDbi` with pinned R 4.5.2 / Bioconductor 3.22. It downloads
+the **exact genuine GEO GSE22871 probe and sample files** from the preceding
+job, rather than accepting a synthetic concordance table. The reference package
+is separate from the SHA-256-pinned NCBI `GPL1261.annot.gz`.
+
+For all 45,101 genuine platform probe IDs the independent R script extracts
+the Bioconductor `SYMBOL` and `ENTREZID` associations and compares
+**complete probe-level symbol sets**, not a hand-picked first hit. It reports
+the exact, partly overlapping, disjoint, GEO-only, Bioconductor-only, and
+both-unmapped categories. Every inconsistency and all Bioconductor Entrez IDs
+are exported to machine-readable CSV without filtering on dose or genotype.
+It separately tracks the prespecified mouse liver Cyp3a11 anchor.
+
+**Important methodological limitation:** the matching criterion is literal
+current gene-symbol-string agreement; a renamed alias does not imply a different
+biological gene, and equal symbol strings do not establish equivalence of probe
+sequence, signal scaling or platform preprocessing. Bioconductor Entrez IDs
+are retained but **cannot be treated as concordant with original GEO gene IDs**
+until those independently sourced IDs have also been compared. This independent
+reference may legitimately disagree with the historical GPL annotation.
+Consequently the CI gate requires that the **comparison actually runs and reports
+all disagreements**, not that all probes agree.
+
+No per-animal score, gene collapse, RNA expression normalization or phenotype
+prediction is produced. The formal status stays
+`BLOCKED_UNTIL_ANNOTATION_CONSENSUS_AND_SCALE_TRANSFER`. A future study must
+predefine a representative-probe aggregation rule, train/test nonleaking
+cross-platform measurement-scale transport and an external endpoint analysis,
+all before using external group labels.
+
 ## Remaining scientific gates for issue #20
 
 - Freeze actual file SHA and annotation publication version and audit multi-probe ambiguity (one-to-many gene mapping). No manual selection of the probe with the strongest genotype correlation.
