@@ -84,6 +84,19 @@ reference may legitimately disagree with the historical GPL annotation.
 Consequently the CI gate requires that the **comparison actually runs and reports
 all disagreements**, not that all probes agree.
 
+The **actual independently reproduced comparison** on
+[the genuine reference workflow](https://github.com/rberrah/MultiOmics/actions/runs/39019704728)
+gave the following **probe counts**, from all 45,101 original GPL1261
+measurements: **35,119** exact symbol-set agreements; **1,117** partial
+overlaps; **2,069** disjoint symbol sets; **1,553** GEO-only assignments;
+**291** Bioconductor-only assignments; and **4,952** unmapped on both sides.
+These categories are mutually exclusive and sum to 45,101. Thus **9,982
+probes (22.1%) do not show exact symbol-set agreement**. Their biological
+meaning is not automatically disagreement at stable gene/Entrez level:
+symbol renames and aliases may account for some differences. The frozen
+Cyp3a11 anchor has **one candidate probe**; this is not evidence of
+cross-platform numerical comparability.
+
 No per-animal score, gene collapse, RNA expression normalization or phenotype
 prediction is produced. The formal status stays
 `BLOCKED_UNTIL_ANNOTATION_CONSENSUS_AND_SCALE_TRANSFER`. A future study must
