@@ -1,3 +1,4 @@
+// @ts-nocheck -- disposable browser diagnostic, not application code.
 import {test,expect} from '@playwright/test';
 
 test('Kit3 browser route and hydration stability diagnostic', async ({page})=>{
