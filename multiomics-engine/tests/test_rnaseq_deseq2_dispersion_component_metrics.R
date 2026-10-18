@@ -22,7 +22,7 @@ dat<-do.call(rbind,lapply(seq_along(scenarios),function(k) {
       raw_p_under_005=c(18L,20L,19L,17L),
       raw_p_under_001=c(2L,3L,2L,1L),
       stringsAsFactors=FALSE)
-  })))
+  }))
 }))
 s<-rnaseq_deseq2_dispersion_component_summary(dat)
 stopifnot(nrow(s)==12L,all(s$whole_null_studies==32L),
