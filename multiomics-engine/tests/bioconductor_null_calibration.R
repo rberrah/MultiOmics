@@ -22,6 +22,15 @@ as_replicates <- function(name, default) {
     stop(name,": at least eight integer replicates are required.")
   n
 }
+# Long-campaign seeds start beyond previous short screens without reusing
+# their simulated studies. Zero is backward-compatible with the CI fixture.
+raw_offset <- Sys.getenv("MULTIOMICS_NULL_REPLICATE_OFFSET","0")
+if(!grepl("^[0-9]+$",raw_offset))
+  stop("MULTIOMICS_NULL_REPLICATE_OFFSET must be a non-negative integer.")
+replicate_offset <- suppressWarnings(as.integer(raw_offset))
+if(length(replicate_offset)!=1L || !is.finite(replicate_offset) ||
+   replicate_offset<0L || replicate_offset>9000L)
+  stop("Invalid null-study replicate offset.")
 base_repeats <- as_replicates("MULTIOMICS_NULL_REPLICATES",12L)
 stress_repeats <- as_replicates("MULTIOMICS_NULL_STRESS_REPLICATES",8L)
 cases <- data.frame(
@@ -89,7 +98,8 @@ if (nzchar(output)) dir.create(output,recursive=TRUE,showWarnings=FALSE)
 
 for (s in seq_len(nrow(cases))) {
   scenario <- cases$scenario[[s]]
-  for (replicate in seq_len(cases$replicates[[s]])) {
+  for (iteration in seq_len(cases$replicates[[s]])) {
+    replicate <- as.integer(replicate_offset + iteration)
     study <- make_null_study(scenario,replicate,s)
     prefix <- file.path(root,sprintf("%s_rep%03d",scenario,replicate))
     x <- study$counts
@@ -129,7 +139,7 @@ for (s in seq_len(nrow(cases))) {
         stringsAsFactors=FALSE)
     }
     cat(sprintf("GLOBAL NULL %s replicate %02d/%02d complete\n",
-      scenario,replicate,cases$replicates[[s]]))
+      scenario,iteration,cases$replicates[[s]]))
   }
 }
 results <- do.call(rbind,records)
@@ -150,6 +160,9 @@ if (nzchar(output)) {
                    row.names=FALSE)
   writeLines(c(
     paste("github_sha:",Sys.getenv("GITHUB_SHA","not_recorded")),
+    paste("replicate_offset:",replicate_offset),
+    paste("per_scenario_repetitions:",paste(cases$replicates,collapse=",")),
+    "prespecified_new_studies: distinct seeds from prior short screens when offset>0",
     paste("alpha_BH:",0.05),
     paste("gross_regression_threshold:",0.35),
     paste("reanalysis_scope: reference R global-null simulation only"),
