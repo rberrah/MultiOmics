@@ -135,6 +135,10 @@ jobs:
           Rscript multiomics-engine/tests/test_independent_gamma_poisson_null.R
           Rscript multiomics-engine/tests/test_independent_gp_dispersion_summary.R
           Rscript -e 'parse(file="multiomics-engine/validation/rnaseq_independent_gp_dispersion_components.R")'
+      - name: Reject incomplete paired native Cook plus independent-filter null studies
+        run: |
+          Rscript multiomics-engine/tests/test_rnaseq_cooks_filter_null_metrics.R
+          Rscript -e 'parse(file="multiomics-engine/validation/rnaseq_cooks_filter_ablation.R")'
       - name: Test R backend routes and mandatory safeguards
         run: Rscript multiomics-engine/tests/backend_smoke.R
       - name: Test JS-to-R explanatory reference
