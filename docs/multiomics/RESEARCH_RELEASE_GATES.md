@@ -20,6 +20,25 @@ Les changements MultiOmics suivants ont été fusionnés dans `main` après des 
 
 L'ancienne liste de dépendances #54/#81/#82/#83/#84/#86/#87 correspond aux branches de développement, **pas** à leur intégration effective. Les validations de branche ne remplacent pas la recette du dernier commit déployé. Suivre le SHA de `main`, ses workflows de déploiement, puis le smoke test public. **Ne jamais convertir des CI vertes en certification statistique ou clinique.**
 
+## Preuves complémentaires indépendantes — LC-MS et mécanisme FDR
+
+La [sensibilité sur les douze chromatogrammes originaux Sacurine](REAL_EXTERNAL_SENSITIVITY_AND_NULL_ORACLE_FINDINGS_20261018.md)
+(PR #50, cinq contrôles réussis) a donné **2 727/3 135 features
+réciproquement retrouvées** à tolérance fixée 20 ppm/30 s sous le
+couple de perturbation xcms ppm25/SNR8 → ppm20/SNR10 ; 97,36 %
+de concordance du drapeau RSD QC sur **2 497** paires où les deux
+valeurs étaient calculables. Ce résultat ne valide pas l'identité
+chimique, ne masque pas les mesures de blanc non évaluables et
+ne remplace pas une comparaison de pipelines de prétraitement
+**indépendants**.
+
+Le diagnostic [normalisation DESeq2, 96 études nulles appariées](REAL_EXTERNAL_SENSITIVITY_AND_NULL_ORACLE_FINDINGS_20261018.md)
+(PR #51, vrais ajustements R) a montré que fournir les véritables
+facteurs de profondeur du simulateur **ne supprime pas l'excès des
+fausses découvertes**. Le mécanisme initial reste **non résolu**,
+l'issue #44 est ouverte et aucun seuil statistique de production
+n'a été modifié.
+
 ## Mise à jour de qualification — 18 octobre 2026 (1 728 fits R)
 
 La campagne à haute répétition préspécifiée de [PR #43](https://github.com/rberrah/MultiOmics/pull/43) a fait tourner les **vrais** DESeq2, edgeR-QL et limma-voom sur **128 jeux nuls indépendants × 3 scénarios**, et **64 jeux à vérité mixte × 3 scénarios**, soit 1 728 ajustements R au total. Les données, graines, versions et contrôles BH indépendants sont archivés dans le [workflow scientifique réel](https://github.com/rberrah/MultiOmics/actions/runs/39143010669). Au nul global, DESeq2 a rendu au moins un faux positif dans **22/128 (17,19 %), 23/128 (17,97 %) et 18/128 (14,06 %)** jeux des trois scénarios, alors que la cible BH nominale est de 5 %. Les **bornes inférieures des IC exacts simultanés à 95 %** sur les neuf cellules méthode × scénario étaient **9,11 %, 9,70 % et 6,82 %**, toutes supérieures à 5 % : **une inflation est donc démontrée pour ces générateurs**, sans pouvoir être généralisée automatiquement aux données biologiques réelles. Les intervalles edgeR-QL et limma-voom restent inconclusifs. Les q-values BH ont passé un audit numérique indépendant ; cela ne démontre pas la calibration des p-values en amont.
