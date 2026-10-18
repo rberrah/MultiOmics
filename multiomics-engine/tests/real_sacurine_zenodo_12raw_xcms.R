@@ -40,16 +40,16 @@ if(nrow(md)!=12L || any(!required %in% names(md)) ||
 group_type <- c(sample="biological",QC="pooled_qc",blk="blank")
 role <- unname(group_type[md$class])
 if(anyNA(role) ||
-   !identical(table(factor(role,levels=c("biological","pooled_qc","blank"))),
-              structure(c(6L,3L,3L),dim=3L,
-              dimnames=list(c("biological","pooled_qc","blank")))) ||
+   sum(role=="biological")!=6L ||
+   sum(role=="pooled_qc")!=3L ||
+   sum(role=="blank")!=3L ||
    any(md$sampleType != c(sample="sample",QC="pool",blk="blank")[md$class]) ||
    !all(md$batch=="ne1") ||
    !identical(range(md$injectionOrder),c(27L,185L)))
   stop("Source-defined sample roles, numbers, batch or true injection positions changed.")
 files <- file.path(root,paste0(md$sample_name,".mzML"))
 if(any(!file.exists(files)) || anyDuplicated(files) ||
-   !setequal(basename(files),vapply(auth$files,function(x) x$name,character(1))))
+   !setequal(basename(files),as.character(auth$files$name)))
   stop("The authenticated source file list and biological run manifest differ.")
 # Only retain non-identifying sample and injection metadata in the output.
 # Biological strata are deliberately an undifferentiated 'urine' label;
