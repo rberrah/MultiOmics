@@ -131,7 +131,14 @@ def verify(source_report: Path, native_report: Path,
             blank_evaluable = ratio is not None
             if qc_evaluable and (qc != 3 or row["pooled_qc_precision_status"] != "rsd_evaluable"):
                 raise ValueError("QC RSD observed without exactly three measured pooled-QC values")
-            if qc < 3 and (qc_evaluable or not _flag(row["flag_qc_not_evaluable"])):
+            if _flag(row["flag_qc_not_evaluable"]) != (not qc_evaluable):
+                raise ValueError("Unavailable original pooled-QC variance was falsely called evaluable")
+            if not qc_evaluable and row["pooled_qc_precision_status"] not in (
+                "too_few_finite_pooled_qc_values",
+                "pooled_qc_mean_zero_or_not_estimable"
+            ):
+                raise ValueError("Missing pooled-QC RSD has no source-appropriate reason")
+            if qc < 3 and qc_evaluable:
                 raise ValueError("Insufficient measured pooled QCs reported as satisfactory")
             if blank_evaluable and (blank < 2 or bio < 2 or
                                     row["blank_background_status"] != "ratio_evaluable"):
