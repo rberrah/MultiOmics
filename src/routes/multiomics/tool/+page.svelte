@@ -14,6 +14,7 @@
   import { parseMetaboliteAnnotations } from '#lib/multiomics/metabolite-annotation.js';
   import { assessScientificAssurance } from '#lib/multiomics/scientific-assurance.js';
   import { mofa2BackendCompatibility,validateMofa2MethodResult } from '#lib/multiomics/reference-backend-integrity.js';
+  import { evaluateReferenceBackendHealth } from '#lib/multiomics/reference-backend-preflight.js';
   import { createPortableProject, parsePortableProject, PORTABLE_PROJECT_MAX_BYTES } from '#lib/multiomics/portable-project.js';
   import { buildResearchMethodsManifest } from '#lib/multiomics/research-report.js';
 
@@ -1079,9 +1080,22 @@
       const response = await fetchWithTimeout(url + '/health', { headers: { Accept: 'application/json' } }, 1800);
       if (!response.ok) throw new Error('HTTP ' + response.status);
       const health = await response.json();
+      const preflight = evaluateReferenceBackendHealth(health, {
+        intent: analysisIntent,
+        objective,
+        designType,
+        hasTranscriptomics: Boolean(files.transcriptomics),
+        transcriptomicsValues
+      });
+      if (!preflight.ok) {
+        referenceBackendStatus = 'error';
+        referenceBackendHealth = null;
+        referenceBackendMessage = t(preflight.message, preflight.messageEn);
+        return null;
+      }
       referenceBackendStatus = 'available';
       referenceBackendHealth = health;
-      referenceBackendMessage = t('Backend R disponible.', 'R backend available.');
+      referenceBackendMessage = t(preflight.message, preflight.messageEn);
       return health;
     } catch (error) {
       referenceBackendStatus = 'unavailable';
@@ -1250,7 +1264,7 @@
     const health = await checkReferenceBackend(false);
     if (!health) {
       if (referenceBackendMode === 'required') {
-        throw new Error('Reference R backend is required but unavailable at ' + backendBaseUrl() + '.');
+        throw new Error(referenceBackendMessage || 'Reference R backend is required but unavailable at ' + backendBaseUrl() + '.');
       }
       return {
         status: 'unavailable',
