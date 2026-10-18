@@ -135,6 +135,13 @@ export function projectNativeRNumbers(result){
       };
       if(selected.family==='survival'){
         projected.hazardRatio=numeric(row.hazardRatio);
+        projected.exponentiatedEffect=projected.hazardRatio;
+        const ciLow=numeric(row.ciLow);
+        const ciHigh=numeric(row.ciHigh);
+        projected.ciLow=ciLow;
+        projected.ciHigh=ciHigh;
+        projected.exponentiatedCiLow=ciLow===null?null:Math.exp(ciLow);
+        projected.exponentiatedCiHigh=ciHigh===null?null:Math.exp(ciHigh);
         projected.proportionalHazardsP=numeric(row.proportionalHazardsP);
         projected.globalPhP=numeric(row.globalPhP);
         projected.nSubjects=numeric(row.nSubjects);
