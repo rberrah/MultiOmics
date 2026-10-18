@@ -1,0 +1,96 @@
+name: Independent high-replication RNA-seq Monte Carlo FDR precision
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/rnaseq-monte-carlo-precision.yml'
+      - 'multiomics-engine/null_reference_metrics.R'
+      - 'multiomics-engine/mixed_truth_reference_metrics.R'
+      - 'multiomics-engine/tests/bioconductor_null_calibration.R'
+      - 'multiomics-engine/tests/bioconductor_mixed_truth_reference.R'
+      - 'multiomics-engine/validation/rnaseq_precision_decision.R'
+      - 'multiomics-engine/tests/test_null_reference_metrics.R'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/rnaseq-monte-carlo-precision.yml'
+      - 'multiomics-engine/null_reference_metrics.R'
+      - 'multiomics-engine/mixed_truth_reference_metrics.R'
+      - 'multiomics-engine/tests/bioconductor_null_calibration.R'
+      - 'multiomics-engine/tests/bioconductor_mixed_truth_reference.R'
+      - 'multiomics-engine/validation/rnaseq_precision_decision.R'
+      - 'multiomics-engine/tests/test_null_reference_metrics.R'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  precision:
+    name: 128 global-null and 64 mixed-truth independent studies per scenario
+    runs-on: ubuntu-latest
+    timeout-minutes: 85
+    container:
+      image: bioconductor/bioconductor_docker:RELEASE_3_22-r-4.5.2@sha256:e34177896c1579f66d48b756e4229b58237499183a089da084af72d7aba1d40a
+    env:
+      # Each method fits the SAME dataset within each scenario/replicate.
+      # Seeds 1001..1128 and 1001..1064 deliberately do not overlap the
+      # legacy regression-screen seeds 1..8, but are independent between
+      # the global-null and mixed-truth generators (different seed prefixes).
+      MULTIOMICS_NULL_REPLICATES: '128'
+      MULTIOMICS_NULL_STRESS_REPLICATES: '128'
+      MULTIOMICS_NULL_REPLICATE_OFFSET: '1000'
+      MULTIOMICS_MIXED_REFERENCE_REPLICATES: '64'
+      MULTIOMICS_MIXED_REFERENCE_REPLICATE_OFFSET: '1000'
+      MULTIOMICS_VALIDATION_OUTPUT: tmp/rnaseq-precision
+    steps:
+      - uses: actions/checkout@v5
+      - name: Refuse invalid R research scripts before installing dependencies
+        run: |
+          Rscript -e 'for(f in c(
+            "multiomics-engine/null_reference_metrics.R",
+            "multiomics-engine/reference_inference_audit.R",
+            "multiomics-engine/tests/bioconductor_null_calibration.R",
+            "multiomics-engine/tests/bioconductor_mixed_truth_reference.R",
+            "multiomics-engine/validation/rnaseq_precision_decision.R",
+            "multiomics-engine/tests/test_null_reference_metrics.R"
+          )) parse(file=f); cat("Precision scripts parse successfully\\n")'
+      - name: Test exact Monte Carlo intervals and inflated-null negative controls
+        run: |
+          Rscript multiomics-engine/tests/test_null_reference_metrics.R
+          Rscript multiomics-engine/tests/test_mixed_truth_reference_metrics.R
+      - name: Install real R packages in immutable Bioconductor image
+        shell: bash
+        run: |
+          Rscript -e '
+            if(!requireNamespace("BiocManager",quietly=TRUE))
+              install.packages("BiocManager",repos="https://cloud.r-project.org")
+            stopifnot(identical(as.character(getRversion()),"4.5.2"))
+            stopifnot(identical(as.character(BiocManager::version()),"3.22"))
+            required_cran<-c("jsonlite","statmod","plumber","knitr","rmarkdown")
+            missing<-required_cran[!vapply(required_cran,requireNamespace,logical(1),quietly=TRUE)]
+            if(length(missing))install.packages(missing,repos="https://cloud.r-project.org")
+            required_bioc<-c("DESeq2","edgeR","limma","airway")
+            missing<-required_bioc[!vapply(required_bioc,requireNamespace,logical(1),quietly=TRUE)]
+            if(length(missing))BiocManager::install(missing,ask=FALSE,update=FALSE,quiet=TRUE)
+            stopifnot(all(vapply(c(required_cran,required_bioc),
+                                 requireNamespace,logical(1),quietly=TRUE)))
+          '
+      - name: Verify exact pinned package versions and archive actual environment
+        run: Rscript multiomics-engine/environment/check_reference_runtime.R verify
+      - name: Fit real DESeq2 edgeR-QL and limma-voom on 384 new global-null datasets
+        run: Rscript multiomics-engine/tests/bioconductor_null_calibration.R
+      - name: Fit the same three methods on 192 new planted-truth datasets
+        run: Rscript multiomics-engine/tests/bioconductor_mixed_truth_reference.R
+      - name: Reject incomplete replicated cells and issue simultaneous 95 percent report
+        run: Rscript multiomics-engine/validation/rnaseq_precision_decision.R tmp/rnaseq-precision
+      - name: Archive every per-study result including negative outcomes
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: MultiOmics-independent-RNAseq-precision-${{ github.sha }}
+          path: |
+            tmp/reference-runtime/
+            tmp/rnaseq-precision/
+          if-no-files-found: warn
+          retention-days: 90
