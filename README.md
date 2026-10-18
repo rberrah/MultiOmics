@@ -87,6 +87,17 @@ node scripts/test_pmx_compat_overlay.mjs
 
 This command does **not** publish or modify PMx Explain. The public hosting integration was merged via [PMx Explain PR #116](https://github.com/rberrah/rberrah.github.io/pull/116), and its post-deployment smoke via [PR #117](https://github.com/rberrah/rberrah.github.io/pull/117). PMx publishes a **pinned, independently qualified source commit** and adds only the verified pages and `_multiomics_app` assets. See [fixed public URL integration](docs/FIXED_PUBLIC_URL_INTEGRATION.md). A static Pages site **does not execute R on the server**.
 
+## Confirmatory result display gate
+
+For **group comparisons**, all analysed omics layers must have a successful,
+complete native R reference table before MultiOmics presents the combined
+analysis in confirmatory mode. A successful connection, one successful R
+method, or a single R layer beside exploratory browser-only layers is not
+sufficient. Longitudinal and outcome/survival browser displays remain
+exploratory until their native R numbers/figures can be projected faithfully;
+independent scientific review remains required in every case. See the
+[release acceptance and deployment handoff](docs/multiomics/RESEARCH_V1_CONFIRMATORY_RELEASE_GATE.md).
+
 ## Optional native R reference engine
 
 Install R and the required packages on your own machine:
