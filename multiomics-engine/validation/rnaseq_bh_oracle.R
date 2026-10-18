@@ -3,9 +3,11 @@
 # All subjects and features are synthetic; no patient's measurements are used.
 source("multiomics-engine/reference_inference_audit.R")
 args <- commandArgs(trailingOnly=TRUE)
-output <- if(length(args)>=1L) args[[1L]]
-          else Sys.getenv("MULTIOMICS_VALIDATION_OUTPUT",
-                          "tmp/reference-methods")
+output <- if(length(args)>=1L) {
+  args[[1L]]
+} else {
+  Sys.getenv("MULTIOMICS_VALIDATION_OUTPUT","tmp/reference-methods")
+}
 if(length(args)>1L || !nzchar(output))
   stop("Provide at most one output path.")
 dir.create(output,recursive=TRUE,showWarnings=FALSE)
