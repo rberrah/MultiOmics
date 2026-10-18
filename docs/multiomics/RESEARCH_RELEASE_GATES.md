@@ -20,6 +20,32 @@ Les changements MultiOmics suivants ont été fusionnés dans `main` après des 
 
 L'ancienne liste de dépendances #54/#81/#82/#83/#84/#86/#87 correspond aux branches de développement, **pas** à leur intégration effective. Les validations de branche ne remplacent pas la recette du dernier commit déployé. Suivre le SHA de `main`, ses workflows de déploiement, puis le smoke test public. **Ne jamais convertir des CI vertes en certification statistique ou clinique.**
 
+## Décomposition des filtres Cook et BH — expérience native appariée (18 octobre 2026)
+
+La [PR #57](https://github.com/rberrah/MultiOmics/pull/57)
+a ajusté **192 véritables modèles DESeq2 sous des simulations nulles**
+et comparé **768 résultats BH** obtenus par les quatre combinaisons
+filtre Cook actif/inactif × filtrage indépendant actif/inactif.
+L'authenticité du calcul natif, l'identité des cohortes dans chaque
+groupe de quatre appels, les p-values et le recalcul BH ont été
+contrôlés indépendamment.
+
+**Aucun des six scénarios (32 études par scénario) n'a changé de
+nombre d'études avec une fausse découverte selon ces quatre bras.**
+L'independent filtering n'a écarté aucun gène supplémentaire
+évaluable, et Cook a retiré seulement deux p-values dans toute
+la campagne (aucun faux appel au niveau étude). Le remplacement
+des valeurs aberrantes était désactivé **partout** afin d'isoler
+le filtrage : cette expérience ne reproduit donc pas la totalité
+du comportement DESeq2 par défaut.
+
+Les [effectifs réels, le protocole, la provenance des 768 tables et
+les limites d'inférence](DESEQ2_COOK_FILTER_NATIVE_FINDINGS_20261018.md)
+sont conservés dans Git. **Il serait incorrect de présenter ce
+résultat comme l'inutilité générale des filtres Cook/BH sur des
+données biologiques réelles**. L'issue #44 reste ouverte, et aucun
+comportement de production n'est changé.
+
 ## Contre-épreuve du générateur Gamma–Poisson (18 octobre 2026)
 
 La [PR #56](https://github.com/rberrah/MultiOmics/pull/56)
