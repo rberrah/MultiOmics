@@ -27,7 +27,7 @@ writeLines(c(
   "features_per_study: 200",
   "null_model: independent Uniform(0,1) p-values; no fitted NB count model",
   "negative_control: independent Beta(0.5,1) anticonservative p-values",
-  "adjustment: stats::p.adjust(p, method='BH')",
+  "adjustment: independently coded BH step-up formula, checked against stats::p.adjust",
   "reference_fdr: 0.05; algorithmic regression interval +-0.03 (not a proof of statistical calibration)",
   "negative_control_alarm: empirical FWER/FDR under all-null > 0.20",
   "two_sided_MC_interval: exact binomial, independent synthetic datasets",
