@@ -1886,6 +1886,21 @@
           text: predictionText
         });
       }
+    } else if (result.protocol?.objective === 'time') {
+      items.push({
+        title: pick('Interaction groupe × temps', 'Group × time interaction'),
+        text: pick(
+          'L’effet natif R est la différence de pente temporelle entre les deux groupes, par unité de temps déclarée. Ce coefficient n’est ni un fold ratio ni un changement moyen entre deux visites.',
+          'The native R effect is the difference in time slopes between the two groups per declared time unit. This coefficient is neither a fold ratio nor a mean change between two visits.'
+        )
+      });
+      items.push({
+        title: pick('Hypothèses longitudinales', 'Longitudinal assumptions'),
+        text: pick(
+          'Le modèle lmerTest suppose ici une évolution temporelle linéaire, une appartenance de groupe stable et le plan répété déclaré. Les fits singuliers, visites incomplètes et replis de pente aléatoire restent à examiner.',
+          'The lmerTest model assumes a linear time trend, stable group membership and the declared repeated-measures design. Singular fits, incomplete visits and random-slope fallbacks still require review.'
+        )
+      });
     } else {
       items.push({
         title: pick('Effet biologique', 'Biological effect'),
@@ -3902,7 +3917,7 @@ Rscript multiomics-engine/run_backend.R</code></pre>
         {/each}
       </div>
 
-  {#if !['explore','outcome'].includes(analysisResult.protocol?.objective)}
+  {#if analysisResult.protocol?.analysisIntent !== 'confirmatory' && !['explore','outcome'].includes(analysisResult.protocol?.objective)}
         <div class="integration-result cross-result">
           <div class="integration-head">
             <div>
