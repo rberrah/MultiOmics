@@ -10,6 +10,7 @@ on:
       - 'multiomics-engine/tests/bioconductor_mixed_truth_reference.R'
       - 'multiomics-engine/validation/rnaseq_precision_decision.R'
       - 'multiomics-engine/tests/test_null_reference_metrics.R'
+      - 'multiomics-engine/tests/test_rnaseq_precision_decision.R'
   push:
     branches: [main]
     paths:
@@ -20,6 +21,7 @@ on:
       - 'multiomics-engine/tests/bioconductor_mixed_truth_reference.R'
       - 'multiomics-engine/validation/rnaseq_precision_decision.R'
       - 'multiomics-engine/tests/test_null_reference_metrics.R'
+      - 'multiomics-engine/tests/test_rnaseq_precision_decision.R'
   workflow_dispatch:
 
 permissions:
@@ -53,12 +55,14 @@ jobs:
             "multiomics-engine/tests/bioconductor_null_calibration.R",
             "multiomics-engine/tests/bioconductor_mixed_truth_reference.R",
             "multiomics-engine/validation/rnaseq_precision_decision.R",
-            "multiomics-engine/tests/test_null_reference_metrics.R"
+            "multiomics-engine/tests/test_null_reference_metrics.R",
+            "multiomics-engine/tests/test_rnaseq_precision_decision.R"
           )) parse(file=f); cat("Precision scripts parse successfully\\n")'
       - name: Test exact Monte Carlo intervals and inflated-null negative controls
         run: |
           Rscript multiomics-engine/tests/test_null_reference_metrics.R
           Rscript multiomics-engine/tests/test_mixed_truth_reference_metrics.R
+          Rscript multiomics-engine/tests/test_rnaseq_precision_decision.R
       - name: Install real R packages in immutable Bioconductor image
         shell: bash
         run: |
