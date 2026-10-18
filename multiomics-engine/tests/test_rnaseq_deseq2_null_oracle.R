@@ -10,7 +10,7 @@ for(scenario in c("balanced_base","balanced_depth_dispersion",
     a$planted_condition_log2fc==0,
     nrow(a$counts)==40L,ncol(a$counts)==400L,
     identical(rownames(a$counts),rownames(a$meta)),
-    !anyDuplicated(a$meta$condition),
+    length(unique(a$meta$condition))==2L,
     !anyDuplicated(colnames(a$counts)))
   if(scenario=="unequal_partial_batch")
     stopifnot(identical(as.integer(table(a$meta$condition)),c(12L,28L)))
