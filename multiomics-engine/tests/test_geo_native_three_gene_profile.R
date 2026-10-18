@@ -60,8 +60,7 @@ gene_names <- c("CYP3A11","FAS","CYP4A14")
 for (j in seq_len(30L)) {
   chosen <- observed[observed$assay_id==indices$assay_id[[j]],,drop=FALSE]
   stopifnot(nrow(chosen)==3L,identical(chosen$original_frozen_feature_label,gene_names),
-            identical(unique(chosen$subject_id),indices$subject_id[[j]]),
-            all(chosen$classification %in% character(0)) || TRUE)
+            identical(unique(chosen$subject_id),indices$subject_id[[j]]))
   scores <- numeric(3L)
   for (k in seq_len(3L)) {
     p <- match(chosen$target_probe_id[[k]],original$ID_REF)
