@@ -72,7 +72,7 @@ display <- function(x) formatC(x,format="f",digits=4)
 lines <- c(
   "# MultiOmics — RNA-seq frozen Monte Carlo precision audit",
   "",
-  paste0("Source SHA: \`",Sys.getenv("GITHUB_SHA","local_unverified"),"\`"),
+  paste0("Source SHA: ",Sys.getenv("GITHUB_SHA","local_unverified")),
   "",
   "**This report is a computation audit, NOT proof of universal 5% FDR control.**",
   "",
