@@ -63,7 +63,7 @@ def validate_source(raw: bytes, require_source_md5: bool = True) -> dict:
     except UnicodeDecodeError as exc:
         raise ValueError("Metadata is not UTF-8.") from exc
     # DictReader would silently collapse repeated header names in a dict.
-    header = next(csv.reader(io.StringIO(text, newline=""), delimiter="\\t"), [])
+    header = next(csv.reader(io.StringIO(text, newline=""), delimiter="\t"), [])
     if len(header) != len(set(header)) or any(not x for x in header):
         raise ValueError("Duplicated or empty source metadata header names.")
     rows = list(csv.DictReader(io.StringIO(text, newline=""), delimiter="\t"))
