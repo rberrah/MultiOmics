@@ -1086,6 +1086,8 @@
         objective,
         designType,
         hasTranscriptomics: Boolean(files.transcriptomics),
+        hasProteomics: Boolean(files.proteomics),
+        hasMetabolomics: Boolean(files.metabolomics),
         transcriptomicsValues
       });
       if (!preflight.ok) {
@@ -3052,6 +3054,12 @@
           ? t('Le moteur R local devient obligatoire. Les tests contrôlent l’éligibilité, mais ne certifient jamais automatiquement vos résultats. Les fichiers seront envoyés au backend R configuré après lancement de l’analyse.', 'The configured local R engine is required. Checks assess eligibility but never automatically certify findings. Files are sent to the configured R backend when you run the analysis.')
           : t('Le navigateur applique des méthodes exploratoires et parfois des approximations ou simplifications statistiques : ses p-values, q-values et effets peuvent différer des méthodes R de référence. Les analyses R natives (DESeq2, edgeR/limma selon les données) sont préférables pour une inférence appropriée au modèle, mais leur validité dépend du plan, des hypothèses et du contrôle qualité. Aucune installation R n’est nécessaire pour explorer.', 'The browser uses exploratory models and sometimes statistical approximations or simplifications: its p-values, q-values and effects can differ from native reference R methods. Native R methods (DESeq2, edgeR/limma where applicable) are preferable for model-appropriate inference, but validity still depends on design, assumptions and quality checks. No R installation is needed to explore.')}</small>
       </label>
+      {#if analysisIntent === 'confirmatory' && objective !== 'groups'}
+        <p role="alert" class="simple-hint" data-testid="multiomics-confirmatory-projection-unsupported">
+          {t('Les modèles R longitudinaux et de survie sont disponibles dans le moteur scientifique, mais leurs tableaux ne remplacent pas encore les chiffres du navigateur. Pour éviter une présentation trompeuse, le mode confirmatoire est actuellement limité aux comparaisons de groupes avec tableaux R complets pour chaque omique. Utilisez le mode exploratoire pour cette question.',
+             'Longitudinal and survival R methods exist, but their results do not yet replace browser figures and numbers. To prevent misleading confirmatory reporting, this mode currently supports group comparisons only when complete R tables exist for every layer. Select exploration for this question.')}
+        </p>
+      {/if}
       {#if analysisIntent !== 'confirmatory'}
         <p role="note" class="simple-hint" data-testid="multiomics-browser-approximation-warning">
           {t('Important : les résultats du navigateur servent à repérer des tendances. Selon la méthode et les données, certains calculs simplifient les hypothèses du modèle ou utilisent des approximations ; les chiffres ne sont donc pas nécessairement ceux de DESeq2, edgeR ou limma en R. Pour une analyse de référence, exécutez le backend R, vérifiez le plan expérimental et téléchargez le code effectivement utilisé.',
