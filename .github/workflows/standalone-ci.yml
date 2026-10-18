@@ -114,6 +114,10 @@ jobs:
         run: Rscript multiomics-engine/reference_doctor.R --self-test
       - name: Verify independent BH replay rejects invalid R feature/q records
         run: Rscript multiomics-engine/tests/test_reference_inference_audit.R
+      - name: Refuse false LC-MS coordinate feature stability and ambiguous matches
+        run: |
+          Rscript multiomics-engine/tests/test_ms_feature_sensitivity.R
+          Rscript -e 'parse(file="multiomics-engine/tests/real_sacurine_zenodo_xcms_parameter_sensitivity.R")'
       - name: Check actual-simulator DESeq2 oracle cohorts are truly paired and deterministic
         run: |
           Rscript multiomics-engine/tests/test_rnaseq_deseq2_null_oracle.R

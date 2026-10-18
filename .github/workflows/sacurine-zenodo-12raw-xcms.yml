@@ -6,6 +6,9 @@ on:
       - 'scripts/verify_sacurine_zenodo_12raw.py'
       - 'scripts/test_sacurine_zenodo_12raw.py'
       - 'multiomics-engine/tests/real_sacurine_zenodo_12raw_xcms.R'
+      - 'multiomics-engine/ms_feature_sensitivity.R'
+      - 'multiomics-engine/tests/test_ms_feature_sensitivity.R'
+      - 'multiomics-engine/tests/real_sacurine_zenodo_xcms_parameter_sensitivity.R'
       - 'scripts/audit_sacurine_12raw_evidence.py'
       - 'scripts/test_audit_sacurine_12raw_evidence.py'
       - '.github/workflows/sacurine-zenodo-12raw-xcms.yml'
@@ -15,6 +18,9 @@ on:
       - 'scripts/verify_sacurine_zenodo_12raw.py'
       - 'scripts/test_sacurine_zenodo_12raw.py'
       - 'multiomics-engine/tests/real_sacurine_zenodo_12raw_xcms.R'
+      - 'multiomics-engine/ms_feature_sensitivity.R'
+      - 'multiomics-engine/tests/test_ms_feature_sensitivity.R'
+      - 'multiomics-engine/tests/real_sacurine_zenodo_xcms_parameter_sensitivity.R'
       - 'scripts/audit_sacurine_12raw_evidence.py'
       - 'scripts/test_audit_sacurine_12raw_evidence.py'
       - '.github/workflows/sacurine-zenodo-12raw-xcms.yml'
@@ -27,7 +33,7 @@ jobs:
   original-twelve:
     name: Native R xcms on 6 real urine, 3 pooled QC, 3 blank original runs
     runs-on: ubuntu-latest
-    timeout-minutes: 110
+    timeout-minutes: 140
     container:
       image: bioconductor/bioconductor_docker:RELEASE_3_22-r-4.5.2@sha256:e34177896c1579f66d48b756e4229b58237499183a089da084af72d7aba1d40a
     env:
@@ -40,6 +46,10 @@ jobs:
           python3 -m py_compile scripts/verify_sacurine_zenodo_12raw.py scripts/test_sacurine_zenodo_12raw.py
           python3 scripts/test_sacurine_zenodo_12raw.py
           Rscript -e 'for(f in c("multiomics-engine/raw_ms_processing.R","multiomics-engine/ms_quantitative_assurance.R","multiomics-engine/tests/real_sacurine_zenodo_12raw_xcms.R")) parse(file=f); cat("Native 12-injection R syntax PASS\\n")'
+      - name: Refuse ambiguous one-to-many mass/RT matching and false blank stability
+        run: |
+          Rscript multiomics-engine/tests/test_ms_feature_sensitivity.R
+          Rscript -e 'for(f in c("multiomics-engine/ms_feature_sensitivity.R","multiomics-engine/tests/real_sacurine_zenodo_xcms_parameter_sensitivity.R"))parse(file=f);cat("Sensitivity R scripts parse PASS\\n")'
       - name: Download all twelve genuine mzML spectra and validate original source checksums
         run: |
           python3 scripts/verify_sacurine_zenodo_12raw.py \
@@ -76,6 +86,12 @@ jobs:
             --qa-report tmp/sacurine-v3-native-r/xcms-fit/real_sacurine_12raw_external_evidence.json \
             --feature-csv tmp/sacurine-v3-native-r/xcms-fit/real_sacurine_12raw_qc_blank_feature_screens.csv \
             --out tmp/sacurine-v3-native-r/independent-scientific-QC-review
+      - name: Reprocess exactly the same original spectra under prespecified peak-picking perturbation
+        run: |
+          Rscript multiomics-engine/tests/real_sacurine_zenodo_xcms_parameter_sensitivity.R \
+            tmp/sacurine-v3-real-source \
+            tmp/sacurine-v3-native-r/xcms-fit \
+            tmp/sacurine-v3-native-r/prespecified-peak-picking-sensitivity
       - name: Preserve compact provenance and biological limitations, not original raw human spectra
         if: always()
         uses: actions/upload-artifact@v6
@@ -88,5 +104,8 @@ jobs:
             tmp/sacurine-v3-native-r/xcms-fit/real_sacurine_12raw_external_evidence.json
             tmp/sacurine-v3-native-r/xcms-fit/real_sacurine_12raw_qc_blank_feature_screens.csv
             tmp/sacurine-v3-native-r/independent-scientific-QC-review/
+            tmp/sacurine-v3-native-r/prespecified-peak-picking-sensitivity/xcms_prespecified_parameter_reciprocal_feature_matches.csv
+            tmp/sacurine-v3-native-r/prespecified-peak-picking-sensitivity/xcms_prespecified_sensitivity_summary.json
+            tmp/sacurine-v3-native-r/prespecified-peak-picking-sensitivity/variant-ppm20-snthresh10/raw_ms_processing_manifest.json
           if-no-files-found: warn
           retention-days: 90
