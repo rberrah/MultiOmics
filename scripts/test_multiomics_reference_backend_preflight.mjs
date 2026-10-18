@@ -42,6 +42,11 @@ assert.equal(evaluate(voom,confirm).ok,true);
 const deseq=clone();
 deseq.packages.edgeR=false;
 assert.equal(evaluate(deseq,confirm).ok,true);
+const mixed=clone();
+mixed.packages.limma=false;
+assert.equal(evaluate(mixed,confirm).ok,true); // pure RNA-seq DESeq2 requires no limma
+reject(mixed,{...confirm,hasProteomics:true},'missing_limma');
+reject(mixed,{...confirm,hasMetabolomics:true},'missing_limma');
 const processed=clone();
 processed.packages.limma=false;
 reject(processed,{...confirm,transcriptomicsValues:'processed'},'missing_limma');
