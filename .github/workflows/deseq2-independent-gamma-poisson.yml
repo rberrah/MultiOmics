@@ -1,0 +1,76 @@
+name: Independent Gamma-Poisson DESeq2 dispersion component falsification
+
+on:
+  pull_request:
+    paths:
+      - 'multiomics-engine/rnaseq_independent_gamma_poisson_null.R'
+      - 'multiomics-engine/rnaseq_gp_dispersion_summary.R'
+      - 'multiomics-engine/tests/test_independent_gamma_poisson_null.R'
+      - 'multiomics-engine/tests/test_independent_gp_dispersion_summary.R'
+      - 'multiomics-engine/validation/rnaseq_independent_gp_dispersion_components.R'
+      - '.github/workflows/deseq2-independent-gamma-poisson.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'multiomics-engine/rnaseq_independent_gamma_poisson_null.R'
+      - 'multiomics-engine/rnaseq_gp_dispersion_summary.R'
+      - 'multiomics-engine/tests/test_independent_gamma_poisson_null.R'
+      - 'multiomics-engine/tests/test_independent_gp_dispersion_summary.R'
+      - 'multiomics-engine/validation/rnaseq_independent_gp_dispersion_components.R'
+      - '.github/workflows/deseq2-independent-gamma-poisson.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-four-component-wald:
+    name: Independent Gamma-Poisson 384 native DESeq2 4-arm dispersion Wald source
+    runs-on: ubuntu-latest
+    timeout-minutes: 125
+    container:
+      image: bioconductor/bioconductor_docker:RELEASE_3_22-r-4.5.2@sha256:e34177896c1579f66d48b756e4229b58237499183a089da084af72d7aba1d40a
+    steps:
+      - uses: actions/checkout@v5
+      - name: Preflight R syntax and 12 paired whole-study scientific cells
+        shell: bash
+        run: |
+          Rscript -e 'for(f in c(
+            "multiomics-engine/rnaseq_independent_gamma_poisson_null.R",
+            "multiomics-engine/rnaseq_gp_dispersion_summary.R",
+            "multiomics-engine/tests/test_independent_gamma_poisson_null.R",
+            "multiomics-engine/tests/test_independent_gp_dispersion_summary.R",
+            "multiomics-engine/validation/rnaseq_independent_gp_dispersion_components.R"
+          ))parse(file=f);cat("Independent Gamma-Poisson native source and metrics parse PASS\\n")'
+          Rscript multiomics-engine/tests/test_independent_gp_dispersion_summary.R
+      - name: Install actual R 4.5.2 Bioc 3.22 native reference package stack
+        shell: bash
+        run: |
+          Rscript -e '
+            stopifnot(identical(as.character(getRversion()),"4.5.2"),
+                      identical(as.character(BiocManager::version()),"3.22"))
+            cran<-c("jsonlite","statmod","plumber","knitr","rmarkdown")
+            need<-cran[!vapply(cran,requireNamespace,logical(1),quietly=TRUE)]
+            if(length(need))install.packages(need,repos="https://cloud.r-project.org")
+            bioc<-c("DESeq2","edgeR","limma","airway")
+            need<-bioc[!vapply(bioc,requireNamespace,logical(1),quietly=TRUE)]
+            if(length(need))BiocManager::install(need,ask=FALSE,update=FALSE,quiet=TRUE)
+            stopifnot(all(vapply(c(cran,bioc),requireNamespace,
+                                 logical(1),quietly=TRUE)))
+          '
+      - name: Verify frozen native 171-package reference environment
+        run: Rscript multiomics-engine/environment/check_reference_runtime.R verify
+      - name: Run 384 true Gamma-Poisson source native Wald fits and audit all BH q-values
+        run: |
+          Rscript multiomics-engine/validation/rnaseq_independent_gp_dispersion_components.R \
+            tmp/independent-gamma-poisson-dispersion
+      - name: Preserve independent Gamma-Poisson source per-study findings, including negatives
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: MultiOmics-true-DESeq2-independent-Gamma-Poisson-${{ github.sha }}
+          path: |
+            tmp/reference-runtime/
+            tmp/independent-gamma-poisson-dispersion/
+          if-no-files-found: warn
+          retention-days: 90

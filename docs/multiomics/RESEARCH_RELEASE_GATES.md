@@ -20,6 +20,32 @@ Les changements MultiOmics suivants ont été fusionnés dans `main` après des 
 
 L'ancienne liste de dépendances #54/#81/#82/#83/#84/#86/#87 correspond aux branches de développement, **pas** à leur intégration effective. Les validations de branche ne remplacent pas la recette du dernier commit déployé. Suivre le SHA de `main`, ses workflows de déploiement, puis le smoke test public. **Ne jamais convertir des CI vertes en certification statistique ou clinique.**
 
+## Contre-épreuve du générateur Gamma–Poisson (18 octobre 2026)
+
+La [PR #56](https://github.com/rberrah/MultiOmics/pull/56)
+a rejoué **384 ajustements DESeq2 natifs sur 96 nouvelles études
+entières**, construites par un **nouveau code Gamma–Poisson**,
+avec dispersions par gène substantiellement **hors de la tendance
+moyenne–dispersion**. Deux programmes scientifiques distincts ont
+produit des preuves numériques identiques sur **384/384 lignes**,
+16 mesures communes, avec **zéro divergence**.
+
+Les taux d'études ayant au moins un faux appel BH sont
+**15/32, 25/32 et 25/32** pour le bras `dispFit`
+contre **2/32, 3/32 et 5/32** pour le MAP final
+dans les trois scénarios. Ce résultat **renverse l'avantage**
+de la tendance trouvé avec un générateur où la dispersion vraie
+suivait presque parfaitement la moyenne. Voir
+[les chiffres et limites de cette falsification](INDEPENDENT_GAMMA_POISSON_NATIVE_FINDINGS_20261018.md).
+
+**Conséquence Research v1 :** une méthode ne peut être choisie,
+déclassée ou présentée comme FDR-calibrée sur la seule base de
+simulations dont les hypothèses favorisent sa structure. Le nouveau
+générateur reste artificiel, et un contrôle FDR à 5 % sur des
+données RNA-seq biologiques n'est **pas** établi.
+L'issue #44 reste ouverte et aucun paramètre de production
+n'a changé.
+
 ## Diagnostic statistique complémentaire — dispersion et test de Wald (18 octobre 2026)
 
 La [PR #53](https://github.com/rberrah/MultiOmics/pull/53)
