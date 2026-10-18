@@ -1,0 +1,78 @@
+name: Independent real 12-injection Sacurine Zenodo v3 raw xcms QC and blank qualification
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/verify_sacurine_zenodo_12raw.py'
+      - 'scripts/test_sacurine_zenodo_12raw.py'
+      - 'multiomics-engine/tests/real_sacurine_zenodo_12raw_xcms.R'
+      - '.github/workflows/sacurine-zenodo-12raw-xcms.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/verify_sacurine_zenodo_12raw.py'
+      - 'scripts/test_sacurine_zenodo_12raw.py'
+      - 'multiomics-engine/tests/real_sacurine_zenodo_12raw_xcms.R'
+      - '.github/workflows/sacurine-zenodo-12raw-xcms.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  original-twelve:
+    name: Native R xcms on 6 real urine, 3 pooled QC, 3 blank original runs
+    runs-on: ubuntu-latest
+    timeout-minutes: 110
+    container:
+      image: bioconductor/bioconductor_docker:RELEASE_3_22-r-4.5.2@sha256:e34177896c1579f66d48b756e4229b58237499183a089da084af72d7aba1d40a
+    env:
+      QUALIFIED_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      MULTIOMICS_RAW_MS_OUTPUT: tmp/sacurine-v3-native-r
+    steps:
+      - uses: actions/checkout@v5
+      - name: Verify scripts syntax and reject incomplete or changed original source
+        run: |
+          python3 -m py_compile scripts/verify_sacurine_zenodo_12raw.py scripts/test_sacurine_zenodo_12raw.py
+          python3 scripts/test_sacurine_zenodo_12raw.py
+          Rscript -e 'for(f in c("multiomics-engine/raw_ms_processing.R","multiomics-engine/ms_quantitative_assurance.R","multiomics-engine/tests/real_sacurine_zenodo_12raw_xcms.R")) parse(file=f); cat("Native 12-injection R syntax PASS\\n")'
+      - name: Download all twelve genuine mzML spectra and validate original source checksums
+        run: |
+          python3 scripts/verify_sacurine_zenodo_12raw.py \
+            --output tmp/sacurine-v3-real-source
+      - name: Install pinned native R xcms reference dependencies
+        shell: bash
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq libnetcdf-dev libhdf5-dev libxml2-dev libcurl4-openssl-dev
+          Rscript -e '
+            stopifnot(identical(as.character(getRversion()),"4.5.2"),
+              identical(as.character(BiocManager::version()),"3.22"))
+            packages<-c("xcms","MsExperiment","Spectra","mzR","faahKO",
+                        "BiocParallel","jsonlite","digest")
+            missing<-packages[!vapply(packages,requireNamespace,logical(1),quietly=TRUE)]
+            if(length(missing)) BiocManager::install(missing,version="3.22",
+                            ask=FALSE,update=FALSE,quiet=TRUE)
+            stopifnot(all(vapply(packages,requireNamespace,logical(1),quietly=TRUE)))
+          '
+      - name: Refuse native reference package and 206-package dependency drift
+        run: |
+          MULTIOMICS_RAW_MS_OUTPUT=tmp/sacurine-v3-native-r \
+            Rscript multiomics-engine/environment/verify_raw_ms_runtime.R verify
+      - name: Process original twelve mzML with xcms and independently audit real QC and blank
+        run: |
+          Rscript multiomics-engine/tests/real_sacurine_zenodo_12raw_xcms.R \
+            tmp/sacurine-v3-real-source tmp/sacurine-v3-native-r/xcms-fit
+      - name: Preserve compact provenance and biological limitations, not original raw human spectra
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: MultiOmics-real-Sacurine-v3-12raw-blank-QC-native-${{ github.sha }}
+          path: |
+            tmp/sacurine-v3-real-source/sacurine_v3_12_original_source_manifest.json
+            tmp/sacurine-v3-native-r/raw_ms_frozen_environment.json
+            tmp/sacurine-v3-native-r/xcms-fit/raw_ms_processing_manifest.json
+            tmp/sacurine-v3-native-r/xcms-fit/real_sacurine_12raw_external_evidence.json
+            tmp/sacurine-v3-native-r/xcms-fit/real_sacurine_12raw_qc_blank_feature_screens.csv
+          if-no-files-found: warn
+          retention-days: 90
