@@ -1,0 +1,70 @@
+name: Independent DESeq2 true-dispersion and Wald calibration diagnosis
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/deseq2-dispersion-wald-oracle.yml'
+      - 'multiomics-engine/rnaseq_deseq2_dispersion_wald_metrics.R'
+      - 'multiomics-engine/tests/test_rnaseq_deseq2_dispersion_wald_metrics.R'
+      - 'multiomics-engine/validation/rnaseq_deseq2_dispersion_wald_oracle.R'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/deseq2-dispersion-wald-oracle.yml'
+      - 'multiomics-engine/rnaseq_deseq2_dispersion_wald_metrics.R'
+      - 'multiomics-engine/tests/test_rnaseq_deseq2_dispersion_wald_metrics.R'
+      - 'multiomics-engine/validation/rnaseq_deseq2_dispersion_wald_oracle.R'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  original-nb-dispersion-wald:
+    name: Real DESeq2 96 independent paired 3-arm global-null Wald datasets
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    container:
+      image: bioconductor/bioconductor_docker:RELEASE_3_22-r-4.5.2@sha256:e34177896c1579f66d48b756e4229b58237499183a089da084af72d7aba1d40a
+    steps:
+      - uses: actions/checkout@v5
+      - name: Parse R source and reject falsified or missing whole-study evidence BEFORE expensive native fits
+        run: |
+          Rscript -e 'for(f in c(
+            "multiomics-engine/rnaseq_deseq2_null_oracle.R",
+            "multiomics-engine/rnaseq_deseq2_dispersion_wald_metrics.R",
+            "multiomics-engine/tests/test_rnaseq_deseq2_dispersion_wald_metrics.R",
+            "multiomics-engine/validation/rnaseq_deseq2_dispersion_wald_oracle.R"
+          ))parse(file=f);cat("Native true-dispersion scripts parse PASS\\n")'
+          Rscript multiomics-engine/tests/test_rnaseq_deseq2_dispersion_wald_metrics.R
+      - name: Install original pinned real Bioconductor methods without substituting a simulator
+        shell: bash
+        run: |
+          Rscript -e '
+            stopifnot(identical(as.character(getRversion()),"4.5.2"),
+                      identical(as.character(BiocManager::version()),"3.22"))
+            required_cran<-c("jsonlite","statmod","plumber","knitr","rmarkdown")
+            missing<-required_cran[!vapply(required_cran,requireNamespace,logical(1),quietly=TRUE)]
+            if(length(missing))install.packages(missing,repos="https://cloud.r-project.org")
+            required_bioc<-c("DESeq2","edgeR","limma","airway")
+            missing<-required_bioc[!vapply(required_bioc,requireNamespace,logical(1),quietly=TRUE)]
+            if(length(missing))BiocManager::install(missing,ask=FALSE,update=FALSE,quiet=TRUE)
+            stopifnot(all(vapply(c(required_cran,required_bioc),
+                                 requireNamespace,logical(1),quietly=TRUE)))
+          '
+      - name: Require exact 171-package published native R fingerprint
+        run: Rscript multiomics-engine/environment/check_reference_runtime.R verify
+      - name: Fit true-null default Wald versus exact NB-dispersion and full-depth oracles
+        run: |
+          Rscript multiomics-engine/validation/rnaseq_deseq2_dispersion_wald_oracle.R \
+            tmp/deseq2-true-dispersion-wald-study
+      - name: Retain all negative outcomes including partial real package outputs on failure
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: DESeq2-independent-original-NB-dispersion-Wald-${{ github.sha }}
+          path: |
+            tmp/reference-runtime/
+            tmp/deseq2-true-dispersion-wald-study/
+          if-no-files-found: warn
+          retention-days: 90
