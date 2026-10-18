@@ -6,6 +6,8 @@ on:
       - 'scripts/verify_sacurine_zenodo_12raw.py'
       - 'scripts/test_sacurine_zenodo_12raw.py'
       - 'multiomics-engine/tests/real_sacurine_zenodo_12raw_xcms.R'
+      - 'scripts/audit_sacurine_12raw_evidence.py'
+      - 'scripts/test_audit_sacurine_12raw_evidence.py'
       - '.github/workflows/sacurine-zenodo-12raw-xcms.yml'
   push:
     branches: [main]
@@ -13,6 +15,8 @@ on:
       - 'scripts/verify_sacurine_zenodo_12raw.py'
       - 'scripts/test_sacurine_zenodo_12raw.py'
       - 'multiomics-engine/tests/real_sacurine_zenodo_12raw_xcms.R'
+      - 'scripts/audit_sacurine_12raw_evidence.py'
+      - 'scripts/test_audit_sacurine_12raw_evidence.py'
       - '.github/workflows/sacurine-zenodo-12raw-xcms.yml'
   workflow_dispatch:
 
@@ -63,6 +67,15 @@ jobs:
         run: |
           Rscript multiomics-engine/tests/real_sacurine_zenodo_12raw_xcms.R \
             tmp/sacurine-v3-real-source tmp/sacurine-v3-native-r/xcms-fit
+      - name: Replay every quantitative QC/blank result independently of native R
+        run: |
+          python3 scripts/test_audit_sacurine_12raw_evidence.py
+          python3 scripts/audit_sacurine_12raw_evidence.py \
+            --source-report tmp/sacurine-v3-real-source/sacurine_v3_12_original_source_manifest.json \
+            --native-report tmp/sacurine-v3-native-r/xcms-fit/raw_ms_processing_manifest.json \
+            --qa-report tmp/sacurine-v3-native-r/xcms-fit/real_sacurine_12raw_external_evidence.json \
+            --feature-csv tmp/sacurine-v3-native-r/xcms-fit/real_sacurine_12raw_qc_blank_feature_screens.csv \
+            --out tmp/sacurine-v3-native-r/independent-scientific-QC-review
       - name: Preserve compact provenance and biological limitations, not original raw human spectra
         if: always()
         uses: actions/upload-artifact@v6
@@ -74,5 +87,6 @@ jobs:
             tmp/sacurine-v3-native-r/xcms-fit/raw_ms_processing_manifest.json
             tmp/sacurine-v3-native-r/xcms-fit/real_sacurine_12raw_external_evidence.json
             tmp/sacurine-v3-native-r/xcms-fit/real_sacurine_12raw_qc_blank_feature_screens.csv
+            tmp/sacurine-v3-native-r/independent-scientific-QC-review/
           if-no-files-found: warn
           retention-days: 90
