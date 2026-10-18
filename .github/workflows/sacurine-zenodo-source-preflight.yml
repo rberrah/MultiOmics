@@ -1,0 +1,56 @@
+name: Independent Sacurine Zenodo 12-injection LC-MS metadata provenance
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/qualify_sacurine_toy_zenodo.py'
+      - 'scripts/test_sacurine_zenodo_preflight.py'
+      - '.github/workflows/sacurine-zenodo-source-preflight.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/qualify_sacurine_toy_zenodo.py'
+      - 'scripts/test_sacurine_zenodo_preflight.py'
+      - '.github/workflows/sacurine-zenodo-source-preflight.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-zenodo-source:
+    name: Source-verified public Sacurine v3 roles, order and source MD5
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Reject synthetic or altered source roles and files (offline)
+        run: python3 scripts/test_sacurine_zenodo_preflight.py
+      - name: Fetch the REAL published 645-byte metadata file, never substitute a fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p tmp/sacurine-zenodo-v3/source
+          curl --fail --location --show-error --silent --retry 2 --connect-timeout 20 --max-time 120 \
+            'https://zenodo.org/records/10130758/files/sampleMetadata_12samp_completed.tsv?download=1' \
+            -o tmp/sacurine-zenodo-v3/source/sampleMetadata_12samp_completed.tsv
+          test "$(stat -c %s tmp/sacurine-zenodo-v3/source/sampleMetadata_12samp_completed.tsv)" -eq 645
+          printf '%s  %s\n' f88044818627dee797c75d5a310f5c8e \
+            tmp/sacurine-zenodo-v3/source/sampleMetadata_12samp_completed.tsv | md5sum -c
+      - name: Verify published injection order and 6:3:3 class mapping
+        run: |
+          python3 scripts/qualify_sacurine_toy_zenodo.py \
+            --metadata tmp/sacurine-zenodo-v3/source/sampleMetadata_12samp_completed.tsv \
+            --out tmp/sacurine-zenodo-v3/source-audit
+      - name: Preserve source hashes and limited scientific findings even on failure
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: MultiOmics-Sacurine-Zenodo-v3-source-integrity-${{ github.sha }}
+          path: |
+            tmp/sacurine-zenodo-v3/source-audit/
+          if-no-files-found: warn
+          retention-days: 90
