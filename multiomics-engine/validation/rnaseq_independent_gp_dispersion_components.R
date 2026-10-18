@@ -37,7 +37,7 @@ for(scenario in scenarios) for(idx in seq_len(reps)) {
   dds<-DESeq2::DESeqDataSetFromMatrix(
     countData=t(counts),colData=source_study$meta,
     design=~batch+condition)
-  # Frozen original production-adapter low-count rule. NO source-gene
+  # Production-adapter low-count rule (same as original benchmark). NO source-gene
   # removal or reordering between the four dispersion arms.
   keep<-rowSums(DESeq2::counts(dds)>=10L)>=
     max(2L,ceiling(ncol(dds)*.2))
@@ -131,11 +131,10 @@ for(scenario in scenarios) for(idx in seq_len(reps)) {
 }
 dat<-do.call(rbind,records)
 summary<-gp_dispersion_independent_summary(dat) # Verified 32-study whole-cohort metric
-# original helper args intentionally fixed by the independent-source contract
-# 
+# Source-specific cohort horizon is checked explicitly by the wrapper.
 
 if(nrow(dat)!=384L||nrow(summary)!=12L)
-  stop("Not every planned original global-null gene-wise/trend/MAP/truth experiment ran.")
+  stop("Independent source four-arm Gamma–Poisson experiment incomplete.")
 utils::write.csv(dat,file.path(out,
   "gamma_poisson_deseq2_dispersion_per_study.csv"),row.names=FALSE)
 utils::write.csv(summary,file.path(out,
@@ -153,7 +152,7 @@ writeLines(c(
   "native_gene_wise_CR: DESeq2 mcols dispGeneEst, Cox-Reid adjusted",
   "native_fitted_trend: DESeq2 mcols dispFit",
   "native_final_MAP: DESeq2 dispersions after estimateDispersions",
-  "simulation_true_alpha: original generator gene-specific exact negative-binomial dispersion",
+  "simulation_true_alpha: independent Gamma–Poisson generator exact NB per-gene dispersion",
   "size_factors: native DESeq2 estimates shared exactly in all four arms",
   "Wald: same exported nbinomWaldTest betaPrior FALSE for all arms",
   "Cook_filter: FALSE in all four arms to isolate dispersion component",
@@ -161,6 +160,6 @@ writeLines(c(
   "original_production_algorithm_modified: false",
   "substantive_FDR_validity_or_causal_mechanism_certified: false",
   capture.output(sessionInfo())),
-  file.path(out,"deseq2_dispersion_component_method_manifest.txt"))
+  file.path(out,"gamma_poisson_deseq2_dispersion_manifest.txt"))
 print(summary,row.names=FALSE)
 cat("PASS native independent Gamma–Poisson falsification: 384 genuine DESeq2 fits; global FDR and causal mechanism not certified.\n")
