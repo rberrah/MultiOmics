@@ -3,6 +3,21 @@
 # and algorithmic positive/negative controls. Not an FDR certificate.
 source("multiomics-engine/reference_inference_audit.R")
 
+for(vector in list(
+  c(0,0,.01,.01,1),
+  c(.9,.9,.8,.1,.05,.02,.02),
+  c(.05),
+  c(.00001,.0001,.5,.9,1))) {
+  stopifnot(isTRUE(all.equal(
+    unname(independent_bh_adjust(vector)),
+    unname(stats::p.adjust(vector,method="BH")),
+    tolerance=1e-14)))
+}
+for(bad_input in list(c(.1,NA),c(.1,Inf),c(-.1,.2),c(.1,1.1),numeric())) {
+  stopifnot(inherits(try(independent_bh_adjust(bad_input),silent=TRUE),
+    "try-error"))
+}
+
 features <- sprintf("GENE%03d",seq_len(10L))
 p <- c(.001,.002,.02,.08,.1,.3,.4,.5,.7,.95)
 q <- stats::p.adjust(p,method="BH")
