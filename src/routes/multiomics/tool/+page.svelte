@@ -10,6 +10,7 @@
   import ExternalValidationPanel from '#lib/components/ExternalValidationPanel.svelte';
   import { buildMultiomicsVisualizationData } from '#lib/multiomics/visualization-data.js';
   import { projectNativeRNumbers } from '#lib/multiomics/r-primary-results.js';
+  import { assessConfirmatoryResult } from '#lib/multiomics/confirmatory-result-gate.js';
   import { convertMsAucExport } from '#lib/multiomics/ms-auc-import.js';
   import { parseMetaboliteAnnotations } from '#lib/multiomics/metabolite-annotation.js';
   import { assessScientificAssurance } from '#lib/multiomics/scientific-assurance.js';
@@ -1360,6 +1361,16 @@
       analysisError = t('Pour une analyse confirmatoire, choisissez « R requis » et vérifiez sa connexion. Aucune conclusion confirmatoire automatique ne sera produite.', 'For a confirmatory workflow, choose Require R and verify its connection. No automatic confirmatory approval will be given.');
       return;
     }
+    // The reference renderer currently projects only complete native R
+    // differential tables. Other questions must remain explicitly exploratory
+    // until their own native output/figure projections are reproducible.
+    if (analysisIntent === 'confirmatory' && objective !== 'groups') {
+      const gate = assessConfirmatoryResult({
+        protocol:{analysisIntent,objective}
+      });
+      analysisError = t(gate.message, gate.messageEn);
+      return;
+    }
     if (!ready) {
       analysisError = t('Fournissez un tableau des échantillons et au moins une matrice RNA, protéines ou métabolites, puis vérifiez les colonnes et l’objectif.', 'Upload a sample sheet and at least one RNA, protein or metabolite matrix, then verify the columns and objective.');
       return;
@@ -1427,12 +1438,9 @@
       if (referenceBackendMode !== 'browser') {
         const referenceBackend = await runReferenceBackend();
         analysisResult = projectNativeRNumbers({ ...analysisResult, referenceBackend });
-        if(analysisIntent === 'confirmatory' && objective === 'groups' &&
-           !(analysisResult.displayedReferenceMethodCount > 0)){
-          throw new Error(t(
-            'Aucune table R complète ne peut être affichée pour cette analyse confirmatoire. Le navigateur ne doit pas remplacer les valeurs R par ses estimations exploratoires. Vérifiez le rapport et exportez les résultats complets depuis le moteur R.',
-            'No complete R reference table is available for this confirmatory analysis. Browser exploratory estimates cannot replace native R results. Review R diagnostics and export the complete R table.'
-          ));
+        if (analysisIntent === 'confirmatory') {
+          const gate = assessConfirmatoryResult(analysisResult);
+          if (!gate.ok) throw new Error(t(gate.message, gate.messageEn));
         }
       }
 
