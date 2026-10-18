@@ -31,11 +31,21 @@ public site must be performed by the PMx integration owner.
   be projected from each layer's exact returned R CSV, with matching counts
   and method key. An unrelated R model (fgsea, PCA, MOFA2 or another layer)
   cannot substitute for a missing differential result.
-- **Other objectives:** browser longitudinal, outcome and survival numbers
-  currently remain JavaScript-based even when the R response includes
-  separate fits. They are **not** offered as an automatically prepared
-  confirmatory report until native table/figure projections for those designs
-  are added and independently checked.
+- **Longitudinal group-by-time:** the browser may enter confirmatory display
+  only when every loaded layer has a complete native `lmerTest` table from
+  the strict repeated-measures contract. The displayed effect is the explicit
+  condition-by-time slope coefficient. Missing visits, singular fits,
+  random-slope fallback and the linear-time assumption remain visible and
+  require scientific review.
+- **Survival outcome:** the browser may enter confirmatory display only when
+  every loaded layer has a complete native `survival::coxph` table from the
+  strict one-observation-per-subject contract. Event counts, Efron tie policy
+  and `cox.zph` diagnostics are retained. A non-significant PH diagnostic is
+  not proof of proportional hazards.
+- **Other outcome types:** continuous, binary, count and multiclass
+  association tables remain browser-exploratory. DIABLO, an HTTP 200 response,
+  or the presence of an R package cannot substitute for a dedicated native
+  feature-wise inference contract.
 - A valid R result is **still not a certified statistical analysis**:
   design rank, biological units, data provenance, appropriate contrasts,
   missingness, batch effects, model assumptions and multiplicity remain
@@ -51,7 +61,11 @@ public site must be performed by the PMx integration owner.
   identity and relevant R dependencies, including mixed raw-count RNA-seq +
   processed omics when limma is missing.
 - `scripts/test_multiomics_confirmatory_result_gate.mjs` checks exact
-  per-layer R projection and blocks partial, forged or unrelated responses.
+  per-layer R projection and blocks partial, forged or unrelated responses
+  across group, longitudinal and survival contracts.
+- `scripts/test_multiomics_native_projection_designs.mjs` independently
+  checks that native lmerTest/Cox CSV values replace browser numbers only for
+  the supported objective and that incomplete tables fail closed.
 - `tests/e2e/multiomics-confirmatory-native-gate.spec.js` checks that an
   unsupported longitudinal confirmatory workflow is blocked **before**
   transferring matrices to the reference backend.
