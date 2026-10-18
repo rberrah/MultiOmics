@@ -14,6 +14,7 @@
   import { parseMetaboliteAnnotations } from '#lib/multiomics/metabolite-annotation.js';
   import { assessScientificAssurance } from '#lib/multiomics/scientific-assurance.js';
   import { mofa2BackendCompatibility,validateMofa2MethodResult } from '#lib/multiomics/reference-backend-integrity.js';
+  import { evaluateReferenceBackendHealth } from '#lib/multiomics/reference-backend-preflight.js';
   import { createPortableProject, parsePortableProject, PORTABLE_PROJECT_MAX_BYTES } from '#lib/multiomics/portable-project.js';
   import { buildResearchMethodsManifest } from '#lib/multiomics/research-report.js';
 
@@ -1079,9 +1080,22 @@
       const response = await fetchWithTimeout(url + '/health', { headers: { Accept: 'application/json' } }, 1800);
       if (!response.ok) throw new Error('HTTP ' + response.status);
       const health = await response.json();
+      const preflight = evaluateReferenceBackendHealth(health, {
+        intent: analysisIntent,
+        objective,
+        designType,
+        hasTranscriptomics: Boolean(files.transcriptomics),
+        transcriptomicsValues
+      });
+      if (!preflight.ok) {
+        referenceBackendStatus = 'error';
+        referenceBackendHealth = null;
+        referenceBackendMessage = t(preflight.message, preflight.messageEn);
+        return null;
+      }
       referenceBackendStatus = 'available';
       referenceBackendHealth = health;
-      referenceBackendMessage = t('Backend R disponible.', 'R backend available.');
+      referenceBackendMessage = t(preflight.message, preflight.messageEn);
       return health;
     } catch (error) {
       referenceBackendStatus = 'unavailable';
@@ -1250,7 +1264,7 @@
     const health = await checkReferenceBackend(false);
     if (!health) {
       if (referenceBackendMode === 'required') {
-        throw new Error('Reference R backend is required but unavailable at ' + backendBaseUrl() + '.');
+        throw new Error(referenceBackendMessage || 'Reference R backend is required but unavailable at ' + backendBaseUrl() + '.');
       }
       return {
         status: 'unavailable',
@@ -3076,7 +3090,9 @@
           <pre style="max-width:100%;overflow-x:auto;white-space:pre;" tabindex="0"><code>git clone https://github.com/rberrah/MultiOmics.git
 cd MultiOmics
 Rscript multiomics-engine/install_backend_dependencies.R
+Rscript multiomics-engine/reference_doctor.R rnaseq
 Rscript multiomics-engine/run_backend.R</code></pre>
+        <p>{t('La commande de diagnostic vérifie les vrais packages sans installer ni envoyer de données. Remplacez « rnaseq » par « groups », « longitudinal », « mofa2 », « diablo » ou « rawms » selon le type d’analyse. Un contrôle vert n’est pas une certification statistique.', 'The diagnostic checks installed packages without installing software or uploading data. Replace “rnaseq” with “groups”, “longitudinal”, “mofa2”, “diablo” or “rawms” for your method family. A successful check is not statistical certification.')}</p>
         <p>{t('Laisser le terminal R ouvert, revenir ici et ouvrir « Options de calcul et connexions externes ». Choisir « Auto · utiliser si disponible » (le mode initial « Navigateur uniquement » désactive les tests R), conserver l’adresse http://127.0.0.1:8787 et cliquer sur « Tester ». Le statut doit indiquer que R est disponible. Ne sélectionner « R requis » que si le backend fonctionne et qu’une analyse de référence est indispensable.', 'Keep the R terminal open, return here and open Analysis options and external services. Choose Auto · use when available (the initial Browser only mode disables R checks), keep http://127.0.0.1:8787 and click Check. The status should report that R is available. Select Require R only when the backend is operational and reference analysis is essential.')}</p>
         <p>{t('Confidentialité : vos matrices ne sont envoyées au serveur R que lorsque vous lancez l’analyse avec ce moteur activé. Gardez le serveur sur votre ordinateur (127.0.0.1). Ne connectez pas de serveur distant non sécurisé à des données patients.', 'Privacy: your matrices are sent to the configured R server only when you launch analysis with that engine enabled. Keep the server on your computer (127.0.0.1). Never send patient data to an unsecured remote server.')}</p>
           <p><a href="https://github.com/rberrah/MultiOmics/blob/main/multiomics-engine/README.md" target="_blank" rel="noopener noreferrer">{t('Lire les instructions complètes et les limitations du moteur R', 'Read full R setup instructions and limitations')}</a></p>

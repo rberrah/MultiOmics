@@ -172,6 +172,18 @@ Install the backend dependencies once:
 
     Rscript multiomics-engine/install_backend_dependencies.R
 
+Run the **read-only local method diagnostic**, from the repository root:
+
+    Rscript multiomics-engine/reference_doctor.R rnaseq
+
+Other profiles: `groups` (limma), `longitudinal` (lmerTest), `mofa2`,
+`diablo` and `rawms`. The doctor checks which packages are *actually*
+installed and fails if this method family cannot run; it never installs,
+uploads data, fits a model, or declares statistical validity. A successful
+diagnostic does **not** establish an exact frozen dependency environment;
+use `Rscript multiomics-engine/install_backend_dependencies.R --verify-frozen`
+for the stricter, pinned reference environment check.
+
 Start the local backend:
 
     Rscript multiomics-engine/run_backend.R

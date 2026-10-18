@@ -37,7 +37,7 @@ jobs:
       - name: Run standalone FR/EN lessons and four-button desktop UI
         env:
           LABS_E2E_PREBUILT: '1'
-        run: npx playwright test --config playwright.multiomics.config.js tests/e2e/multiomics-methods-learning.spec.js tests/e2e/multiomics-contrast.spec.js tests/e2e/multiomics-shell.spec.js tests/e2e/multiomics-hydration.spec.js tests/e2e/multiomics-single-omic.spec.js tests/e2e/multiomics-beginner-clarity.spec.js tests/e2e/multiomics-provenance.spec.js tests/e2e/multiomics-scientific-summary-safety.spec.js --workers=1 --retries=0
+        run: npx playwright test --config playwright.multiomics.config.js tests/e2e/multiomics-methods-learning.spec.js tests/e2e/multiomics-contrast.spec.js tests/e2e/multiomics-shell.spec.js tests/e2e/multiomics-hydration.spec.js tests/e2e/multiomics-single-omic.spec.js tests/e2e/multiomics-beginner-clarity.spec.js tests/e2e/multiomics-provenance.spec.js tests/e2e/multiomics-scientific-summary-safety.spec.js tests/e2e/multiomics-r-health-preflight.spec.js --workers=1 --retries=0
       - name: Create portable web download with manifest; Node-only runtime
         run: |
           node scripts/package_portable_web.mjs
@@ -110,6 +110,8 @@ jobs:
       - name: Verify native R syntax and repository inputs
         run: |
           Rscript -e 'for(f in c("multiomics-engine/server.R","multiomics-engine/advanced_methods.R","multiomics-engine/run_backend.R","multiomics-engine/run_research_bundle.R","multiomics-engine/verify_research_replay.R","multiomics-engine/plot_research_figures.R")) parse(file=f); cat("R parsing PASS\n")'
+      - name: Verify local R onboarding doctor without installing packages
+        run: Rscript multiomics-engine/reference_doctor.R --self-test
       - name: Test R backend routes and mandatory safeguards
         run: Rscript multiomics-engine/tests/backend_smoke.R
       - name: Test JS-to-R explanatory reference
