@@ -1,0 +1,69 @@
+name: Independent DESeq2 Cook distance and BH independent-filter null diagnosis
+
+on:
+  pull_request:
+    paths:
+      - 'multiomics-engine/rnaseq_cooks_filter_null_metrics.R'
+      - 'multiomics-engine/tests/test_rnaseq_cooks_filter_null_metrics.R'
+      - 'multiomics-engine/validation/rnaseq_cooks_filter_ablation.R'
+      - '.github/workflows/deseq2-cooks-independent-filter-null.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'multiomics-engine/rnaseq_cooks_filter_null_metrics.R'
+      - 'multiomics-engine/tests/test_rnaseq_cooks_filter_null_metrics.R'
+      - 'multiomics-engine/validation/rnaseq_cooks_filter_ablation.R'
+      - '.github/workflows/deseq2-cooks-independent-filter-null.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  paired-cook-independent-filter:
+    name: 192 native DESeq2 null fits, paired 768 Cook and BH filter comparisons
+    runs-on: ubuntu-latest
+    timeout-minutes: 110
+    container:
+      image: bioconductor/bioconductor_docker:RELEASE_3_22-r-4.5.2@sha256:e34177896c1579f66d48b756e4229b58237499183a089da084af72d7aba1d40a
+    steps:
+      - uses: actions/checkout@v5
+      - name: Validate synthetic source and reject incomplete screen pairings before native package install
+        run: |
+          Rscript -e 'for(f in c(
+            "multiomics-engine/rnaseq_cooks_filter_null_metrics.R",
+            "multiomics-engine/tests/test_rnaseq_cooks_filter_null_metrics.R",
+            "multiomics-engine/validation/rnaseq_cooks_filter_ablation.R"
+          ))parse(file=f);cat("Native Cook and independent filter study syntax PASS\\n")'
+          Rscript multiomics-engine/tests/test_rnaseq_cooks_filter_null_metrics.R
+      - name: Install exact R 4.5.2 / Bioconductor 3.22 reference packages
+        shell: bash
+        run: |
+          Rscript -e '
+            stopifnot(identical(as.character(getRversion()),"4.5.2"),
+                      identical(as.character(BiocManager::version()),"3.22"))
+            cran<-c("jsonlite","statmod","plumber","knitr","rmarkdown")
+            need<-cran[!vapply(cran,requireNamespace,logical(1),quietly=TRUE)]
+            if(length(need))install.packages(need,repos="https://cloud.r-project.org")
+            bioc<-c("DESeq2","edgeR","limma","airway")
+            need<-bioc[!vapply(bioc,requireNamespace,logical(1),quietly=TRUE)]
+            if(length(need))BiocManager::install(need,ask=FALSE,update=FALSE,quiet=TRUE)
+            stopifnot(all(vapply(c(cran,bioc),requireNamespace,
+                                 logical(1),quietly=TRUE)))
+          '
+      - name: Verify frozen native R 171-package reference environment
+        run: Rscript multiomics-engine/environment/check_reference_runtime.R verify
+      - name: Execute all 192 native fits and 768 paired Cook plus independent-filter result tables
+        run: |
+          Rscript multiomics-engine/validation/rnaseq_cooks_filter_ablation.R \
+            tmp/native-DESeq2-Cook-independent-filter
+      - name: Preserve all original per-study results and scientific limitations
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: MultiOmics-DESeq2-Cook-and-BH-filter-native-${{ github.sha }}
+          path: |
+            tmp/reference-runtime/
+            tmp/native-DESeq2-Cook-independent-filter/
+          if-no-files-found: warn
+          retention-days: 90
