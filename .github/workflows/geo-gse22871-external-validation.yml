@@ -10,6 +10,8 @@ on:
       - 'scripts/qualify_gpl1261_entrez_concordance.py'
       - 'scripts/qualify_geo_native_probe_evidence.py'
       - 'scripts/qualify_geo_native_pfos_contrasts.py'
+      - 'scripts/qualify_geo_native_three_gene_profile.py'
+      - 'multiomics-engine/tests/test_geo_native_three_gene_profile.R'
       - 'scripts/qualify_nutrimouse_geo_gene_bridge.py'
       - 'multiomics-engine/tests/test_nutrimouse_source_gene_identity.R'
       - 'multiomics-engine/tests/test_nutrimouse_geo_bridge_replay.R'
@@ -206,6 +208,37 @@ jobs:
           assert r['n_diagnostic_probe_rows_including_rejections']>=3
           assert (d/'independent_R_source_target_gene_bridge_replay.txt').is_file()
           print('PASS: REAL 4-gene source model audited against GEO without outcome leakage; uncalibrated scores BLOCKED')
+          PY
+      - name: Qualify external source-native three-gene profile with no rescue of ambiguous CYP4A10
+        run: |
+          python3 scripts/qualify_geo_native_three_gene_profile.py --self-test
+          python3 scripts/qualify_geo_native_three_gene_profile.py \
+            tmp/multiomics/real-external-GSE22871
+      - name: Independently replay all original native three-gene values and within-array ranks in R
+        run: |
+          Rscript multiomics-engine/tests/test_geo_native_three_gene_profile.R --self-test
+          Rscript multiomics-engine/tests/test_geo_native_three_gene_profile.R \
+            tmp/multiomics/real-external-GSE22871
+      - name: Refuse transfer claims and preserve real per-mouse exploratory observations
+        run: |
+          python3 - <<'PY'
+          import csv, json
+          from pathlib import Path
+          path=Path('tmp/multiomics/real-external-GSE22871/external_native_three_gene_descriptive_profile')
+          audit=json.loads((path/'native_three_gene_audit.json').read_text())
+          measured=list(csv.DictReader((path/'individual_native_three_gene_probe_measurements.csv').open()))
+          indices=list(csv.DictReader((path/'individual_native_three_gene_descriptive_index.csv').open()))
+          assert audit['n_independent_subjects']==30
+          assert audit['unambiguously_mapped_native_probe_genes']==3
+          assert audit['excluded_source_feature']=='CYP4A10'
+          assert len(measured)==90 and len(indices)==30
+          assert len({x['subject_id'] for x in indices})==30
+          assert audit['frozen_model_cross_platform_projections']==0
+          assert audit['pk_covariates_exported']==0
+          assert not audit['nutrimouse_frozen_four_gene_model_applied']
+          assert (path/'independent_R_native_three_gene_replay.txt').is_file()
+          assert not (path/'individual_signatures.csv').exists()
+          print('PASS: original three-gene native profiles reproduced; external Nutrimouse model projection BLOCKED')
           PY
       - name: Predeclared genuine external Cyp3a11 native probe measurements (never projected model scores)
         run: |
