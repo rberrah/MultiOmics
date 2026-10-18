@@ -92,7 +92,7 @@ run_independent_bh_oracle <- function(replicates=2048L, features=200L,
       q <- stats::p.adjust(p,method="BH")
       next_index <- next_index+1L
       draws[[next_index]] <- data.frame(
-        mechanism=source,replicate=replicate(rep,1L),
+        mechanism=source,replicate=as.integer(rep),
         discoveries=sum(q<=alpha),any_false_discovery=as.integer(any(q<=alpha)),
         stringsAsFactors=FALSE)
     }
