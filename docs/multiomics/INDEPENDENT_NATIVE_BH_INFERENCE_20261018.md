@@ -24,9 +24,9 @@ calibrées sous une mauvaise hypothèse ou un mauvais plan.
 
 | Couche | Contrôle | Portée permise |
 | --- | --- | --- |
-| A — intégrité numérique R | Ajustement BH recalculé depuis les p-values **de chaque résultat R d'origine** : DESeq2, edgeR-QL et limma-voom ; identifiants identiques à ceux du jeu simulé, absence de doublon, tolérance absolue 1e-8 | Intégrité du tableau q pour ce jeu, **pas** validation du modèle |
-| B — oracle algorithmique | 2 048 jeux indépendants × 200 p-values nulles Uniform(0,1), alpha=0,05, graine 20261018, BH base R, probabilité de ≥1 découverte et intervalle binomial exact 95 % | Contrôle positif du comportement BH sous des p-values uniformes **imposées**, pas générées par un modèle RNA-seq |
-| C — témoin d'échec | 2 048 jeux indépendants × 200 p-values sous Beta(0,5 ; 1), toutes déclarées nulles, BH, même alpha | Doit montrer une inflation forte ; atteste que le contrôle n'est pas un PASS automatique |
+| A — intégrité numérique R | Ajustement BH recalculé par **formule step-up indépendante de `stats::p.adjust`** depuis les p-values **de chaque résultat R d'origine** : DESeq2, edgeR-QL et limma-voom ; identifiants identiques à ceux du jeu simulé, absence de doublon, tolérance absolue 1e-8 | Intégrité du tableau q pour ce jeu, **pas** validation du modèle |
+| B — oracle algorithmique | 2 048 jeux indépendants × 200 p-values nulles Uniform(0,1), alpha=0,05, graine 20261018, BH selon une implémentation indépendante, confrontée à `stats::p.adjust`, probabilité de ≥1 découverte et intervalle binomial exact 95 % | Contrôle positif du comportement BH sous des p-values uniformes **imposées**, pas générées par un modèle RNA-seq |
+| C — témoin d'échec | 2 048 jeux indépendants × 200 p-values sous Beta(0,5 ; 1), toutes déclarées nulles, BH indépendant, même alpha | Doit montrer une inflation forte ; atteste que le contrôle n'est pas un PASS automatique |
 
 Critères informatiques préfixés :
 
@@ -47,7 +47,7 @@ Critères informatiques préfixés :
 DESeq2 peut produire une p-value **finie** mais une `padj=NA` après
 filtrage indépendant. Le contrôle B-H ne doit donc **pas** recalculer les
 q-values sur la totalité des p-values brutes disponibles. Il reconstruit
-BH sur les p-values dont la q-value native est finie, et archive
+BH par la formule mathématique sur les p-values dont la q-value native est finie, et archive
 `excluded_raw_p_with_no_q`. Ce détail ne démontre pas que le
 filtrage indépendant est sans effet sur le FDR : cette question reste
 ouverte et nécessite ses propres simulations.
