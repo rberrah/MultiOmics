@@ -37,12 +37,12 @@ x <- ref;x$feature_id[[1L]] <- "F2";stopifnot(reject(x))
 stopifnot(reject(ref,ppm_tolerance=-1),
           reject(ref,rt_seconds_tolerance=0),
           reject(ref,rt_seconds_tolerance=Inf))
-wrong <- ref
-wrong$feature_id <- c("F2","F1","F3","F4")
+# Reordering rows with their coordinates preserves feature identity.
+wrong <- ref[c(2L,1L,3L,4L),,drop=FALSE]
 coordinates <- ms_feature_coordinates(wrong,ref$feature_id)
 stopifnot(identical(coordinates$feature_id,ref$feature_id),
   identical(coordinates$mzmed,ref$mzmed))
-wrong$feature_id[[1L]] <- "F2"
+wrong$feature_id[[1L]] <- "F1"
 stopifnot(inherits(try(ms_feature_coordinates(
   wrong,ref$feature_id),silent=TRUE),"try-error"))
 # Paired QC flags are DESCRIPTIVE, and a missing blank cannot be a clean blank.
