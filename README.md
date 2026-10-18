@@ -89,13 +89,27 @@ This command does **not** publish or modify PMx Explain. The public hosting inte
 
 ## Confirmatory result display gate
 
-For **group comparisons**, all analysed omics layers must have a successful,
-complete native R reference table before MultiOmics presents the combined
-analysis in confirmatory mode. A successful connection, one successful R
-method, or a single R layer beside exploratory browser-only layers is not
-sufficient. Longitudinal and outcome/survival browser displays remain
-exploratory until their native R numbers/figures can be projected faithfully;
-independent scientific review remains required in every case. See the
+Confirmatory display is **fail-closed** and currently supports only three
+feature-wise native-R contracts:
+
+- **Group comparisons:** every analysed omics layer must expose its complete
+  native differential table (DESeq2/voom for compatible raw-count RNA-seq,
+  limma for compatible processed layers).
+- **Longitudinal group-by-time analysis:** every analysed layer must expose its
+  complete `lmerTest` interaction table after the strict repeated-measures
+  design checks. The coefficient is a group-by-time slope difference, not a
+  generic fold change.
+- **Survival outcome:** every analysed layer must expose its complete
+  `survival::coxph` table, including event counts and proportional-hazards
+  diagnostics. The feature coefficient is on the log-hazard scale.
+
+A successful connection, one successful R method, or a single R layer beside
+exploratory browser-only layers is never sufficient. Continuous, binary,
+count and multiclass outcome-association tables remain exploratory until their
+own native R projection contracts are implemented and independently checked.
+Even a complete native table is not a statistical certificate: study design,
+assumptions, multiplicity, missingness and biological conclusions still
+require independent scientific review. See the
 [release acceptance and deployment handoff](docs/multiomics/RESEARCH_V1_CONFIRMATORY_RELEASE_GATE.md).
 
 ## Optional native R reference engine
