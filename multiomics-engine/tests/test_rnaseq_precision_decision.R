@@ -3,7 +3,7 @@
 # NEVER scientific evidence. Executes the real report on temporary CSVs.
 out <- tempfile("multiomics_precision_contract_")
 dir.create(out,recursive=TRUE)
-on.exit(unlink(out,recursive=TRUE),add=TRUE)
+
 sc_null <- c("balanced_base","balanced_depth_dispersion",
              "unequal_partial_batch")
 sc_mixed <- c("one_pct","five_pct","twenty_pct")
@@ -71,4 +71,5 @@ tampered$seed[[1L]] <- 99L
 utils::write.csv(tampered,mp,row.names=FALSE)
 failed <- run()
 stopifnot(!is.null(attr(failed,"status")) && attr(failed,"status")!=0L)
+unlink(out,recursive=TRUE)
 cat("PASS: fixed-horizon precision report, independent seeds and fail-closed missing-study controls; synthetic fixture only\n")
