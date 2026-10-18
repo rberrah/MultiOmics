@@ -6,6 +6,7 @@
 # demonstrates 5% population FDR calibration or biological transferability.
 source("multiomics-engine/advanced_methods.R")
 source("multiomics-engine/mixed_truth_reference_metrics.R")
+source("multiomics-engine/reference_inference_audit.R")
 for(pkg in c("DESeq2","edgeR","limma","statmod"))
   if(!requireNamespace(pkg,quietly=TRUE))
     stop("Required REAL R package unavailable: ",pkg)
@@ -59,6 +60,7 @@ root <- tempfile("multiomics_mixed_real_R_")
 dir.create(root)
 records <- list()
 coverage_records <- list()
+integrity_records <- list()
 
 for(s in seq_len(nrow(scenarios))) {
   scenario <- scenarios$scenario[[s]]
@@ -79,7 +81,17 @@ for(s in seq_len(nrow(scenarios))) {
                          log2fc=e$results$logFC),
       limma_voom=data.frame(feature=v$results$feature,q=v$results[["adj.P.Val"]],
                            log2fc=v$results$logFC))
+    native <- list(
+      DESeq2=list(table=d$results,p="pvalue",q="padj"),
+      edgeR_QL=list(table=e$results,p="PValue",q="FDR"),
+      limma_voom=list(table=v$results,p="P.Value",q="adj.P.Val")
+    )
     for(name in names(tables)) {
+      entry <- native[[name]]
+      integrity_records[[length(integrity_records)+1L]] <-
+        audit_native_r_bh(entry$table,name,scenario,rep,
+          feature_col="feature",p_col=entry$p,q_col=entry$q,
+          expected_features=names(study$truth))
       record <- mixed_truth_feature_metrics(tables[[name]],study$truth,
         name,scenario,rep,study$seed)
       if(record$finite_q<300L ||
@@ -110,6 +122,10 @@ for(s in seq_len(nrow(scenarios))) {
   }
 }
 result <- do.call(rbind,records)
+integrity <- do.call(rbind,integrity_records)
+stopifnot(nrow(integrity)==nrow(result),
+  all(integrity$native_bh_integrity_verified),
+  all(!integrity$fdr_calibration_certified))
 summary <- mixed_truth_study_summary(result,min_replicates=8L)
 coverage <- do.call(rbind,coverage_records)
 coverage_summary <- aggregate(
@@ -117,6 +133,9 @@ coverage_summary <- aggregate(
   by=list(scenario=coverage$scenario,method=coverage$method),
   FUN=function(x) mean(x,na.rm=TRUE))
 if(nzchar(out)) {
+  utils::write.csv(integrity,
+    file.path(out,"bioconductor_mixed_truth_native_bh_integrity.csv"),
+    row.names=FALSE)
   utils::write.csv(result,file.path(out,"bioconductor_mixed_truth_per_study.csv"),
                    row.names=FALSE)
   utils::write.csv(summary,file.path(out,"bioconductor_mixed_truth_summary.csv"),
@@ -136,6 +155,8 @@ if(nzchar(out)) {
     "FDR estimand: mean V/max(R,1) across independent simulations",
     "Power estimand: all planted alternatives, even if removed by filtering",
     "DESeq2 CI: unshrunk normal-approximation Wald, not cross-method coverage",
+    "Independent BH replay: native raw p to finite q, preserving independent filtering",
+    "BH integrity does NOT mean native model null p-values are calibrated",
     "Bootstrap: fixed seed, percentile resampling of whole datasets",
     "Simultaneous Hoeffding 95% bounds: independent studies, all scenario-method comparisons",
     "Not an external-validation or clinical-certification result",
