@@ -126,6 +126,10 @@ jobs:
         run: |
           Rscript multiomics-engine/tests/test_rnaseq_deseq2_dispersion_wald_metrics.R
           Rscript -e 'parse(file="multiomics-engine/validation/rnaseq_deseq2_dispersion_wald_oracle.R")'
+      - name: Validate four native DESeq2 dispersion components without recalibrating production
+        run: |
+          Rscript multiomics-engine/tests/test_rnaseq_deseq2_dispersion_component_metrics.R
+          Rscript -e 'parse(file="multiomics-engine/validation/rnaseq_deseq2_dispersion_components.R")'
       - name: Test R backend routes and mandatory safeguards
         run: Rscript multiomics-engine/tests/backend_smoke.R
       - name: Test JS-to-R explanatory reference
