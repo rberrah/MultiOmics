@@ -10,6 +10,7 @@
   import ExternalValidationPanel from '#lib/components/ExternalValidationPanel.svelte';
   import { buildMultiomicsVisualizationData } from '#lib/multiomics/visualization-data.js';
   import { projectNativeRNumbers } from '#lib/multiomics/r-primary-results.js';
+  import { assessConfirmatoryResult } from '#lib/multiomics/confirmatory-result-gate.js';
   import { convertMsAucExport } from '#lib/multiomics/ms-auc-import.js';
   import { parseMetaboliteAnnotations } from '#lib/multiomics/metabolite-annotation.js';
   import { assessScientificAssurance } from '#lib/multiomics/scientific-assurance.js';
@@ -1085,6 +1086,8 @@
         objective,
         designType,
         hasTranscriptomics: Boolean(files.transcriptomics),
+        hasProteomics: Boolean(files.proteomics),
+        hasMetabolomics: Boolean(files.metabolomics),
         transcriptomicsValues
       });
       if (!preflight.ok) {
@@ -1360,6 +1363,16 @@
       analysisError = t('Pour une analyse confirmatoire, choisissez « R requis » et vérifiez sa connexion. Aucune conclusion confirmatoire automatique ne sera produite.', 'For a confirmatory workflow, choose Require R and verify its connection. No automatic confirmatory approval will be given.');
       return;
     }
+    // The reference renderer currently projects only complete native R
+    // differential tables. Other questions must remain explicitly exploratory
+    // until their own native output/figure projections are reproducible.
+    if (analysisIntent === 'confirmatory' && objective !== 'groups') {
+      const gate = assessConfirmatoryResult({
+        protocol:{analysisIntent,objective}
+      });
+      analysisError = t(gate.message, gate.messageEn);
+      return;
+    }
     if (!ready) {
       analysisError = t('Fournissez un tableau des échantillons et au moins une matrice RNA, protéines ou métabolites, puis vérifiez les colonnes et l’objectif.', 'Upload a sample sheet and at least one RNA, protein or metabolite matrix, then verify the columns and objective.');
       return;
@@ -1427,12 +1440,9 @@
       if (referenceBackendMode !== 'browser') {
         const referenceBackend = await runReferenceBackend();
         analysisResult = projectNativeRNumbers({ ...analysisResult, referenceBackend });
-        if(analysisIntent === 'confirmatory' && objective === 'groups' &&
-           !(analysisResult.displayedReferenceMethodCount > 0)){
-          throw new Error(t(
-            'Aucune table R complète ne peut être affichée pour cette analyse confirmatoire. Le navigateur ne doit pas remplacer les valeurs R par ses estimations exploratoires. Vérifiez le rapport et exportez les résultats complets depuis le moteur R.',
-            'No complete R reference table is available for this confirmatory analysis. Browser exploratory estimates cannot replace native R results. Review R diagnostics and export the complete R table.'
-          ));
+        if (analysisIntent === 'confirmatory') {
+          const gate = assessConfirmatoryResult(analysisResult);
+          if (!gate.ok) throw new Error(t(gate.message, gate.messageEn));
         }
       }
 
@@ -3044,6 +3054,12 @@
           ? t('Le moteur R local devient obligatoire. Les tests contrôlent l’éligibilité, mais ne certifient jamais automatiquement vos résultats. Les fichiers seront envoyés au backend R configuré après lancement de l’analyse.', 'The configured local R engine is required. Checks assess eligibility but never automatically certify findings. Files are sent to the configured R backend when you run the analysis.')
           : t('Le navigateur applique des méthodes exploratoires et parfois des approximations ou simplifications statistiques : ses p-values, q-values et effets peuvent différer des méthodes R de référence. Les analyses R natives (DESeq2, edgeR/limma selon les données) sont préférables pour une inférence appropriée au modèle, mais leur validité dépend du plan, des hypothèses et du contrôle qualité. Aucune installation R n’est nécessaire pour explorer.', 'The browser uses exploratory models and sometimes statistical approximations or simplifications: its p-values, q-values and effects can differ from native reference R methods. Native R methods (DESeq2, edgeR/limma where applicable) are preferable for model-appropriate inference, but validity still depends on design, assumptions and quality checks. No R installation is needed to explore.')}</small>
       </label>
+      {#if analysisIntent === 'confirmatory' && objective !== 'groups'}
+        <p role="alert" class="simple-hint" data-testid="multiomics-confirmatory-projection-unsupported">
+          {t('Les modèles R longitudinaux et de survie sont disponibles dans le moteur scientifique, mais leurs tableaux ne remplacent pas encore les chiffres du navigateur. Pour éviter une présentation trompeuse, le mode confirmatoire est actuellement limité aux comparaisons de groupes avec tableaux R complets pour chaque omique. Utilisez le mode exploratoire pour cette question.',
+             'Longitudinal and survival R methods exist, but their results do not yet replace browser figures and numbers. To prevent misleading confirmatory reporting, this mode currently supports group comparisons only when complete R tables exist for every layer. Select exploration for this question.')}
+        </p>
+      {/if}
       {#if analysisIntent !== 'confirmatory'}
         <p role="note" class="simple-hint" data-testid="multiomics-browser-approximation-warning">
           {t('Important : les résultats du navigateur servent à repérer des tendances. Selon la méthode et les données, certains calculs simplifient les hypothèses du modèle ou utilisent des approximations ; les chiffres ne sont donc pas nécessairement ceux de DESeq2, edgeR ou limma en R. Pour une analyse de référence, exécutez le backend R, vérifiez le plan expérimental et téléchargez le code effectivement utilisé.',

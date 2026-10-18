@@ -20,7 +20,8 @@ const installed = (packages, name) => packages[name] === true;
  *
  * @param {unknown} health JSON returned by GET /health
  * @param {{intent?:string,objective?:string,designType?:string,
- *          hasTranscriptomics?:boolean,transcriptomicsValues?:string}} context
+ *          hasTranscriptomics?:boolean,transcriptomicsValues?:string,
+ *          hasProteomics?:boolean,hasMetabolomics?:boolean}} context
  */
 export function evaluateReferenceBackendHealth(health, context = {}) {
   if (!object(health) || health.status !== 'ok' ||
@@ -65,10 +66,15 @@ export function evaluateReferenceBackendHealth(health, context = {}) {
           'RNA-seq de comptages : installer DESeq2 ou edgeR + limma ; aucun modèle de référence applicable n’est disponible.',
           'Raw-count RNA-seq requires DESeq2 or edgeR + limma; no applicable reference model is available.');
       }
-    } else if (!installed(packages,'limma')) {
+    }
+    // All loaded layers must have a model: DESeq2 alone is not sufficient
+    // when an additional processed proteomics/metabolomics layer is loaded.
+    const needsLimma=Boolean(context.hasProteomics || context.hasMetabolomics ||
+      (context.hasTranscriptomics && context.transcriptomicsValues !== 'raw_counts'));
+    if (needsLimma && !installed(packages,'limma')) {
       return fail('missing_limma',
-        'Comparaison de groupes : le package R limma requis n’est pas disponible.',
-        'Group comparisons require the R package limma, which is unavailable.');
+        'Comparaison de groupes : le package R limma requis pour les couches non-RNA-seq en comptages n’est pas disponible.',
+        'Group comparisons require R limma for non-raw-count layers, but it is unavailable.');
     }
   } else if (objective === 'time') {
     if (!installed(packages,'lmerTest')) {
