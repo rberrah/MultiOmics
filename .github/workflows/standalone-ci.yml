@@ -118,6 +118,10 @@ jobs:
         run: |
           Rscript multiomics-engine/tests/test_ms_feature_sensitivity.R
           Rscript -e 'parse(file="multiomics-engine/tests/real_sacurine_zenodo_xcms_parameter_sensitivity.R")'
+      - name: Check actual-simulator DESeq2 oracle cohorts are truly paired and deterministic
+        run: |
+          Rscript multiomics-engine/tests/test_rnaseq_deseq2_null_oracle.R
+          Rscript -e 'parse(file="multiomics-engine/validation/rnaseq_deseq2_null_normalization_oracle.R")'
       - name: Test R backend routes and mandatory safeguards
         run: Rscript multiomics-engine/tests/backend_smoke.R
       - name: Test JS-to-R explanatory reference
