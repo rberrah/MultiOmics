@@ -178,6 +178,24 @@ stopifnot(concordance$sign_agreement_among_any_significant == 1)
 stopifnot(grepl("not averaged", concordance$interpretation, fixed=TRUE))
 
 # -------------------------------------------------------------------------
+# 2b) Complete-table contract consumed by browser native projection
+# -------------------------------------------------------------------------
+native_fixture <- data.frame(
+  feature=c("F1","F2"),
+  estimate=c(0.25,-0.10),
+  p_value=c(0.004,0.05),
+  q_bh=c(0.008,0.05),
+  stringsAsFactors=FALSE
+)
+native_contract <- reference_complete_table(native_fixture, original_features=2L)
+stopifnot(isTRUE(native_contract$referenceTableComplete))
+stopifnot(identical(native_contract$referenceTableRows,2L))
+stopifnot(identical(native_contract$referenceOriginalFeatureCount,2L))
+stopifnot(is.character(native_contract$referenceTableCsv),
+          grepl("feature,estimate,p_value,q_bh",native_contract$referenceTableCsv,fixed=TRUE))
+stopifnot(grepl("F1,0.25,0.004,0.008",native_contract$referenceTableCsv,fixed=TRUE))
+
+# -------------------------------------------------------------------------
 # 3) Browser-to-R payload routing, without requiring heavy packages in CI
 # -------------------------------------------------------------------------
 metadata_csv <- paste(
@@ -242,7 +260,7 @@ payload <- list(
 
 result <- run_backend_analysis(payload)
 stopifnot(identical(result$status, "ok"))
-stopifnot(identical(result$engine$version, "1.4.0"))
+stopifnot(identical(result$engine$version, "1.5.0"))
 stopifnot(all(c("transcriptomics","proteomics") %in% names(result$preprocessing)))
 stopifnot("transcriptomics_differential" %in% names(result$methods))
 stopifnot("proteomics_differential" %in% names(result$methods))
