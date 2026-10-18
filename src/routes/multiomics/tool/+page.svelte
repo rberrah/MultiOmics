@@ -1084,6 +1084,7 @@
       const preflight = evaluateReferenceBackendHealth(health, {
         intent: analysisIntent,
         objective,
+        outcomeType,
         designType,
         hasTranscriptomics: Boolean(files.transcriptomics),
         hasProteomics: Boolean(files.proteomics),
