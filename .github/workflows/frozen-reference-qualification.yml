@@ -6,6 +6,9 @@ on:
       - 'multiomics-engine/environment/**'
       - 'multiomics-engine/tests/bioconductor_null_calibration.R'
       - 'multiomics-engine/tests/bioconductor_mixed_truth_reference.R'
+      - 'multiomics-engine/reference_inference_audit.R'
+      - 'multiomics-engine/tests/test_reference_inference_audit.R'
+      - 'multiomics-engine/validation/rnaseq_bh_oracle.R'
       - '.github/workflows/frozen-reference-qualification.yml'
   # The release assembler requires an independently reproducible passing
   # scientific result on the *exact* immutable published SHA, even when a
@@ -51,6 +54,10 @@ jobs:
           '
       - name: Verify exact recorded versions of all pinned reference packages (fail closed)
         run: Rscript multiomics-engine/environment/check_reference_runtime.R verify
+      - name: Reject forged R q-values and verify true-null BH algorithmic oracle
+        run: |
+          Rscript multiomics-engine/tests/test_reference_inference_audit.R
+          Rscript multiomics-engine/validation/rnaseq_bh_oracle.R tmp/reference-methods
       - name: Run real global-null DESeq2, edgeR-QL and limma-voom checks
         run: Rscript multiomics-engine/tests/bioconductor_null_calibration.R
       - name: Run independent mixed-truth FDR, power and effect-direction checks
