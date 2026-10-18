@@ -35,6 +35,15 @@ jobs:
       MULTIOMICS_VALIDATION_OUTPUT: tmp/reference-methods
     steps:
       - uses: actions/checkout@v5
+      - name: Parse all native BH audit scripts before costly R installation
+        run: |
+          Rscript -e 'for(f in c(
+            "multiomics-engine/reference_inference_audit.R",
+            "multiomics-engine/validation/rnaseq_bh_oracle.R",
+            "multiomics-engine/tests/test_reference_inference_audit.R",
+            "multiomics-engine/tests/bioconductor_null_calibration.R",
+            "multiomics-engine/tests/bioconductor_mixed_truth_reference.R"
+          )) parse(file=f); cat("R inference audit syntax PASS\\n")'
       - name: Install required genuine R packages only under pinned Bioconductor
         shell: bash
         run: |
