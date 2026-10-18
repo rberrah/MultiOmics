@@ -1,0 +1,36 @@
+name: Independent quantitative audit of Sacurine 12-injection native LC-MS QA evidence
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/audit_sacurine_12raw_evidence.py'
+      - 'scripts/test_audit_sacurine_12raw_evidence.py'
+      - '.github/workflows/sacurine-12raw-qa-audit.yml'
+      - '.github/workflows/sacurine-zenodo-12raw-xcms.yml'
+      - 'docs/multiomics/SACURINE_ZENODO_V3_REAL_INSTRUMENT_FINDINGS_20261018.md'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/audit_sacurine_12raw_evidence.py'
+      - 'scripts/test_audit_sacurine_12raw_evidence.py'
+      - '.github/workflows/sacurine-12raw-qa-audit.yml'
+      - '.github/workflows/sacurine-zenodo-12raw-xcms.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  independent-qa-controls:
+    name: Reject fabricated QC, missing blanks and false scientific PASS reports
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Compile and execute adversarial source-independent scientific QA controls
+        run: |
+          python3 -m py_compile scripts/audit_sacurine_12raw_evidence.py scripts/test_audit_sacurine_12raw_evidence.py
+          python3 scripts/test_audit_sacurine_12raw_evidence.py
