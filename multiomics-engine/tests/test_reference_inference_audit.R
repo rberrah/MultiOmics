@@ -22,8 +22,8 @@ features <- sprintf("GENE%03d",seq_len(10L))
 p <- c(.001,.002,.02,.08,.1,.3,.4,.5,.7,.95)
 q <- stats::p.adjust(p,method="BH")
 base <- data.frame(feature=features,p=p,q=q,stringsAsFactors=FALSE)
-check <- function(x,features=features) audit_native_r_bh(
-  x,"DESeq2","test",1L,"feature","p","q",features)
+check <- function(x,expected_features=features) audit_native_r_bh(
+  x,"DESeq2","test",1L,"feature","p","q",expected_features)
 out <- check(base)
 stopifnot(nrow(out)==1L,out$source_features==10L,
   out$finite_raw_p==10L,out$finite_adjusted_q==10L,
