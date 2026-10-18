@@ -4,13 +4,13 @@ import {test,expect} from '@playwright/test';
 test('confirmatory R check rejects an unrelated 200-OK service before uploading study data',async({page})=>{
   let uploaded=0;
   await page.route('http://127.0.0.1:8787/health',async route=>{
-    await route.fulfill({status:200,contentType:'application/json',
+    await route.fulfill({status:200,headers:{'Access-Control-Allow-Origin':'*'},contentType:'application/json',
       body:JSON.stringify({status:'ok',version:'1.4.0',packages:{DESeq2:true},
         capabilities:{reference_analysis:true}})});
   });
   await page.route('http://127.0.0.1:8787/run',async route=>{
     uploaded++;
-    await route.fulfill({status:200,contentType:'application/json',
+    await route.fulfill({status:200,headers:{'Access-Control-Allow-Origin':'*'},contentType:'application/json',
       body:JSON.stringify({status:'ok',methods:{}})});
   });
   await page.goto('/multiomics/tool?lang=fr');
@@ -28,7 +28,7 @@ test('confirmatory R check rejects an unrelated 200-OK service before uploading 
 
 test('recognized R health remains only method readiness, never scientific certification',async({page})=>{
   await page.route('http://127.0.0.1:8787/health',async route=>{
-    await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+    await route.fulfill({status:200,headers:{'Access-Control-Allow-Origin':'*'},contentType:'application/json',body:JSON.stringify({
       status:'ok',engine:'PMx Explain reference R backend',version:'1.4.0',
       runtime:{RVersion:'4.5.2',RPlatform:'x86_64'},
       capabilities:{reference_analysis:true,mofa2_orientation_contract:'mofa2-feature-rows-sample-columns-v2'},
