@@ -1,0 +1,64 @@
+name: Independent DESeq2 global-null size-factor oracle diagnostic
+
+on:
+  pull_request:
+    paths:
+      - 'multiomics-engine/rnaseq_deseq2_null_oracle.R'
+      - 'multiomics-engine/tests/test_rnaseq_deseq2_null_oracle.R'
+      - 'multiomics-engine/validation/rnaseq_deseq2_null_normalization_oracle.R'
+      - '.github/workflows/deseq2-null-normalization-oracle.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'multiomics-engine/rnaseq_deseq2_null_oracle.R'
+      - 'multiomics-engine/tests/test_rnaseq_deseq2_null_oracle.R'
+      - 'multiomics-engine/validation/rnaseq_deseq2_null_normalization_oracle.R'
+      - '.github/workflows/deseq2-null-normalization-oracle.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  paired-de-oracle:
+    name: 96 independent global-null synthetic cohorts, paired native DESeq2 fits
+    runs-on: ubuntu-latest
+    timeout-minutes: 105
+    container:
+      image: bioconductor/bioconductor_docker:RELEASE_3_22-r-4.5.2@sha256:e34177896c1579f66d48b756e4229b58237499183a089da084af72d7aba1d40a
+    steps:
+      - uses: actions/checkout@v5
+      - name: Reject missing or mismatched paired simulation labels before package setup
+        run: |
+          Rscript -e 'for(f in c("multiomics-engine/rnaseq_deseq2_null_oracle.R","multiomics-engine/tests/test_rnaseq_deseq2_null_oracle.R","multiomics-engine/validation/rnaseq_deseq2_null_normalization_oracle.R"))parse(file=f);cat("Paired native source syntax PASS\\n")'
+          Rscript multiomics-engine/tests/test_rnaseq_deseq2_null_oracle.R
+      - name: Install exact native reference Bioconductor packages (not a substitute implementation)
+        run: |
+          Rscript -e '
+            stopifnot(identical(as.character(getRversion()),"4.5.2"),
+                      identical(as.character(BiocManager::version()),"3.22"))
+            required_cran<-c("jsonlite","statmod","plumber","knitr","rmarkdown")
+            missing<-required_cran[!vapply(required_cran,requireNamespace,logical(1),quietly=TRUE)]
+            if(length(missing))install.packages(missing,repos="https://cloud.r-project.org")
+            required_bioc<-c("DESeq2","edgeR","limma","airway")
+            missing<-required_bioc[!vapply(required_bioc,requireNamespace,logical(1),quietly=TRUE)]
+            if(length(missing))BiocManager::install(missing,ask=FALSE,update=FALSE,quiet=TRUE)
+            stopifnot(all(vapply(c(required_cran,required_bioc),
+                                 requireNamespace,logical(1),quietly=TRUE)))
+          '
+      - name: Verify frozen full 171-package native R dependency closure
+        run: Rscript multiomics-engine/environment/check_reference_runtime.R verify
+      - name: Audit DESeq2 native default versus TRUE synthetic depth on paired exact null data
+        run: |
+          Rscript multiomics-engine/validation/rnaseq_deseq2_null_normalization_oracle.R \
+            tmp/deseq2-oracle-normalization
+      - name: Preserve original negative findings and uncertainty, not fitted patient data
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: native-DESeq2-global-null-depth-oracle-${{ github.sha }}
+          path: |
+            tmp/reference-runtime/
+            tmp/deseq2-oracle-normalization/
+          if-no-files-found: warn
+          retention-days: 90
