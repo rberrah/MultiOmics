@@ -5,6 +5,25 @@
 # REPORTED as eligible for adjustment (finite native q values). This handles
 # DESeq2 independent filtering explicitly and MUST NOT erase that filtering.
 #
+# Independent implementation of the Benjamini-Hochberg step-up formula.
+# Deliberately does NOT call stats::p.adjust: that function may already be
+# used by the reference packages and would not be an independent algorithm.
+independent_bh_adjust <- function(p) {
+  if (!is.numeric(p) || !length(p) ||
+      anyNA(p) || any(!is.finite(p)) || any(p<0 | p>1))
+    stop("BH requires a nonempty vector of finite unadjusted probabilities.")
+  n <- length(p)
+  ord <- order(p,seq_along(p),method="radix")
+  sorted <- p[ord]
+  ranked <- sorted * (as.numeric(n)/seq_len(n))
+  adjusted <- pmin(1,rev(cummin(rev(ranked))))
+  result <- numeric(n)
+  result[ord] <- adjusted
+  names(result) <- names(p)
+  result
+}
+
+
 # Important: exact BH replay establishes numerical/provenance integrity, NOT
 # calibrated null p-values or nominal FDR control in real studies.
 audit_native_r_bh <- function(tab, method, scenario, replicate,
@@ -39,7 +58,7 @@ audit_native_r_bh <- function(tab, method, scenario, replicate,
   adjusted <- is.finite(q)
   if (!any(adjusted) || any(adjusted & !is.finite(p)))
     stop("Native finite q-values require at least one finite raw p-value.")
-  replay <- stats::p.adjust(p[adjusted], method="BH")
+  replay <- independent_bh_adjust(p[adjusted])
   deviation <- max(abs(replay-q[adjusted]))
   if (!is.finite(deviation) || deviation>tolerance)
     stop(sprintf(
@@ -89,7 +108,11 @@ run_independent_bh_oracle <- function(replicates=2048L, features=200L,
     for(source in c("uniform_null","anticonservative_beta_half")) {
       p <- if(source=="uniform_null") stats::runif(features)
            else stats::rbeta(features,shape1=0.5,shape2=1)
-      q <- stats::p.adjust(p,method="BH")
+      q <- independent_bh_adjust(p)
+      # Orthogonal implementation comparison: analytic BH step-up formula vs
+      # the R package utility. This is algorithmic, not model calibration.
+      if (max(abs(q-stats::p.adjust(p,method="BH")))>1e-12)
+        stop("Independent BH step-up formula disagrees with stats::p.adjust.")
       next_index <- next_index+1L
       draws[[next_index]] <- data.frame(
         mechanism=source,replicate=as.integer(rep),
