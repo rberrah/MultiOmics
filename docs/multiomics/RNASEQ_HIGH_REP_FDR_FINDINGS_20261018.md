@@ -7,7 +7,7 @@
 - Protocole préspécifié : [RNASEQ_HIGH_REP_FDR_PRECISION_20261018.md](RNASEQ_HIGH_REP_FDR_PRECISION_20261018.md), fusionné par [PR #43](https://github.com/rberrah/MultiOmics/pull/43).
 - Exécution des calculs scientifiques **réels** : [GitHub Actions #39143010669](https://github.com/rberrah/MultiOmics/actions/runs/39143010669), passée après les 1 728 fits R.
 - [Artefact original de 17 fichiers, dont 576 jeux simulés, q-values auditées et rapports](https://github.com/rberrah/MultiOmics/actions/runs/39143010669/artifacts/12142955814) (rétention Actions 90 jours, à archiver durablement avant expiration).
-- SHA des sources **réellement exécutées**, avant fusion : `796ba2c89cb65852016380b61615ace7aff50655`. Fusion squash PR #43 : `0845c88d957bc6bea91bd1e7e5877e0564c8ca14`.
+- Le `GITHUB_SHA` consigné par le job est **le commit de fusion de test GitHub Actions** `796ba2c89cb65852016380b61615ace7aff50655` (parents : base `bf7cf6a68420f7d3b504463e0893c4c04b0e8915` + tête PR `18606ca0cebb034aaefc7565403e9b160c075597`). Il ne s'agit **pas** du commit source de la branche. Le commit squash fusionné dans `main` est `0845c88d957bc6bea91bd1e7e5877e0564c8ca14`.
 - ZIP GitHub Actions : SHA-256 observé `ea6ee39580999bb94523d0d41772d497d16efefeeef05fd2712d5b63f0bb2fb4` ; empreinte du fichier compressé, non des CSV individuellement.
 - R 4.5.2 / Bioconductor 3.22 dans le conteneur épinglé, 400 gènes, contrastes natifs `~ batch + condition` ; packages et graines exacts conservés dans l'artefact.
 - Trois méthodes sur **les mêmes données simulées**, et non trois groupes d'études indépendants. Nouvelles répétitions 1001 à 1128 (nul global) et 1001 à 1064 (vérité mixte).
