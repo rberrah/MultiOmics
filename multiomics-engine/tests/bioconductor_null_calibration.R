@@ -10,6 +10,7 @@
 # fast browser/Node simulation benchmarks, and must not certify user studies.
 source("multiomics-engine/advanced_methods.R")
 source("multiomics-engine/null_reference_metrics.R")
+source("multiomics-engine/reference_inference_audit.R")
 for (pkg in c("DESeq2","edgeR","limma","statmod")) {
   if (!requireNamespace(pkg,quietly=TRUE))
     stop("Missing real reference R package: ",pkg)
@@ -80,6 +81,7 @@ make_null_study <- function(scenario,replicate,scenario_index) {
 }
 
 records <- list()
+bh_integrity_records <- list()
 root <- tempfile("multiomics_null_reference_")
 dir.create(root)
 output <- Sys.getenv("MULTIOMICS_VALIDATION_OUTPUT","")
@@ -98,10 +100,18 @@ for (s in seq_len(nrow(cases))) {
       design_formula=~batch+condition,coefficient="conditiontreated")
     e <- run_edger_ql_counts(x,meta,paste0(prefix,"_e"),
       design_formula=~batch+condition,coefficient="conditiontreated")
-    methods <- list(DESeq2=d$results$padj,
-      limma_voom=v$results[["adj.P.Val"]],edgeR_QL=e$results$FDR)
-    for (method in names(methods)) {
-      q <- as.numeric(methods[[method]])
+    native <- list(
+      DESeq2=list(data=d$results,p="pvalue",q="padj"),
+      limma_voom=list(data=v$results,p="P.Value",q="adj.P.Val"),
+      edgeR_QL=list(data=e$results,p="PValue",q="FDR")
+    )
+    for (method in names(native)) {
+      entry <- native[[method]]
+      integrity <- audit_native_r_bh(entry$data,method,scenario,replicate,
+        feature_col="feature",p_col=entry$p,q_col=entry$q,
+        expected_features=genes)
+      bh_integrity_records[[length(bh_integrity_records)+1L]] <- integrity
+      q <- as.numeric(entry$data[[entry$q]])
       if(length(q)!=length(genes) || any(is.finite(q)&(q<0 | q>1)))
         stop("Invalid adjusted p-values: ",scenario," / ",method)
       usable <- sum(is.finite(q))
@@ -123,8 +133,15 @@ for (s in seq_len(nrow(cases))) {
   }
 }
 results <- do.call(rbind,records)
+integrity <- do.call(rbind,bh_integrity_records)
+stopifnot(nrow(integrity)==nrow(results),
+  all(integrity$native_bh_integrity_verified),
+  all(!integrity$fdr_calibration_certified))
 summary <- null_reference_summary(results,min_replicates=8L)
 if (nzchar(output)) {
+  utils::write.csv(integrity,
+    file.path(output,"bioconductor_null_native_bh_integrity.csv"),
+    row.names=FALSE)
   utils::write.csv(results,file.path(output,"bioconductor_null_replicates.csv"),
                    row.names=FALSE)
   utils::write.csv(summary,file.path(output,"bioconductor_null_summary.csv"),
@@ -136,6 +153,9 @@ if (nzchar(output)) {
     paste("alpha_BH:",0.05),
     paste("gross_regression_threshold:",0.35),
     paste("reanalysis_scope: reference R global-null simulation only"),
+    "native_BH_audit: independent base R replay on finite adjusted-q features",
+    "DESeq2_independent_filtering: raw p can remain finite when adjusted q excluded",
+    "integrity_not_calibration: exact BH matching says nothing about null p-value uniformity",
     paste("date_UTC:",format(Sys.time(),tz="UTC",usetz=TRUE)),
     "interpretation: no simulated cohort gives scientific certification",
     capture.output(sessionInfo())),
