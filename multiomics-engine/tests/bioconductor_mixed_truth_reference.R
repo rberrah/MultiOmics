@@ -11,6 +11,15 @@ for(pkg in c("DESeq2","edgeR","limma","statmod"))
   if(!requireNamespace(pkg,quietly=TRUE))
     stop("Required REAL R package unavailable: ",pkg)
 
+# A larger, predeclared research campaign uses fresh simulations rather
+# than re-labelling the eight-study regression-screen seeds.
+raw_offset <- Sys.getenv("MULTIOMICS_MIXED_REFERENCE_REPLICATE_OFFSET","0")
+if(!grepl("^[0-9]+$",raw_offset))
+  stop("MULTIOMICS_MIXED_REFERENCE_REPLICATE_OFFSET must be a non-negative integer.")
+replicate_offset <- suppressWarnings(as.integer(raw_offset))
+if(length(replicate_offset)!=1L || !is.finite(replicate_offset) ||
+   replicate_offset<0L || replicate_offset>9000L)
+  stop("Invalid mixed-truth replicate offset.")
 raw_repeats <- Sys.getenv("MULTIOMICS_MIXED_REFERENCE_REPLICATES","12")
 repeats <- suppressWarnings(as.integer(raw_repeats))
 if(!grepl("^[0-9]+$",raw_repeats) || !is.finite(repeats) || repeats<8L)
@@ -64,7 +73,8 @@ integrity_records <- list()
 
 for(s in seq_len(nrow(scenarios))) {
   scenario <- scenarios$scenario[[s]]
-  for(rep in seq_len(repeats)) {
+  for(iteration in seq_len(repeats)) {
+    rep <- as.integer(replicate_offset + iteration)
     study <- make_study(s,rep)
     prefix <- file.path(root,sprintf("%s_%03d",scenario,rep))
     d <- run_deseq2_counts(study$x,study$meta,paste0(prefix,"_d"),
@@ -116,7 +126,7 @@ for(s in seq_len(nrow(scenarios))) {
       n_planted_alternatives=sum(study$truth!=0),
       stringsAsFactors=FALSE)
     cat(sprintf("MIXED TRUTH %s rep %02d/%02d | DESeq2 FDR=%.3f power=%.3f\n",
-        scenario,rep,repeats,
+        scenario,iteration,repeats,
         records[[length(records)-2L]]$false_discovery_proportion,
         records[[length(records)-2L]]$power))
   }
@@ -149,6 +159,9 @@ if(nzchar(out)) {
     file.path(out,"bioconductor_mixed_truth_scenarios.csv"),row.names=FALSE)
   writeLines(c(
     paste("github_sha:",Sys.getenv("GITHUB_SHA","not_recorded")),
+    paste("replicate_offset:",replicate_offset),
+    paste("per_scenario_repetitions:",repeats),
+    "prespecified_new_studies: distinct seeds from prior short screens when offset>0",
     "Design: 20 control / 20 treated, each independent biological subject",
     "Primary contrast: treated vs control with measured balanced batch",
     "Planted: 1%, 5%, 20% alternatives, plus and minus log2 FC 1.5",
