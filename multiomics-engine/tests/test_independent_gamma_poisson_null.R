@@ -20,6 +20,7 @@ for(s in scenarios) {
      independent_gp_null_study(s,5002L)$counts))
 }
 set.seed(224488L)
+set.seed(76543L)
 old<-get(".Random.seed",envir=.GlobalEnv)
 independent_gp_null_study("gp_balanced_heterogeneous",5003L)
 stopifnot(identical(get(".Random.seed",envir=.GlobalEnv),old))
