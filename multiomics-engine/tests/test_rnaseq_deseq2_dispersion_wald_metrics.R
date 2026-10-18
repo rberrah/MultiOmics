@@ -16,7 +16,7 @@ rows<-do.call(rbind,lapply(seq_along(scenarios),function(k) {
       wald_stat_squared_mean=c(1.15,.99,1.01),
       dispersion_log_rmse=c(.2,0,0),
       depth_factor_log_rmse=c(.05,.05,0),
-      native_bh_integrity_verified=TRUE))))
+      native_bh_integrity_verified=TRUE)))
 }))
 x<-rnaseq_dispersion_wald_summary(rows)
 stopifnot(nrow(x)==9L,
