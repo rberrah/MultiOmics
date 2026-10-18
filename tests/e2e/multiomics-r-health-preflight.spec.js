@@ -21,8 +21,11 @@ test('confirmatory R check rejects an unrelated 200-OK service before uploading 
   await expect(page.getByLabel(/Mode backend R|R backend mode/)).toHaveValue('required');
   await page.getByTestId('multiomics-run-options').getByRole('button',{name:'Tester'}).click();
   await expect(page.getByTestId('multiomics-run-options')).toContainText('ne présente pas le contrat attendu');
+  // The loaded demo is longitudinal; the new fail-closed confirmatory gate
+  // must also prevent submitting an unsupported non-native projection.
   await page.getByTestId('multiomics-run').click();
-  await expect(page.locator('.error').filter({hasText:'contrat attendu'})).toBeVisible({timeout:25000});
+  await expect(page.getByTestId('multiomics-confirmatory-projection-unsupported')).toBeVisible();
+  await expect(page.locator('.error').filter({hasText:'mode confirmatoire'})).toBeVisible({timeout:25000});
   expect(uploaded).toBe(0);
 });
 
