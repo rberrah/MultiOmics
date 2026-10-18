@@ -130,6 +130,11 @@ jobs:
         run: |
           Rscript multiomics-engine/tests/test_rnaseq_deseq2_dispersion_component_metrics.R
           Rscript -e 'parse(file="multiomics-engine/validation/rnaseq_deseq2_dispersion_components.R")'
+      - name: Reject simulated false Gamma-Poisson cohorts and verify heterogeneous NB moments
+        run: |
+          Rscript multiomics-engine/tests/test_independent_gamma_poisson_null.R
+          Rscript multiomics-engine/tests/test_independent_gamma_poisson_metrics.R
+          Rscript -e 'parse(file="multiomics-engine/validation/rnaseq_independent_gamma_poisson_dispersion_components.R")'
       - name: Test R backend routes and mandatory safeguards
         run: Rscript multiomics-engine/tests/backend_smoke.R
       - name: Test JS-to-R explanatory reference
