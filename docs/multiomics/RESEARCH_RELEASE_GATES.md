@@ -20,6 +20,26 @@ Les changements MultiOmics suivants ont été fusionnés dans `main` après des 
 
 L'ancienne liste de dépendances #54/#81/#82/#83/#84/#86/#87 correspond aux branches de développement, **pas** à leur intégration effective. Les validations de branche ne remplacent pas la recette du dernier commit déployé. Suivre le SHA de `main`, ses workflows de déploiement, puis le smoke test public. **Ne jamais convertir des CI vertes en certification statistique ou clinique.**
 
+## Diagnostic statistique complémentaire — dispersion et test de Wald (18 octobre 2026)
+
+La [PR #53](https://github.com/rberrah/MultiOmics/pull/53)
+a exécuté **288 vrais ajustements DESeq2** à partir de **96 jeux nuls
+synthétiques indépendants**, en comparant les résultats avec
+dispersion estimée et avec **vraie dispersion du générateur NB**
+sur les mêmes matrices. Les taux observés de jeux présentant au
+moins un faux appel sont passés de **4/32 à 1/32** (plan équilibré),
+**5/32 à 1/32** (forte dispersion) et **3/32 à 1/32** (lot/groupes
+déséquilibrés) lorsque la vraie dispersion était fournie.
+Le moment moyen de la statistique de Wald au carré s'est rapproché de
+1 dans les trois plans. Ces indices suggèrent un rôle des
+estimations de dispersion **dans ces simulateurs**, mais ne
+fournissent ni identification causale complète ni garantie de FDR
+à 5 % dans une étude réelle, les IC binomiaux restant larges.
+
+Voir les [résultats natifs, mesures de dispersion et limites](DESEQ2_DISPERSION_WALD_NATIVE_FINDINGS_20261018.md).
+La **revue statistique humaine reste obligatoire** ; aucun
+paramètre de production n'a été changé.
+
 ## Preuves complémentaires indépendantes — LC-MS et mécanisme FDR
 
 La [sensibilité sur les douze chromatogrammes originaux Sacurine](REAL_EXTERNAL_SENSITIVITY_AND_NULL_ORACLE_FINDINGS_20261018.md)
