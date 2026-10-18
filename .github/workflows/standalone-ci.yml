@@ -135,6 +135,11 @@ jobs:
           Rscript multiomics-engine/tests/test_independent_gamma_poisson_null.R
           Rscript multiomics-engine/tests/test_independent_gamma_poisson_metrics.R
           Rscript -e 'parse(file="multiomics-engine/validation/rnaseq_independent_gamma_poisson_dispersion_components.R")'
+      - name: Verify independent Gamma-Poisson seed, NB moments and dispersion source FDR contracts
+        run: |
+          Rscript multiomics-engine/tests/test_independent_gamma_poisson_null.R
+          Rscript multiomics-engine/tests/test_independent_gp_dispersion_summary.R
+          Rscript -e 'parse(file="multiomics-engine/validation/rnaseq_independent_gp_dispersion_components.R")'
       - name: Test R backend routes and mandatory safeguards
         run: Rscript multiomics-engine/tests/backend_smoke.R
       - name: Test JS-to-R explanatory reference
