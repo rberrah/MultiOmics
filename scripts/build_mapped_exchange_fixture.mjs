@@ -27,7 +27,9 @@ const project={
   }
 };
 const exchange=await buildDownstreamExchange(project);
-if(!exchange.summary.structural_exchange_valid||exchange.summary.pk_ready)
+if(!exchange.summary.structural_exchange_valid||exchange.summary.pk_ready||
+   !exchange.summary.pk_temporal_numeric_compatible||
+   !exchange.summary.explicit_time_origin_complete)
   throw Error('Mapped fixture readiness boundary changed unexpectedly.');
 await fs.rm(out,{recursive:true,force:true});
 for(const entry of exchange.entries){
