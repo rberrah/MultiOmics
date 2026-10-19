@@ -42,7 +42,7 @@ jobs:
         env:
           PMX_PAIRED_AIRWAY_REPORT_DIR: /tmp/paired-airway-evidence
         run: Rscript multiomics-engine/tests/test_public_airway_paired_backend.R
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
       - name: Install independent research ZIP dependencies

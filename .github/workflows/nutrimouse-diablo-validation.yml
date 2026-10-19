@@ -63,7 +63,7 @@ jobs:
         run: |
           Rscript multiomics-engine/tests/test_real_nutrimouse_frozen_individual_score.R \
             external/mixOmics tmp/multiomics/real-nutrimouse-frozen-score
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
       - name: Independently recompute heldout scores, validate frozen hashes and export original assays
