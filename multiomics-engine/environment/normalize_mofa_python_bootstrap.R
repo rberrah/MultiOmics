@@ -24,12 +24,12 @@ proc <- basilisk::basiliskStart(env)
 on.exit(basilisk::basiliskStop(proc),add=TRUE)
 
 result <- basilisk::basiliskRun(proc,function(expected){
-  reticulate::py$multiomics_expected_bootstrap_json <-
-    jsonlite::toJSON(as.list(expected),auto_unbox=TRUE)
+  expected_json <- jsonlite::toJSON(as.list(expected),auto_unbox=TRUE)
+  Sys.setenv(MULTIOMICS_EXPECTED_BOOTSTRAP_JSON=expected_json)
   reticulate::py_run_string("
-import json, re, subprocess, sys
+import json, os, re, subprocess, sys
 from importlib import metadata
-pins = json.loads(multiomics_expected_bootstrap_json)
+pins = json.loads(os.environ['MULTIOMICS_EXPECTED_BOOTSTRAP_JSON'])
 req = [f\"{name}=={version}\" for name, version in pins.items()]
 subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--upgrade', '--no-user', *req])
 actual = {}
