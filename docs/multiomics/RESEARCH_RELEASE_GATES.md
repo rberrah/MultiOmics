@@ -1,5 +1,18 @@
 # MultiOmics — critères de sortie pour un logiciel de recherche (13 octobre 2026)
 
+
+## Research v1 freeze status — 19 October 2026
+
+This file retains the chronological evidence, including unfavorable results.
+The current freeze decision is defined by
+[RESEARCH_V1_FREEZE_20261019.md](RESEARCH_V1_FREEZE_20261019.md) and
+`research-v1-manifest.json`. Research v1 freezes the qualified software,
+native-R/provenance contracts and their explicit limitations; it does **not**
+upgrade historical simulations or biological examples into universal
+statistical or clinical validation. Issues #44, #47 and #20 remain known
+limits with narrower post-v1 research objectives.
+
+
 **Objectif** : produire une analyse mono- ou multi-omique exploitable, transparente et reproductible pour un article scientifique *du chercheur*. Ce document n'annonce ni une certification universelle des analyses, ni un article sur l'outil.
 
 ## Décision de diffusion
