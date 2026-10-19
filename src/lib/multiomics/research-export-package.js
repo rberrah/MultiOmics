@@ -496,7 +496,13 @@ export async function buildResearchBundle({result,portableProject,referenceRepla
   try {
     const exchange=await buildDownstreamExchange(portableProject,{individualSignatures:result.individualSignatures??null});
     for(const entry of exchange.entries)add(entry.name,entry.data);
-    downstreamExchange={status:'included',schema_version:'1.0.0',matrices:exchange.manifest.matrices.map(m=>m.omic), individual_signatures:exchange.manifest.files.individual_signatures?'explicit_per_assay_schema_checked':'not_supplied'};
+    downstreamExchange={
+      status:'included',
+      schema_version:'1.0.0',
+      matrices:exchange.manifest.matrices.map(m=>m.omic),
+      individual_signatures:exchange.manifest.files.individual_signatures?'explicit_per_assay_schema_checked':'not_supplied',
+      omics2pk_readiness:exchange.summary
+    };
   } catch(error) {
     // Never silently drop explicitly provided scores: failure must block
     // the archive instead of claiming an apparently complete dossier.
@@ -509,6 +515,19 @@ export async function buildResearchBundle({result,portableProject,referenceRepla
     const bytes=encoder.encode(data);
     files[name]={sha256:await sha256(bytes),bytes:bytes.length};
   }
+  const primaryTableSources=Object.fromEntries(
+    Object.entries(result.layers).map(([layer,entry])=>[
+      layer,entry.numericalProvenance==='exact_native_r_reference_table'
+        ? {engine:'native_R',method:entry.primaryReferenceMethodKey}
+        : {engine:'browser_exploratory',method:entry.inferenceMethod||null}
+    ])
+  );
+  const primaryEngines=Object.values(primaryTableSources).map(source=>source.engine);
+  const inferenceScope=primaryEngines.length&&primaryEngines.every(engine=>engine==='native_R')
+    ? 'all primary layer tables are complete native R reference tables; QC and ancillary browser calculations remain separate'
+    : primaryEngines.some(engine=>engine==='native_R')
+      ? 'mixed primary numerical sources: complete native R tables for some layers and browser-exploratory tables for others'
+      : 'browser-exploratory primary layer tables; no complete native R primary table projected';
   const manifest={
     schema:'pmx-multiomics-research-dossier/v1',
     created_at:result.generatedAt||null,
@@ -518,12 +537,7 @@ export async function buildResearchBundle({result,portableProject,referenceRepla
     input_file_sha256:Object.fromEntries(
       Object.entries(portableProject.inputs).map(([key,f])=>[key,f.sha256])),
     browser_layer_rows:count,
-    primary_table_sources:Object.fromEntries(
-      Object.entries(result.layers).map(([layer,entry])=>[
-        layer,entry.numericalProvenance==='exact_native_r_reference_table'
-          ? {engine:'native_R',method:entry.primaryReferenceMethodKey}
-          : {engine:'browser_exploratory',method:entry.inferenceMethod||null}
-      ])),
+    primary_table_sources:primaryTableSources,
     r_source_replay:replay.status,
     browser_svg_snapshots:{count:figureSnapshots.length,source:'original_rendered_Svelte_SVG',r_replayable:false},
     exact_r_numeric_and_figure_equivalence_certified:false,
@@ -532,10 +546,10 @@ export async function buildResearchBundle({result,portableProject,referenceRepla
     r_reference_full_feature_tables_exported:fullR.length>0,
     r_reference_full_tables:fullR.map(({name,method_key,rows,columns,original_features,excluded_before_fit})=>
       ({name,method_key,rows,columns,original_features,excluded_before_fit})),
-    note_on_r_reference:'Only reference_r/*.csv with independently checked row counts are full R method tables. Missing or oversized R methods remain previews and are NOT publication-complete.',
+    note_on_r_reference:'Only native tables that pass the explicit completeness, row-count and identifier checks are exported as complete R method tables. Preview-only responses are never promoted. Oversized native tables may require the local R archive path/hash recorded by the backend.',
 
     files,
-    inference_scope:'browser exploratory tables; any R backend output is separately recorded in full JSON',
+    inference_scope:inferenceScope,
     clinical_validation:false,
     confirmatory_certification:false,
     real_backend_proved_by_this_package:false,
@@ -548,7 +562,7 @@ export async function buildResearchBundle({result,portableProject,referenceRepla
       'Run the included offline Python verifier to check the original files and complete CSV counts; this does not certify statistical validity.',
       'ZIP source project contains exact original uploaded CSV/TSV and parameters, but not a fresh inference when re-imported.',
       'For R reference methods, also archive version-locked backend and package library.',
-      'For R reference differential results, obtain full fitted tables separately; the backend currently returns top-frame previews of up to 100 rows, not exhaustive reference tables.',
+      'Complete native R tables are included only when the backend completeness/count contract passes; preview-only or unavailable tables are never described as publication-complete. Oversized tables may remain in the authorized local R archive with an ID/SHA-256 reference.',
       'Never publish the bundle publicly without reviewing subjects, assays and patient confidentiality.'
     ]
   };
