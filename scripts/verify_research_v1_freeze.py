@@ -30,7 +30,7 @@ def main():
     assert manifest["release"]["softwareVersion"] == RELEASE_VERSION
     assert manifest["release"]["freezeDate"] == DATE
     assert manifest["release"]["intendedTag"] == "research-v1.0.0"
-    assert re.search(rf"(?m)^version:\\s*[\"']?{re.escape(current_version)}[\"']?\\s*$", citation)
+    assert re.search(rf"(?m)^version:\s*[\"']?{re.escape(current_version)}[\"']?\s*$", citation)
     assert re.search(r"(?m)^date-released:\s*[\"']?2026-10-19[\"']?\s*$", citation)
 
     assert runtime["rVersion"] == "4.5.2"
