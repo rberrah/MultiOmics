@@ -225,44 +225,80 @@ meta$condition <- factor(meta$condition,levels=groups_sorted)
 direct <- lapply(features,function(feature) {
   dat <- meta
   dat$value <- matrix[,feature]
-  fit <- lmerTest::lmer(
-    value ~ condition*time + (1|subject_id),data=dat,REML=FALSE,
-    control=lme4::lmerControl(optimizer="bobyqa")
-  )
-  if(lme4::isSingular(fit,tol=1e-4) || !is.null(fit@optinfo$conv$lme4$messages))
-    stop(paste("Independent lmer singular/nonconvergent:",feature))
-  co <- summary(fit)$coefficients
-  if(!(expected_term %in% rownames(co))) stop("Missing direct group-by-time term.")
-  z <- co[expected_term,,drop=FALSE]
-  data.frame(
+  base_row <- data.frame(
     feature=feature,term=expected_term,
-    estimate=unname(z[1,"Estimate"]),
-    std_error=unname(z[1,"Std. Error"]),
-    df=unname(z[1,"df"]),
-    statistic=unname(z[1,"t value"]),
-    p_value=unname(z[1,"Pr(>|t|)"]),
-    random_effect_structure="random_intercept",
+    estimate=NA_real_,std_error=NA_real_,df=NA_real_,
+    statistic=NA_real_,p_value=NA_real_,q_bh=NA_real_,
+    random_effect_structure=NA_character_,
+    status="singular_or_nonconvergent_fit",
     stringsAsFactors=FALSE
   )
+  fit <- try(suppressWarnings(lmerTest::lmer(
+    value ~ condition*time + (1|subject_id),data=dat,REML=FALSE,
+    control=lme4::lmerControl(optimizer="bobyqa")
+  )),silent=TRUE)
+  if(inherits(fit,"try-error") ||
+     lme4::isSingular(fit,tol=1e-4) ||
+     !is.null(fit@optinfo$conv$lme4$messages))
+    return(base_row)
+  co <- summary(fit)$coefficients
+  if(!(expected_term %in% rownames(co)) ||
+     !all(c("Estimate","Std. Error","df","t value","Pr(>|t|)") %in% colnames(co))) {
+    base_row$status <- "missing_explicit_interaction"
+    return(base_row)
+  }
+  z <- co[expected_term,,drop=FALSE]
+  values <- c(z[1,"Estimate"],z[1,"Std. Error"],z[1,"df"],
+              z[1,"t value"],z[1,"Pr(>|t|)"])
+  if(any(!is.finite(values)) || values[[2L]]<=0 ||
+     values[[5L]]<0 || values[[5L]]>1) {
+    base_row$status <- "invalid_inference"
+    return(base_row)
+  }
+  base_row$estimate <- unname(values[[1L]])
+  base_row$std_error <- unname(values[[2L]])
+  base_row$df <- unname(values[[3L]])
+  base_row$statistic <- unname(values[[4L]])
+  base_row$p_value <- unname(values[[5L]])
+  base_row$random_effect_structure <- "random_intercept"
+  base_row$status <- "ok"
+  base_row
 })
 direct <- do.call(rbind,direct)
-direct$q_bh <- stats::p.adjust(direct$p_value,method="BH")
+# Preserve the original 64-feature family in BH exactly as the wrapper does:
+# failed fits contribute p=1 to the family denominator and retain q=NA.
+direct_family_p <- ifelse(is.finite(direct$p_value),direct$p_value,1)
+direct_all_q <- stats::p.adjust(direct_family_p,method="BH")
+direct$q_bh[is.finite(direct$p_value)] <-
+  direct_all_q[is.finite(direct$p_value)]
 utils::write.csv(direct,file.path(out,"independent_direct_lmertest.csv"),row.names=FALSE)
 
 w <- wrapper[match(features,wrapper$feature),,drop=FALSE]
 d <- direct[match(features,direct$feature),,drop=FALSE]
-if(any(!w$status %in% c("ok","ok_random_slope_fallback")))
-  stop("Unexpected failed lmer wrapper fit in frozen GSE191328 family.")
-if(any(w$random_effect_structure!="random_intercept"))
+if(anyNA(w$feature) || anyNA(d$feature))
+  stop("External longitudinal feature matching failed.")
+if(!identical(as.character(w$status),as.character(d$status)))
+  stop("Wrapper/direct lmer fit-status decisions differ.")
+estimable <- is.finite(w$p_value)
+if(!any(estimable))
+  stop("No estimable feature remained in the frozen external family.")
+if(any(w$random_effect_structure[estimable]!="random_intercept"))
   stop("Two-visit external qualification unexpectedly used a random slope.")
+if(any(!is.na(w$random_effect_structure[!estimable])))
+  stop("Blocked longitudinal features must not advertise a fitted random-effects structure.")
 fields <- c("estimate","std_error","df","statistic","p_value","q_bh")
 max_abs <- setNames(numeric(length(fields)),fields)
 for(name in fields) {
-  delta <- abs(as.numeric(w[[name]])-as.numeric(d[[name]]))
-  if(any(!is.finite(delta)))stop(paste("Non-finite external lmer comparison:",name))
+  a <- as.numeric(w[[name]][estimable])
+  b <- as.numeric(d[[name]][estimable])
+  delta <- abs(a-b)
+  if(any(!is.finite(delta)))
+    stop(paste("Non-finite external lmer comparison:",name))
   max_abs[[name]] <- max(delta)
   if(max_abs[[name]]>1e-8)
     stop(sprintf("GSE191328 lmer wrapper/direct mismatch %s: %.12g",name,max_abs[[name]]))
+  if(any(is.na(w[[name]][estimable]) != is.na(d[[name]][estimable])))
+    stop(paste("Wrapper/direct lmer missingness mismatch:",name))
 }
 
 feature_manifest <- data.frame(
@@ -297,8 +333,10 @@ report <- list(
   preprocessing="edgeR filterByExpr; TMM normalization; logCPM prior.count=2; then deterministic 64-feature family",
   prespecifiedSelection="first 64 lexicographically sorted filtered finite nonconstant Ensembl feature IDs; no lmer coefficient or p-value used",
   attemptedFeatures=length(features),
-  estimableFeatures=sum(is.finite(w$p_value)),
-  randomEffectStructure="random_intercept (two visits per subject by design)",
+  estimableFeatures=sum(estimable),
+  blockedSingularOrNonconvergent=sum(w$status=="singular_or_nonconvergent_fit"),
+  blockedOther=sum(!estimable & w$status!="singular_or_nonconvergent_fit"),
+  randomEffectStructure="random_intercept (two visits per subject by design); singular/nonconvergent features remain blocked in the complete family",
   expectedInteraction=expected_term,
   maxAbsoluteWrapperDirectDifference=as.list(max_abs),
   resultInterpretation="External real-data numerical execution qualification of the lmerTest contract. Remission grouping is observational; linear time with two visits is a slope/contrast parameterization, not proof of a biological trajectory or causal treatment effect.",
@@ -314,4 +352,9 @@ cat(sprintf(
   length(unique(meta$subject_id)),
   paste(names(groups),as.integer(groups),collapse=", "),
   nrow(meta),length(features),max(unlist(max_abs))
+))
+cat(sprintf(
+  "Feature-fit status: %d estimable, %d singular/nonconvergent blocked, %d other blocked; complete 64-feature family retained.\n",
+  sum(estimable),sum(w$status=="singular_or_nonconvergent_fit"),
+  sum(!estimable & w$status!="singular_or_nonconvergent_fit")
 ))
