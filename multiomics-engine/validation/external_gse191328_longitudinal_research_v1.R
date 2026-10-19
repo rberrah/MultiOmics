@@ -34,24 +34,53 @@ if (nrow(pd)!=201L)
   stop("GSE191328 source sample count changed; review before qualification.")
 
 normal <- function(x) tolower(gsub("[^a-z0-9]+","",as.character(x)))
-pick <- function(patterns) {
+# GEO pData also contains treatment_protocol_ch1. Prefer the semantic
+# characteristic columns explicitly so a protocol paragraph can never be
+# mistaken for the prespecified treatment label.
+pick_characteristic <- function(label) {
   n <- names(pd)
   nn <- normal(n)
-  hit <- which(Reduce(`|`,lapply(patterns,function(p)grepl(p,nn,fixed=TRUE))))
-  if(!length(hit)) stop(paste("Missing GEO metadata field:",paste(patterns,collapse="/")))
-  n[[hit[[1L]]]]
+  target <- paste0(normal(label),"ch1")
+  exact <- which(nn == target)
+  if(length(exact)==1L)return(n[[exact]])
+  # GEOquery versions may expose the parsed characteristic without :ch1.
+  exact <- which(nn == normal(label))
+  if(length(exact)==1L)return(n[[exact]])
+  candidate <- which(grepl(normal(label),nn,fixed=TRUE) &
+                     !grepl("protocol",nn,fixed=TRUE))
+  if(length(candidate)!=1L)
+    stop(paste("Ambiguous/missing GEO characteristic field:",label,
+               "candidates=",paste(n[candidate],collapse="|")))
+  n[[candidate]]
 }
-patient_col <- pick(c("patient"))
-cohort_col <- pick(c("cohort"))
-treatment_col <- pick(c("treatment"))
-remission_col <- pick(c("remissionatweek14"))
-time_col <- pick(c("timepoint"))
+characteristic_value <- function(x,label) {
+  raw <- trimws(as.character(x))
+  # Some GEOquery representations retain "label: value"; others expose value.
+  raw <- sub(paste0("^",label,"[[:space:]]*:[[:space:]]*"),"",
+             raw,ignore.case=TRUE)
+  trimws(raw)
+}
+patient_col <- pick_characteristic("patient")
+cohort_col <- pick_characteristic("cohort")
+treatment_col <- pick_characteristic("treatment")
+remission_col <- pick_characteristic("remission at week 14")
+time_col <- pick_characteristic("time point")
 
-cohort <- normal(pd[[cohort_col]])
-treatment <- normal(pd[[treatment_col]])
-tp <- normal(pd[[time_col]])
-remission <- normal(pd[[remission_col]])
-patient <- trimws(as.character(pd[[patient_col]]))
+patient_raw <- characteristic_value(pd[[patient_col]],"patient")
+cohort_raw <- characteristic_value(pd[[cohort_col]],"cohort")
+treatment_raw <- characteristic_value(pd[[treatment_col]],"treatment")
+remission_raw <- characteristic_value(pd[[remission_col]],"remission at week 14")
+time_raw <- characteristic_value(pd[[time_col]],"time point")
+cohort <- normal(cohort_raw)
+treatment <- normal(treatment_raw)
+tp <- normal(time_raw)
+remission <- normal(remission_raw)
+patient <- patient_raw
+if(!all(c("infliximab") %in% unique(treatment)) ||
+   !all(c("baseline","2w") %in% unique(tp)) ||
+   !all(c("remission","nonremission") %in% unique(remission)) ||
+   !any(grepl("discovery",cohort)))
+  stop("GSE191328 parsed characteristic levels do not match the prespecified public source contract.")
 
 keep <- grepl("discovery",cohort) & grepl("infliximab",cohort) &
         treatment=="infliximab" & tp %in% c("baseline","2w") &
@@ -65,9 +94,9 @@ meta0 <- data.frame(
   subject_id=patient[keep],
   condition=ifelse(remission[keep]=="remission","remission","nonremission"),
   time=ifelse(tp[keep]=="baseline",0,2),
-  time_label=as.character(pd[[time_col]][keep]),
-  cohort=as.character(pd[[cohort_col]][keep]),
-  treatment=as.character(pd[[treatment_col]][keep]),
+  time_label=time_raw[keep],
+  cohort=cohort_raw[keep],
+  treatment=treatment_raw[keep],
   stringsAsFactors=FALSE
 )
 if (anyDuplicated(paste(meta0$subject_id,meta0$time,sep="\r")))
