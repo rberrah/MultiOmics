@@ -92,7 +92,7 @@ jobs:
             process.exit(1);
           }
           if (!disciplines.includes('https://rberrah.github.io/pharmacometrie/')) {
-            console.error('::error::Other disciplines must present PMx Explain');
+            console.error('::error::Ecosystem page must present PMx Explain');
             process.exit(1);
           }
           console.log('PASS: standalone navigation links to the ecosystem without depending on or redirecting to PMx.');
