@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 800" role="img" aria-labelledby="ga-title ga-desc">
+<title id="ga-title">MultiOmics — from molecular measurements to reproducible research</title>
+<desc id="ga-desc">Transcriptomics, proteomics and metabolomics data enter a sample-identity and quality-control gate. Appropriate study designs feed exploratory analyses or supported native R references, producing traceable research exports. Validated downstream information may be transferred separately to Omics2PK; this diagram does not claim clinical PK validation.</desc>
+<defs>
+  <linearGradient id="canvas" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fcfaf7"/><stop offset="1" stop-color="#f2f5f5"/></linearGradient>
+  <linearGradient id="warm" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#a95743"/><stop offset="1" stop-color="#cc7458"/></linearGradient>
+  <marker id="arr" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M2 2 L10 6 L2 10" fill="none" stroke="#627780" stroke-width="1.9" stroke-linejoin="round"/></marker>
+  <filter id="soft" x="-15%" y="-20%" width="130%" height="160%"><feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#26383c" flood-opacity=".09"/></filter>
+</defs>
+<rect width="1500" height="800" rx="24" fill="url(#canvas)"/>
+<rect x="0" y="0" width="1500" height="12" fill="url(#warm)"/>
+<text x="62" y="66" fill="#a95743" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700" letter-spacing="3">RESEARCH WORKFLOW · REPRODUCIBLE OMICS</text>
+<text x="62" y="131" fill="#193840" font-family="Arial, Helvetica, sans-serif" font-size="53" font-weight="700">MultiOmics</text>
+<text x="385" y="127" fill="#4c646a" font-family="Arial, Helvetica, sans-serif" font-size="26">From individual measurements to interpretable results</text>
+<path d="M62 162 H1438" stroke="#dbe2e2" stroke-width="2"/>
+<g font-family="Arial, Helvetica, sans-serif">
+<text x="64" y="207" fill="#506770" font-size="18" font-weight="700" letter-spacing="2">01   MEASURE</text>
+<text x="555" y="207" fill="#506770" font-size="18" font-weight="700" letter-spacing="2">02   CHECK + ANALYSE</text>
+<text x="1115" y="207" fill="#506770" font-size="18" font-weight="700" letter-spacing="2">03   EXPORT</text>
+<!-- Inputs -->
+<rect x="56" y="230" width="404" height="365" rx="23" fill="#fff" stroke="#e0e6e4" stroke-width="2" filter="url(#soft)"/>
+<rect x="80" y="254" width="356" height="91" rx="16" fill="#fbefe8"/>
+<circle cx="124" cy="299" r="26" fill="#c46b4e"/>
+<path d="M111 286 C135 294 113 302 137 314 M137 286 C113 294 135 302 111 314" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"/>
+<text x="166" y="293" fill="#17343b" font-size="27" font-weight="700">Transcriptomics</text>
+<text x="166" y="322" fill="#677b7e" font-size="18">RNA / gene expression</text>
+<rect x="80" y="365" width="356" height="91" rx="16" fill="#e9f3f2"/>
+<circle cx="124" cy="410" r="26" fill="#347e7c"/>
+<path d="M112 410 Q119 393 126 410 T140 410 M108 416 Q122 434 140 416" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"/>
+<text x="166" y="404" fill="#17343b" font-size="27" font-weight="700">Proteomics</text>
+<text x="166" y="433" fill="#677b7e" font-size="18">Protein abundances</text>
+<rect x="80" y="476" width="356" height="91" rx="16" fill="#eff0fb"/>
+<circle cx="124" cy="521" r="26" fill="#7370a5"/>
+<path d="M113 513 L124 505 L135 513 L135 528 L124 537 L113 528 Z M113 513 L135 528 M135 513 L113 528" fill="none" stroke="white" stroke-width="2.5"/>
+<text x="166" y="515" fill="#17343b" font-size="27" font-weight="700">Metabolomics</text>
+<text x="166" y="544" fill="#677b7e" font-size="18">MS / peak intensities</text>
+<!-- Arrow -->
+<path d="M473 408 H529" stroke="#627780" stroke-width="3" marker-end="url(#arr)"/>
+<!-- Methods -->
+<rect x="542" y="230" width="490" height="365" rx="23" fill="#fff" stroke="#dce4e4" stroke-width="2" filter="url(#soft)"/>
+<rect x="571" y="256" width="432" height="80" rx="16" fill="#edf4f3"/>
+<circle cx="608" cy="294" r="20" fill="#347e7c"/>
+<path d="M599 293 L606 300 L618 285" fill="none" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="644" y="285" fill="#17343b" font-size="27" font-weight="700">Identity, design &amp; QC</text>
+<text x="644" y="316" fill="#627780" font-size="18">Samples · batches · missingness</text>
+<path d="M787 344 V371" stroke="#627780" stroke-width="2.7" marker-end="url(#arr)"/>
+<rect x="571" y="379" width="432" height="184" rx="16" fill="#fbf7f3" stroke="#e8d5ca" stroke-width="1.5"/>
+<text x="600" y="416" fill="#a95743" font-size="19" font-weight="700">CHOOSE FIT-FOR-PURPOSE METHODS</text>
+<text x="600" y="457" fill="#17343b" font-size="24" font-weight="700">Differential · pathways · factors</text>
+<text x="600" y="494" fill="#4f676b" font-size="21">MOFA2 · DIABLO · visualisation</text>
+<rect x="599" y="516" width="374" height="32" rx="16" fill="#f1e6de"/>
+<text x="786" y="538" font-size="16" fill="#8a503f" text-anchor="middle" font-weight="700">Exploratory JS | Native R when qualified</text>
+<!-- Arrow -->
+<path d="M1045 408 H1095" stroke="#627780" stroke-width="3" marker-end="url(#arr)"/>
+<!-- Export -->
+<rect x="1108" y="230" width="334" height="365" rx="23" fill="#fff" stroke="#dce4e4" stroke-width="2" filter="url(#soft)"/>
+<rect x="1137" y="259" width="275" height="114" rx="16" fill="#eaf3f3"/>
+<rect x="1164" y="279" width="64" height="72" rx="8" fill="#fff" stroke="#8badaa" stroke-width="2"/>
+<path d="M1178 298 H1215 M1178 309 H1215 M1178 320 H1207 M1178 332 H1215" stroke="#65908e" stroke-width="2.5" stroke-linecap="round"/>
+<text x="1251" y="306" fill="#17343b" font-size="26" font-weight="700">Research ZIP</text>
+<text x="1251" y="338" fill="#597075" font-size="18">Inputs &amp; results</text>
+<text x="1139" y="424" fill="#17343b" font-size="24" font-weight="700">Reproducible outputs</text>
+<path d="M1141 453 l9 9 17-19 M1141 499 l9 9 17-19 M1141 545 l9 9 17-19" fill="none" stroke="#347e7c" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1185" y="462" font-size="20" fill="#4f676b">Source + provenance</text>
+<text x="1185" y="508" font-size="20" fill="#4f676b">Tables + figures</text>
+<text x="1185" y="554" font-size="20" fill="#4f676b">Optional PK exchange</text>
+<!-- Lower evidence boundary -->
+<rect x="57" y="635" width="1386" height="116" rx="20" fill="#1e3a42"/>
+<rect x="79" y="656" width="8" height="74" rx="4" fill="#c87859"/>
+<text x="111" y="680" fill="#fff" font-size="23" font-weight="700">Scientific boundary</text>
+<text x="111" y="712" fill="#d6e3e4" font-size="20">Omics evidence does not itself establish drug exposure or causal activity.</text>
+<rect x="1056" y="657" width="350" height="72" rx="16" fill="#eaf2f1"/>
+<text x="1231" y="684" text-anchor="middle" fill="#1c5555" font-size="23" font-weight="700">Omics2PK →</text>
+<text x="1231" y="709" text-anchor="middle" fill="#597075" font-size="16">Separate validated research stage</text>
+</g>
+</svg>

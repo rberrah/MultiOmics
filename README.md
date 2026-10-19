@@ -1,8 +1,14 @@
 # MultiOmics
 
+![Graphical abstract: individual transcriptomic, proteomic and metabolomic measurements pass through identity and quality control, study-appropriate methods and traceable research export before any separately qualified PK study.](docs/assets/multiomics-graphical-abstract.svg)
+
+[View full-size graphical abstract](docs/assets/multiomics-graphical-abstract.svg) · [Open analysis tool](https://rberrah.github.io/multiomics/tool/) · [Omics2PK research consumer](https://github.com/rberrah/Omics2PK)
+
 A public, source-available research environment for reproducible **single- and multi-omics research**, with an optional local R reference engine.
 
-**Release status:** independent source repository with standalone scientific/browser CI and version-pinned overlay artifacts intended for PMx hosting. The preferred public route is [`/multiomics/`](https://rberrah.github.io/multiomics/) and its [analysis tool](https://rberrah.github.io/multiomics/tool/); the older `/pharmacometrie/multiomics/` routes must be retained during migration. **Deployment of a particular source SHA must be verified on the PMx Pages artifact separately from MultiOmics CI.** This is **not** a claim of universal confirmatory statistical validity, clinical use, or a hosted R service.
+**Release status:** independent source repository with standalone scientific/browser CI and version-pinned overlay artifacts intended for PMx hosting. The preferred public route is [`/multiomics/`](https://rberrah.github.io/multiomics/) and its [analysis tool](https://rberrah.github.io/multiomics/tool/); the older `/pharmacometrie/multiomics/` routes must be retained during migration. **Deployment of a particular source SHA must be verified on the PMx Pages artifact separately from MultiOmics CI.** This is **not** a claim of universal confirmatory statistical validity, clinical use, or a hosted R service. An actual published PMx Pages deployment must be checked independently of the source tree.
+
+**Scope of the graphical abstract:** a *research workflow*, not an assertion that all assay-to-PK integrations or inferential methods are clinically validated. Importing, QC and exporting molecular values do not establish a patient's tacrolimus clearance or CYP3A4/5 activity.
 
 ## Download and use independently
 
@@ -21,7 +27,7 @@ npm ci
 npm run dev
 ```
 
-The repository ZIP includes the SvelteKit application, scientific R source, example CSVs, tests and documentation. Node.js 22 or newer and npm are needed to develop or build the site. The optional R/Bioconductor reference engine has its own package dependencies (see below).
+The repository ZIP includes the SvelteKit application, scientific R source, example CSVs, tests and documentation. Node.js 22.17 or newer (Node 24 recommended) and npm are needed to develop or build the site. The optional R/Bioconductor reference engine has its own package dependencies (see below).
 
 For a **portable, browser-only download**, use the GitHub Actions artifact named `MultiOmics-portable-web-<commit SHA>` from a successful [standalone software qualification run](https://github.com/rberrah/MultiOmics/actions/workflows/standalone-ci.yml). Extract `MultiOmics-portable-web.zip`, enter its `MultiOmics-portable-web` directory, then run:
 
@@ -86,6 +92,19 @@ node scripts/test_pmx_compat_overlay.mjs
 ```
 
 This command does **not** publish or modify PMx Explain. The public hosting integration was merged via [PMx Explain PR #116](https://github.com/rberrah/rberrah.github.io/pull/116), and its post-deployment smoke via [PR #117](https://github.com/rberrah/rberrah.github.io/pull/117). PMx publishes a **pinned, independently qualified source commit** and adds only the verified pages and `_multiomics_app` assets. See [fixed public URL integration](docs/FIXED_PUBLIC_URL_INTEGRATION.md). A static Pages site **does not execute R on the server**.
+
+## MultiOmics → Omics2PK: qualified boundary
+
+MultiOmics is the **omics producer**, not a PopPK engine. On authorized, genuinely individual molecular assays it can export a versioned `DOWNSTREAM_EXCHANGE_V1` folder containing `manifest.json`, `samples.csv`, `features.csv` and assay matrices. The [contract](docs/multiomics/DOWNSTREAM_EXCHANGE_V1.md) records original sample and feature identifiers, measurement scale and checksums.
+
+The separate [Omics2PK](https://github.com/rberrah/Omics2PK) consumer independently checks identity, source provenance, timing and availability of **authentic measured pharmacokinetics**; there is no automatic `MultiOmics → validated tacrolimus clearance` path. The key hypothesis is whether measured pre-landmark RNA, protein or metabolites improve tacrolimus prediction beyond the **same patients' clinical and CYP3A4/5 pharmacogenetic reference**.
+
+- Group-level differential results (logFC, q-values) are **not** patient-level PK covariates.
+- `individual_signatures.csv` is optional and valid only when a real frozen or out-of-fold individual-score model and its training provenance are available; schema checks alone cannot prove absence of leakage.
+- SWEET-style RNA networks are **not** a metabolomics reconstruction method. Sample tissue, visits, treatments and batch are explicit; a categorical label such as `T0` is **not** an automatically inferred elapsed time since dose.
+- Patient-level original source ZIPs and linked clinical PK/PGx data must remain in authorized private research storage; no transfer into public issues, repositories or CI artifacts.
+
+**Current scientific gate:** independent Omics2PK CYP3A/midazolam and metformin patient-heldout exploratory pilots have not shown meaningful incremental PK gains from the tested global metabolomic PCA. Public BIOMARGIN omics can support source QC and multi-view research methods, but an authenticated `GEO → BIOS → ABIS` identity/PK crosswalk is still needed for a direct tacrolimus endpoint. See the [source-qualified Omics2PK audit](https://github.com/rberrah/Omics2PK/blob/main/docs/BIOMARGIN_131_REAL_PUBLIC_COUNTS_AND_GEO_BIOS_CROSSWALK_20261019.md).
 
 ## Confirmatory result display gate
 

@@ -1,0 +1,25 @@
+name: Documentation and graphical abstract
+on:
+  push:
+    paths:
+      - "README.md"
+      - "docs/assets/multiomics-graphical-abstract.svg"
+      - "scripts/verify_readme_graphics.py"
+      - ".github/workflows/docs-graphical-abstract.yml"
+  pull_request:
+    paths:
+      - "README.md"
+      - "docs/assets/multiomics-graphical-abstract.svg"
+      - "scripts/verify_readme_graphics.py"
+      - ".github/workflows/docs-graphical-abstract.yml"
+permissions:
+  contents: read
+jobs:
+  docs-integrity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - run: python scripts/verify_readme_graphics.py
