@@ -3,8 +3,8 @@
   import { resolve, asset } from '$app/paths';
   import { language } from '#lib/stores/language.js';
   import { runDeterministicAnalysis } from '#lib/multiomics/deterministic.js';
-  import { buildResearchBundle, fullLayerCsv, referencePreviewAudit } from '#lib/multiomics/research-export-package.js';
-  import { parseIndividualSignatureCsv } from '#lib/multiomics/downstream-exchange.js';
+  import { buildResearchBundle, fullLayerCsv, referencePreviewAudit, zipEntries } from '#lib/multiomics/research-export-package.js';
+  import { buildDownstreamExchange, parseIndividualSignatureCsv } from '#lib/multiomics/downstream-exchange.js';
   import { auditPairedRnaStudy, pairedExampleSampleSheetCsv } from '#lib/multiomics/paired-study-client.js';
   import MultiomicsVisualizations from '#lib/components/MultiomicsVisualizations.svelte';
   import ExternalValidationPanel from '#lib/components/ExternalValidationPanel.svelte';
@@ -93,6 +93,8 @@
   let portableProjectError = '';
   let researchBundleMessage = '';
   let researchBundleError = '';
+  let omics2pkExportMessage = '';
+  let omics2pkExportError = '';
   // Optional user-supplied scores, computed *outside* the default browser
   // workflow using frozen/out-of-fold models. No automatic signature fitting.
   /** @type {Array<Record<string,any>>} */
@@ -1597,6 +1599,58 @@
       );
     } catch (error) {
       researchBundleError = error instanceof Error ? error.message : 'Could not create the research dossier.';
+    } finally {
+      portableProjectBusy = false;
+    }
+  }
+
+  async function downloadOmics2PkExchange() {
+    if (!analysisResult || portableProjectBusy) return;
+    portableProjectBusy = true;
+    omics2pkExportMessage = '';
+    omics2pkExportError = '';
+    try {
+      if (individualSignatureError)
+        throw Error('Individual signature import is invalid: '+individualSignatureError);
+      const sourceProject = await createPortableProject({
+        files,
+        extraFiles:{ msOriginal:msOriginalFile, msUserAnnotations:msUserAnnotationFile },
+        settings:currentPortableSettings(),
+        result:null
+      });
+      const exchange = await buildDownstreamExchange(sourceProject,{
+        individualSignatures:individualSignatureRows.length?individualSignatureRows:null
+      });
+      const directEntries=exchange.entries.map(entry=>({
+        name:entry.name.replace(/^exchange\//,''),
+        data:entry.data
+      }));
+      const blob=zipEntries(directEntries);
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url;
+      a.download='multiomics_omics2pk_exchange_v1.zip';
+      a.click();
+      URL.revokeObjectURL(url);
+      const summary=exchange.summary;
+      omics2pkExportMessage=t(
+        'Export Omics2PK prêt : '+summary.independent_subjects+' sujet(s), '+
+          summary.unique_specimens+' prélèvement(s), '+summary.assays+
+          ' mesure(s). Les matrices et identités sont vérifiables par SHA-256. '+
+          (summary.individual_signature_rows
+            ? summary.individual_signature_rows+' score(s) individuel(s) explicite(s) inclus ; leur validité biologique reste à démontrer. '
+            : 'Aucun score individuel n’a été inventé. ')+
+          'Les doses/concentrations PK ne sont pas incluses : Omics2PK doit les joindre séparément chez les mêmes sujets.',
+        'Omics2PK export ready: '+summary.independent_subjects+' subject(s), '+
+          summary.unique_specimens+' specimen(s), '+summary.assays+
+          ' assay(s). Matrices and identities are SHA-256 verifiable. '+
+          (summary.individual_signature_rows
+            ? summary.individual_signature_rows+' explicit individual score(s) included; biological validity still requires evidence. '
+            : 'No individual score was invented. ')+
+          'PK dose/concentration data are not included: Omics2PK must join them separately for the same subjects.'
+      );
+    } catch (error) {
+      omics2pkExportError = error instanceof Error ? error.message : 'Could not create the Omics2PK exchange.';
     } finally {
       portableProjectBusy = false;
     }
