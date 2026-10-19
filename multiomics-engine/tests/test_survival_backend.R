@@ -37,6 +37,32 @@ stopifnot(sum(ok)==3L,
 )
 eff <- tab$effect[tab$feature=="A"]
 stopifnot(length(eff)==1L,is.finite(eff),eff>0)
+
+# Independent direct survival::coxph fit for the same feature/model.
+# This checks the wrapper's coefficient, variance, p-value and PH diagnostic
+# rather than merely exercising the same helper twice through the router.
+direct_data <- meta
+direct_data$assay_feature <- x[,"A"]
+direct_data$batch <- factor(direct_data$batch)
+direct <- survival::coxph(
+  survival::Surv(survival_time,survival_event) ~ assay_feature + batch + age,
+  data=direct_data,ties="efron",x=TRUE,
+  control=survival::coxph.control(iter.max=60,timefix=FALSE)
+)
+direct_beta <- unname(stats::coef(direct)["assay_feature"])
+direct_se <- sqrt(stats::vcov(direct)["assay_feature","assay_feature"])
+direct_p <- 2*stats::pnorm(-abs(direct_beta/direct_se))
+direct_zph <- survival::cox.zph(direct,transform="km")
+row_a <- tab[tab$feature=="A",,drop=FALSE]
+stopifnot(
+  nrow(row_a)==1L,
+  abs(row_a$effect-direct_beta)<1e-10,
+  abs(row_a$standardError-direct_se)<1e-10,
+  abs(row_a$pValue-direct_p)<1e-10,
+  abs(row_a$proportionalHazardsP-unname(direct_zph$table["assay_feature","p"]))<1e-10,
+  abs(row_a$globalPhP-unname(direct_zph$table["GLOBAL","p"]))<1e-10,
+  abs(row_a$hazardRatio-exp(direct_beta))<1e-10
+)
 # Cases deliberately refused before fitting any p-values.
 duplicate <- meta
 duplicate$subject_id[2] <- duplicate$subject_id[1]
