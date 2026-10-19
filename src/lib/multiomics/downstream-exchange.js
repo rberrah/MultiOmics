@@ -274,6 +274,17 @@ export async function buildDownstreamExchange(portableProject,{individualSignatu
     pk_dose_concentration_data_included:false,
     interpretation:'Source matrices are structurally usable by Omics2PK after extraction. Values are canonicalized, not biologically renormalized. PK readiness still requires subject-matched dose/concentration events, a verified shared time origin and study-specific fit-ready preprocessing.'
   };
+  manifest.validation.downstream_pk_readiness={
+    status:'source_exchange_only_not_pk_ready',
+    structural_exchange_valid:true,
+    pk_dose_concentration_data_included:false,
+    numeric_collection_time_complete:numericTimeComplete,
+    pk_temporal_numeric_compatible:pkTemporalNumericCompatible,
+    explicit_molecular_time_origin_declared_complete:summary.explicit_time_origin_complete,
+    shared_molecular_pk_time_origin_verified:false,
+    clinical_or_pk_effect_validated:false,
+    note:'This exchange preserves individual molecular source data only. Declared molecular timing/origin is not proof of a shared PK clock; genuine subject-matched dose/concentration events must be joined and verified downstream.'
+  };
   // Optional *individual* biological scores from an explicit, traceable
   // upstream scoring result. Never synthesize such scores from differential
   // group statistics or invent fitted models from the original feature matrix.
