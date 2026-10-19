@@ -1,0 +1,59 @@
+{
+  "name": "MultiOmics main — qualified research software",
+  "target": "branch",
+  "enforcement": "active",
+  "bypass_actors": [],
+  "conditions": {
+    "ref_name": {
+      "include": [
+        "~DEFAULT_BRANCH"
+      ],
+      "exclude": []
+    }
+  },
+  "rules": [
+    {
+      "type": "deletion"
+    },
+    {
+      "type": "non_fast_forward"
+    },
+    {
+      "type": "pull_request",
+      "parameters": {
+        "dismiss_stale_reviews_on_push": false,
+        "require_code_owner_review": false,
+        "require_last_push_approval": false,
+        "required_approving_review_count": 0,
+        "required_review_thread_resolution": true
+      }
+    },
+    {
+      "type": "required_status_checks",
+      "parameters": {
+        "strict_required_status_checks_policy": true,
+        "do_not_enforce_on_create": true,
+        "required_status_checks": [
+          {
+            "context": "Standalone SvelteKit, JS reference and beginner browser workflow"
+          },
+          {
+            "context": "Independent R package-free reference contracts"
+          },
+          {
+            "context": "Research v1 version, evidence and scientific-boundary contract"
+          },
+          {
+            "context": "survival::coxph numerical reference, PH diagnostics and refusal controls"
+          },
+          {
+            "context": "contract"
+          },
+          {
+            "context": "MultiOmics 1.1 release integrity"
+          }
+        ]
+      }
+    }
+  ]
+}

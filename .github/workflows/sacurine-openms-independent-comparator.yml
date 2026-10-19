@@ -8,6 +8,8 @@ on:
       - '.github/workflows/sacurine-openms-independent-comparator.yml'
       - 'multiomics-engine/raw_ms_processing.R'
       - 'multiomics-engine/tests/real_sacurine_zenodo_12raw_xcms.R'
+      - 'release-v1.1-manifest.json'
+      - 'docs/multiomics/RELEASE_V1_1_0_20261019.md'
   workflow_dispatch:
 
 permissions:

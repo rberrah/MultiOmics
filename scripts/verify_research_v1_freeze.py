@@ -7,7 +7,7 @@ import re
 
 ROOT = Path(__file__).resolve().parents[1]
 RELEASE_VERSION = "1.0.0"
-POST_V1_PATTERN = r"^1\.1\.0-dev\.\d+$"
+POST_V1_PATTERN = r"^1\.1\.0(?:-dev\.\d+)?$"
 DATE = "2026-10-19"
 
 def load_json(path: str):
@@ -30,7 +30,7 @@ def main():
     assert manifest["release"]["softwareVersion"] == RELEASE_VERSION
     assert manifest["release"]["freezeDate"] == DATE
     assert manifest["release"]["intendedTag"] == "research-v1.0.0"
-    assert re.search(r"(?m)^version:\s*[\"']?1\.0\.0[\"']?\s*$", citation)
+    assert re.search(rf"(?m)^version:\s*[\"']?{re.escape(current_version)}[\"']?\s*$", citation)
     assert re.search(r"(?m)^date-released:\s*[\"']?2026-10-19[\"']?\s*$", citation)
 
     assert runtime["rVersion"] == "4.5.2"
@@ -98,7 +98,8 @@ def main():
 
     if current_version != RELEASE_VERSION:
         assert "release/research-v1.0.0" in readme
-        assert "post-v1 development" in readme.lower()
+        assert "post-v1" in readme.lower()
+        assert current_version in readme
     print(
         "PASS: frozen Research v1 evidence remains internally consistent; "
         f"current source version is {current_version}."

@@ -11,6 +11,8 @@ on:
       - 'multiomics-engine/server.R'
       - 'multiomics-engine/reference_full_results.R'
       - '.github/workflows/cox-reference.yml'
+      - 'release-v1.1-manifest.json'
+      - 'docs/multiomics/RELEASE_V1_1_0_20261019.md'
   push:
     branches: [main]
     paths:
