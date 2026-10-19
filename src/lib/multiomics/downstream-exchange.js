@@ -3,9 +3,28 @@
 // Unsupported metadata/matrices skip the exchange; never relabel processed data as raw.
 const TYPES=['transcriptomics','proteomics','metabolomics'];
 const utf8=new TextEncoder();
-function parseCsv(text){
-  if(typeof text!=='string'||!text.trim())throw Error('Empty CSV');
+function countDelimiter(line,delimiter){
+  let quoted=false,count=0;
+  for(let i=0;i<line.length;i++){
+    const ch=line[i];
+    if(ch==='"'){
+      if(quoted&&line[i+1]==='"')i++;
+      else quoted=!quoted;
+    }else if(!quoted&&ch===delimiter)count++;
+  }
+  return count;
+}
+function detectDelimiter(text){
+  const line=text.replace(/^\uFEFF/,'').split(/\r?\n/).find(x=>x.trim())||'';
+  const candidates=[',','\t',';'].map(delimiter=>({
+    delimiter,count:countDelimiter(line,delimiter)
+  })).sort((a,b)=>b.count-a.count);
+  return candidates[0]?.count>0?candidates[0].delimiter:',';
+}
+function parseDelimited(text){
+  if(typeof text!=='string'||!text.trim())throw Error('Empty delimited text');
   text=text.replace(/^\uFEFF/,'');
+  const delimiter=detectDelimiter(text);
   const rows=[];let row=[],cell='',quoted=false;
   for(let i=0;i<text.length;i++){
     const ch=text[i];
@@ -14,15 +33,62 @@ function parseCsv(text){
       else if(ch==='"')quoted=false;
       else cell+=ch;
     }else if(ch==='"'&&cell==='')quoted=true;
-    else if(ch===','){row.push(cell);cell='';}
+    else if(ch===delimiter){row.push(cell);cell='';}
     else if(ch==='\n'){row.push(cell.replace(/\r$/,''));rows.push(row);row=[];cell='';}
     else cell+=ch;
   }
-  if(quoted)throw Error('Unclosed CSV quote');
-  if(cell||row.length){row.push(cell);rows.push(row);}
-  if(!rows.length||rows[0].some(x=>!x)||new Set(rows[0]).size!==rows[0].length)throw Error('Invalid CSV header');
-  if(rows.slice(1).some(x=>x.length!==rows[0].length))throw Error('Ragged CSV');
-  return {header:rows[0],rows:rows.slice(1)};
+  if(quoted)throw Error('Unclosed delimited quote');
+  if(cell||row.length){row.push(cell.replace(/\r$/,''));rows.push(row);}
+  while(rows.length&&rows[rows.length-1].every(x=>!x.trim()))rows.pop();
+  if(!rows.length||rows[0].some(x=>!x)||new Set(rows[0]).size!==rows[0].length)
+    throw Error('Invalid delimited header');
+  if(rows.slice(1).some(x=>x.length!==rows[0].length))throw Error('Ragged delimited table');
+  return {header:rows[0],rows:rows.slice(1),delimiter};
+}
+const OMIC_ALIASES={
+  transcriptomics:new Set(['transcriptomics','transcriptome','transcriptomique','rna','rnaseq','rna_seq','gene_expression','expression_genique','mrna','arn']),
+  proteomics:new Set(['proteomics','proteome','proteomique','protein','proteins','proteine','proteines','lfq']),
+  metabolomics:new Set(['metabolomics','metabolome','metabolomique','metabolite','metabolites','met'])
+};
+function lexical(value){
+  return String(value??'').trim().toLowerCase().normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'');
+}
+function canonicalOmic(value){
+  const key=lexical(value);
+  for(const [omic,aliases] of Object.entries(OMIC_ALIASES))if(aliases.has(key))return omic;
+  return '';
+}
+function canonicalMatrix(parsed,expected,omic){
+  if(!Array.isArray(expected)||!expected.length||new Set(expected).size!==expected.length)
+    throw Error('Expected assay IDs are absent or duplicated for '+omic);
+  const expectedSet=new Set(expected);
+  const headerAssays=parsed.header.slice(1);
+  const rowAssays=parsed.rows.map(r=>r[0]);
+  const columnExact=headerAssays.length===expected.length&&
+    headerAssays.every(id=>expectedSet.has(id))&&new Set(headerAssays).size===headerAssays.length;
+  const rowExact=rowAssays.length===expected.length&&
+    rowAssays.every(id=>expectedSet.has(id))&&new Set(rowAssays).size===rowAssays.length;
+  if(columnExact){
+    const index=new Map(headerAssays.map((id,i)=>[id,i+1]));
+    return {
+      header:['feature_id',...expected],
+      rows:parsed.rows.map(r=>[r[0],...expected.map(id=>r[index.get(id)])]),
+      source_orientation:'feature_rows_sample_columns'
+    };
+  }
+  if(rowExact){
+    const byAssay=new Map(parsed.rows.map(r=>[r[0],r]));
+    const featureIds=parsed.header.slice(1);
+    if(!featureIds.length||new Set(featureIds).size!==featureIds.length)
+      throw Error('Transposed '+omic+' matrix has missing or duplicate feature IDs');
+    return {
+      header:['feature_id',...expected],
+      rows:featureIds.map((feature,j)=>[feature,...expected.map(id=>byAssay.get(id)[j+1])]),
+      source_orientation:'assay_rows_feature_columns'
+    };
+  }
+  throw Error('Sample sheet and '+omic+' matrix assay IDs differ');
 }
 /** Read explicitly pre-computed per-assay signatures; never calculate
  * scores, impute or promote group tests. Full scientific checks happen at ZIP.
@@ -31,7 +97,7 @@ function parseCsv(text){
 export function parseIndividualSignatureCsv(content){
   if(typeof content!=='string'||new TextEncoder().encode(content).byteLength>5_000_000)
     throw Error('Individual signature CSV must be text under 5 MB');
-  const parsed=parseCsv(content);
+  const parsed=parseDelimited(content);
   const required=['subject_id','sample_id','assay_id','omic','signature_id','score',
     'score_scale','fit_scope','reference_model_sha256','feature_definition_sha256',
     'source_exchange_analysis_id','score_provenance'];
@@ -57,15 +123,33 @@ async function digest(s){
 }
 export async function buildDownstreamExchange(portableProject,{individualSignatures=null}={}){
   const input=portableProject?.inputs||{};
-  const metadata=parseCsv(input.metadata?.content);
+  const declared=portableProject?.settings||{};
+  const metadata=parseDelimited(input.metadata?.content);
   const h=metadata.header;
+  const mapping=declared.columnMapping&&typeof declared.columnMapping==='object'&&
+    !Array.isArray(declared.columnMapping)?declared.columnMapping:{};
+  const sourceColumn=(key)=>{
+    if(h.includes(key))return key;
+    const mapped=mapping[key];
+    return typeof mapped==='string'&&mapped&&h.includes(mapped)?mapped:'';
+  };
   for(const key of ['assay_id','sample_id','subject_id','omic'])
-    if(!h.includes(key))throw Error('Exchange requires explicit sample sheet column '+key);
+    if(!sourceColumn(key))throw Error('Exchange requires a mapped sample-sheet field '+key);
+  const optional=[
+    'tissue','collection_time','collection_time_unit','condition','batch',
+    'technical_replicate_id','technical_replicate','source_dataset_id',
+    'timepoint','timepoint_unit','time_origin'
+  ];
   const sampleRows=metadata.rows.map(r=>{
-    const sample=Object.fromEntries(h.map((key,i)=>[key,r[i]]));
-    // Native demos call this technical_replicate; downstream contract uses _id.
-    // Explicit downstream column wins; never synthesize a biological sample.
-    sample.technical_replicate_id=sample.technical_replicate_id||sample.technical_replicate||'';
+    const raw=Object.fromEntries(h.map((key,i)=>[key,r[i]]));
+    const sample={};
+    for(const key of ['assay_id','sample_id','subject_id','omic',...optional]){
+      const column=sourceColumn(key);
+      sample[key]=column?raw[column]||'':'';
+    }
+    sample.omic=canonicalOmic(sample.omic);
+    sample.technical_replicate_id=sample.technical_replicate_id||
+      sample.technical_replicate||'';
     return sample;
   });
   const specimenOwners=new Map();
@@ -73,7 +157,6 @@ export async function buildDownstreamExchange(portableProject,{individualSignatu
   const sampleIds=new Set(),sampleOutput=[[
     'assay_id','sample_id','subject_id','omic','tissue','collection_time',
     'collection_time_unit','condition','batch','technical_replicate_id','source_dataset_id',
-    // Backwards-compatible appended columns: categorical time is NOT numeric PK time.
     'timepoint','timepoint_unit','time_origin'
   ]];
   for(const s of sampleRows){
@@ -88,7 +171,10 @@ export async function buildDownstreamExchange(portableProject,{individualSignatu
       if(previous[field] && s[field] && previous[field]!==s[field])
         throw Error('Conflicting '+field+' for shared specimen '+s.sample_id);
     }
-    specimenContext.set(s.sample_id,{...previous,...Object.fromEntries(['tissue','collection_time','collection_time_unit','timepoint','timepoint_unit','time_origin'].map(field=>[field,s[field]||previous[field]||'']))});
+    specimenContext.set(s.sample_id,{...previous,...Object.fromEntries(
+      ['tissue','collection_time','collection_time_unit','timepoint','timepoint_unit','time_origin']
+        .map(field=>[field,s[field]||previous[field]||''])
+    )});
     const key=s.omic+'\u0000'+s.assay_id;
     if(sampleIds.has(key))throw Error('Duplicate assay_id for '+s.omic);
     sampleIds.add(key);
@@ -106,26 +192,23 @@ export async function buildDownstreamExchange(portableProject,{individualSignatu
   }
   const sampleSpec=await add('samples.csv',csv(sampleOutput));
   const featureKeys=new Set();
-  const declared=portableProject.settings||{};
   for(const omic of TYPES){
     if(!input[omic])continue;
-    const matrix=parseCsv(input[omic].content);
-    if(matrix.header[0]!=='feature_id')throw Error('Original '+omic+' matrix must start with feature_id');
-    const assayIds=matrix.header.slice(1);
-    if(!assayIds.length||new Set(assayIds).size!==assayIds.length)
-      throw Error('Duplicate or absent '+omic+' assay IDs');
+    const parsed=parseDelimited(input[omic].content);
     const expected=sampleRows.filter(s=>s.omic===omic).map(s=>s.assay_id);
-    if(expected.length!==assayIds.length||assayIds.some(s=>!expected.includes(s)))
-      throw Error('Sample sheet and '+omic+' matrix columns differ');
+    const matrix=canonicalMatrix(parsed,expected,omic);
     const seen=new Set();
     const scale=declared[omic+'Values']||'source_values_unspecified';
-    for(const r of matrix.rows){
+    const canonicalRows=matrix.rows.map(r=>[
+      r[0],...r.slice(1).map(v=>v===''?'NA':v)
+    ]);
+    for(const r of canonicalRows){
       const id=r[0];
       if(!id||seen.has(id))throw Error('Missing/duplicate original feature in '+omic);
       seen.add(id);
       for(const v of r.slice(1)){
         if(v==='NA')continue;
-        if(!v||!Number.isFinite(Number(v)))throw Error('Non-numeric/missing value in '+omic+'; use literal NA');
+        if(!Number.isFinite(Number(v)))throw Error('Non-numeric/missing value in '+omic+'; use NA or an empty source cell');
         if(omic==='transcriptomics'&&scale==='raw_counts'&&(!Number.isSafeInteger(Number(v))||Number(v)<0))
           throw Error('RNA raw_counts must be non-negative safe integers');
       }
@@ -135,8 +218,9 @@ export async function buildDownstreamExchange(portableProject,{individualSignatu
       const idtype=declared[omic+'IdType']||'unresolved_source_namespace';
       features.push([omic,id,idtype,'',declared.organism||'','','','','','unresolved']);
     }
-    const file=await add('matrices/'+omic+'.csv',csv([matrix.header,...matrix.rows]));
-    matrices.push({omic,file,value_type:scale,orientation:'feature_rows_sample_columns',normalization:null,missing_value:'NA'});
+    const file=await add('matrices/'+omic+'.csv',csv([matrix.header,...canonicalRows]));
+    matrices.push({omic,file,value_type:scale,orientation:'feature_rows_sample_columns',
+      normalization:null,missing_value:'NA',source_orientation:matrix.source_orientation});
     total++;
   }
   if(!total)throw Error('No original omic matrix available');
@@ -155,6 +239,26 @@ export async function buildDownstreamExchange(portableProject,{individualSignatu
       r_version:null,python_version:null,dependency_lockfiles:[]
     },
     validation:{status:'exploratory',methods:[]}
+  };
+  const nonBlank=(value)=>typeof value==='string'&&value.trim().length>0;
+  const numericTimeComplete=sampleRows.length>0&&sampleRows.every(row=>
+    nonBlank(row.collection_time)&&Number.isFinite(Number(row.collection_time))&&
+    nonBlank(row.collection_time_unit));
+  const summary={
+    status:'source_exchange_ready_not_pk_ready',
+    analysis_id:manifest.analysis_id,
+    independent_subjects:new Set(sampleRows.map(r=>r.subject_id)).size,
+    unique_specimens:new Set(sampleRows.map(r=>r.sample_id)).size,
+    assays:sampleRows.length,
+    omics:[...new Set(sampleRows.map(r=>r.omic))],
+    categorical_timepoint_present:sampleRows.some(r=>nonBlank(r.timepoint)),
+    numeric_collection_time_complete:numericTimeComplete,
+    explicit_time_origin_complete:sampleRows.length>0&&sampleRows.every(r=>nonBlank(r.time_origin)),
+    tissue_present:sampleRows.some(r=>nonBlank(r.tissue)),
+    individual_signature_rows:0,
+    individual_signature_fit_scopes:[],
+    pk_dose_concentration_data_included:false,
+    interpretation:'Source matrices are structurally usable by Omics2PK after extraction. PK readiness still requires subject-matched dose/concentration events, time origin and study-specific preprocessing.'
   };
   // Optional *individual* biological scores from an explicit, traceable
   // upstream scoring result. Never synthesize such scores from differential
@@ -204,14 +308,17 @@ export async function buildDownstreamExchange(portableProject,{individualSignatu
       output.push(columns.map(key=>row[key]));
     }
     manifest.files.individual_signatures=await add('individual_signatures.csv',csv(output));
+    const signatureFitScopes=[...new Set(individualSignatures.map(r=>r.fit_scope))];
     manifest.validation.individual_signature_export={
       status:'schema_checked_only_not_biologically_validated',
-      fit_scopes:[...new Set(individualSignatures.map(r=>r.fit_scope))],
+      fit_scopes:signatureFitScopes,
       n_assay_signature_rows:individualSignatures.length,
       source:'explicit_per_assay_scoring_result',
       no_pk_effect_estimated:true
     };
+    summary.individual_signature_rows=individualSignatures.length;
+    summary.individual_signature_fit_scopes=signatureFitScopes;
   }
   entries.push({name:'exchange/manifest.json',data:JSON.stringify(manifest,null,2)+'\n'});
-  return {entries,manifest};
+  return {entries,manifest,summary};
 }
