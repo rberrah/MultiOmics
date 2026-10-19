@@ -44,34 +44,100 @@ jobs:
             "multiomics-engine/tests/bioconductor_null_calibration.R",
             "multiomics-engine/tests/bioconductor_mixed_truth_reference.R"
           )) parse(file=f); cat("R inference audit syntax PASS\\n")'
-      - name: Install required genuine R packages from frozen 2026-10-16 repositories
+      - name: Restore exact frozen R package closure
         shell: bash
         env:
-          MULTIOMICS_R_SNAPSHOT: '2026-10-16'
+          MULTIOMICS_CRAN_SNAPSHOT: '2026-10-16'
         run: |
-          Rscript -e '
-            snapshot<-Sys.getenv("MULTIOMICS_R_SNAPSHOT")
-            cran<-paste0("https://p3m.dev/cran/",snapshot)
-            bioc<-paste0("https://p3m.dev/bioconductor/",snapshot)
-            options(repos=c(CRAN=cran),BioC_mirror=bioc)
-            Sys.setenv(
-              BIOCONDUCTOR_CONFIG_FILE=paste0(bioc,"/config.yaml"),
-              R_BIOC_VERSION="3.22"
+          Rscript - <<'RSCRIPT'
+          snapshot <- Sys.getenv("MULTIOMICS_CRAN_SNAPSHOT")
+          cran <- paste0("https://p3m.dev/cran/", snapshot)
+          options(repos=c(CRAN=cran))
+          if(!requireNamespace("BiocManager",quietly=TRUE))
+            install.packages("BiocManager",repos=cran)
+          stopifnot(identical(as.character(getRversion()),"4.5.2"))
+          stopifnot(identical(as.character(BiocManager::version()),"3.22"))
+
+          required_cran <- c("jsonlite","statmod","plumber","knitr","rmarkdown","digest")
+          missing <- required_cran[!vapply(required_cran,requireNamespace,logical(1),quietly=TRUE)]
+          if(length(missing)) install.packages(missing,repos=cran)
+
+          # Resolve the Bioconductor 3.22 dependency graph first. We then
+          # restore every locked Bioconductor package that differs from the
+          # measured 2026-10-16 inventory from an explicit versioned source
+          # tarball. The final full-library SHA check remains authoritative.
+          required_bioc <- c("DESeq2","edgeR","limma","airway")
+          missing <- required_bioc[!vapply(required_bioc,requireNamespace,logical(1),quietly=TRUE)]
+          if(length(missing))
+            BiocManager::install(missing,version="3.22",ask=FALSE,update=FALSE,quiet=TRUE)
+
+          frozen <- jsonlite::fromJSON(
+            "multiomics-engine/environment/reference-runtime-inventory.json",
+            simplifyVector=TRUE
+          )
+          expected <- unlist(frozen$packages,use.names=TRUE)
+          bioc_repo <- c(
+            Biobase="bioc", BiocGenerics="bioc", BiocParallel="bioc",
+            BiocVersion="bioc", DESeq2="bioc", DelayedArray="bioc",
+            GenomicRanges="bioc", IRanges="bioc", MatrixGenerics="bioc",
+            S4Arrays="bioc", S4Vectors="bioc", Seqinfo="bioc",
+            SparseArray="bioc", SummarizedExperiment="bioc", XVector="bioc",
+            edgeR="bioc", limma="bioc", preprocessCore="bioc",
+            airway="data/experiment"
+          )
+          restore_one <- function(pkg, repo_kind) {
+            want <- unname(expected[[pkg]])
+            have <- if(requireNamespace(pkg,quietly=TRUE))
+              as.character(utils::packageVersion(pkg)) else NA_character_
+            if(identical(have,want)) return(invisible(FALSE))
+            filename <- paste0(pkg,"_",want,".tar.gz")
+            root <- paste0("https://bioconductor.org/packages/3.22/",
+                           repo_kind,"/src/contrib/")
+            urls <- c(
+              paste0(root,filename),
+              paste0(root,"Archive/",pkg,"/",filename)
             )
-            if(!requireNamespace("BiocManager",quietly=TRUE))
-              install.packages("BiocManager",repos=cran)
-            stopifnot(identical(as.character(getRversion()),"4.5.2"))
-            stopifnot(identical(as.character(BiocManager::version()),"3.22"))
-            required_cran<-c("jsonlite","statmod","plumber","knitr","rmarkdown")
-            missing<-required_cran[!vapply(required_cran,requireNamespace,logical(1),quietly=TRUE)]
-            if(length(missing))install.packages(missing,repos=cran)
-            required_bioc<-c("DESeq2","edgeR","limma","airway")
-            missing<-required_bioc[!vapply(required_bioc,requireNamespace,logical(1),quietly=TRUE)]
-            if(length(missing))BiocManager::install(missing,ask=FALSE,update=FALSE,quiet=TRUE)
-            stopifnot(all(vapply(c(required_cran,required_bioc),
-                                 requireNamespace,logical(1),quietly=TRUE)))
-            cat("Frozen CRAN/Bioconductor snapshot:",snapshot,"\n")
-          '
+            dest <- file.path(tempdir(),filename)
+            ok <- FALSE
+            for(url in urls) {
+              try_result <- try(utils::download.file(
+                url,dest,mode="wb",quiet=TRUE
+              ),silent=TRUE)
+              if(!inherits(try_result,"try-error") &&
+                 file.exists(dest) && file.info(dest)$size > 1000) {
+                ok <- TRUE
+                message("Restoring ",pkg," ",want," from ",url)
+                break
+              }
+              unlink(dest)
+            }
+            if(!ok) stop("Unable to retrieve locked Bioconductor tarball for ",
+                         pkg," ",want)
+            install.packages(dest,repos=NULL,type="source")
+            observed <- as.character(utils::packageVersion(pkg))
+            if(!identical(observed,want))
+              stop("Version restore failed for ",pkg,": ",observed," != ",want)
+            invisible(TRUE)
+          }
+          # Infrastructure first, then dependent packages.
+          restore_order <- c(
+            "BiocGenerics","S4Vectors","IRanges","XVector","S4Arrays",
+            "SparseArray","DelayedArray","MatrixGenerics","GenomicRanges",
+            "Biobase","BiocParallel","SummarizedExperiment","preprocessCore",
+            "limma","edgeR","DESeq2","BiocVersion","airway"
+          )
+          restored <- character()
+          for(pkg in restore_order) {
+            if(pkg %in% names(expected) &&
+               restore_one(pkg,unname(bioc_repo[[pkg]])))
+              restored <- c(restored,pkg)
+          }
+          stopifnot(all(vapply(c(required_cran,required_bioc),
+                               requireNamespace,logical(1),quietly=TRUE)))
+          cat("Frozen CRAN snapshot:",snapshot,"\n")
+          cat("Bioconductor exact-version restores:",
+              if(length(restored))paste(restored,collapse=",") else "none","\n")
+          RSCRIPT
       - name: Verify exact recorded versions of all pinned reference packages (fail closed)
         run: Rscript multiomics-engine/environment/check_reference_runtime.R verify
       - name: Reject forged R q-values and verify true-null BH algorithmic oracle
