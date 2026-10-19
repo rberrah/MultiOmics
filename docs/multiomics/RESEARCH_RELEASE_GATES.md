@@ -1,5 +1,10 @@
 # MultiOmics — critères de sortie pour un logiciel de recherche (13 octobre 2026)
 
+## Research v1 freeze status — 19 October 2026
+
+The Research v1 freeze decision is defined by [RESEARCH_V1_FREEZE_20261019.md](RESEARCH_V1_FREEZE_20261019.md) and `research-v1-manifest.json`. The frozen baseline includes the real external NKI survival and GSE191328 longitudinal qualifications, plus the exact 171-package R reference closure. This freeze preserves unfavorable evidence and does **not** convert issues #44, #47 or #20 into resolved scientific claims.
+
+
 **Objectif** : produire une analyse mono- ou multi-omique exploitable, transparente et reproductible pour un article scientifique *du chercheur*. Ce document n'annonce ni une certification universelle des analyses, ni un article sur l'outil.
 
 ## Décision de diffusion
