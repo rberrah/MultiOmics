@@ -27,7 +27,7 @@ jobs:
     container:
       image: bioconductor/bioconductor_docker:RELEASE_3_22-r-4.5.2@sha256:e34177896c1579f66d48b756e4229b58237499183a089da084af72d7aba1d40a
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Reject missing or mismatched paired simulation labels before package setup
         run: |
           Rscript -e 'for(f in c("multiomics-engine/rnaseq_deseq2_null_oracle.R","multiomics-engine/tests/test_rnaseq_deseq2_null_oracle.R","multiomics-engine/validation/rnaseq_deseq2_null_normalization_oracle.R"))parse(file=f);cat("Paired native source syntax PASS\\n")'

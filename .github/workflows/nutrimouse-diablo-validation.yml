@@ -32,9 +32,9 @@ jobs:
       image: bioconductor/bioconductor_docker:RELEASE_3_22-r-4.5.2@sha256:e34177896c1579f66d48b756e4229b58237499183a089da084af72d7aba1d40a
     timeout-minutes: 55
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Download immutable official mixOmics experimental source
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           repository: mixOmics-org/mixOmics
           ref: ef3e760526623d9e91e945e4b50be48d764efc40

@@ -27,7 +27,7 @@ jobs:
     env:
       EXTERNAL_ORIGIN_COMMIT: 7c1649ab8093e2175e1683d4ee88af6ab1aa4fea
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Freeze external source before any analysis (commit and Git blob hashes)
         shell: bash
         run: |

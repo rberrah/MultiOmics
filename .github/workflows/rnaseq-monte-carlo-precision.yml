@@ -46,7 +46,7 @@ jobs:
       MULTIOMICS_MIXED_REFERENCE_REPLICATE_OFFSET: '1000'
       MULTIOMICS_VALIDATION_OUTPUT: tmp/rnaseq-precision
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Refuse invalid R research scripts before installing dependencies
         run: |
           Rscript -e 'for(f in c(

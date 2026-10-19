@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Check EBI provenance script syntax
         run: python3 -m py_compile scripts/sacurine_ebi_metadata_probe.py
 
@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Verify native ISA-Tab study metadata using primary MetaboLights host
         run: python3 scripts/sacurine_ebi_metadata_probe.py
       - name: Archive only original source fingerprint and schema, never subject records

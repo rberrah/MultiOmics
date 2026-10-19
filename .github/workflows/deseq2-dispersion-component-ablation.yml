@@ -27,7 +27,7 @@ jobs:
     container:
       image: bioconductor/bioconductor_docker:RELEASE_3_22-r-4.5.2@sha256:e34177896c1579f66d48b756e4229b58237499183a089da084af72d7aba1d40a
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Preflight R syntax and 12 paired whole-study scientific cells
         shell: bash
         run: |

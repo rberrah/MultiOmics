@@ -34,7 +34,7 @@ jobs:
       MULTIOMICS_MIXED_REFERENCE_REPLICATES: '8'
       MULTIOMICS_VALIDATION_OUTPUT: tmp/reference-methods
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Parse all native BH audit scripts before costly R installation
         run: |
           Rscript -e 'for(f in c(

@@ -23,7 +23,7 @@ jobs:
     container:
       image: bioconductor/bioconductor_docker:RELEASE_3_22-r-4.5.2@sha256:e34177896c1579f66d48b756e4229b58237499183a089da084af72d7aba1d40a
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Download and authenticate the exact twelve Zenodo v3 mzML
         run: python3 scripts/verify_sacurine_zenodo_12raw.py --output tmp/sacurine-source
       - name: Install frozen xcms reference dependencies
@@ -64,7 +64,7 @@ jobs:
     container:
       image: ghcr.io/openms/openms-tools-thirdparty:35fix_docker-amd64@sha256:818c36f0dde156b8888ac34289066f846ab38edfef6f3c8b771e4f61c3c58702
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Ensure basic source tooling and exact pinned OpenMS build
         run: |
           if ! command -v python3 >/dev/null; then apt-get update -qq && apt-get install -y -qq python3; fi
@@ -131,7 +131,7 @@ jobs:
     needs: [xcms-baseline, openms-independent]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: actions/download-artifact@v6
         with:
           name: sacurine-xcms-coordinate-baseline

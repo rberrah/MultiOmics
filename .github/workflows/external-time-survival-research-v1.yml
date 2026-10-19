@@ -29,7 +29,7 @@ jobs:
     container:
       image: bioconductor/bioconductor_docker:RELEASE_3_22-r-4.5.2@sha256:e34177896c1579f66d48b756e4229b58237499183a089da084af72d7aba1d40a
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Install fixed real-data survival dependencies
         run: |
           Rscript -e 'BiocManager::install(c("Biobase","breastCancerNKI"),version="3.22",ask=FALSE,update=FALSE,quiet=TRUE); install.packages(c("jsonlite","digest","survival")); stopifnot(requireNamespace("breastCancerNKI",quietly=TRUE))'
@@ -57,7 +57,7 @@ jobs:
     container:
       image: bioconductor/bioconductor_docker:RELEASE_3_22-r-4.5.2@sha256:e34177896c1579f66d48b756e4229b58237499183a089da084af72d7aba1d40a
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Install fixed public longitudinal dependencies
         run: |
           Rscript -e 'BiocManager::install(c("GEOquery","Biobase","edgeR"),version="3.22",ask=FALSE,update=FALSE,quiet=TRUE); install.packages(c("jsonlite","digest","lme4","lmerTest")); stopifnot(requireNamespace("GEOquery",quietly=TRUE),requireNamespace("lmerTest",quietly=TRUE))'
