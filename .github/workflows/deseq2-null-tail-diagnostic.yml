@@ -1,0 +1,48 @@
+name: DESeq2 whole-study null p-value and Wald-tail diagnosis
+
+on:
+  pull_request:
+    paths:
+      - 'docs/multiomics/DESEQ2_NULL_TAIL_PROTOCOL_20261019.md'
+      - 'multiomics-engine/rnaseq_deseq2_null_tail_metrics.R'
+      - 'multiomics-engine/tests/test_rnaseq_deseq2_null_tail_metrics.R'
+      - 'multiomics-engine/validation/rnaseq_deseq2_null_tail_diagnostic.R'
+      - '.github/workflows/deseq2-null-tail-diagnostic.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'multiomics-engine/rnaseq_deseq2_null_tail_metrics.R'
+      - 'multiomics-engine/validation/rnaseq_deseq2_null_tail_diagnostic.R'
+      - '.github/workflows/deseq2-null-tail-diagnostic.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-null-tail:
+    name: 192 paired native DESeq2 whole-study null tail fits
+    runs-on: ubuntu-latest
+    timeout-minutes: 110
+    container:
+      image: bioconductor/bioconductor_docker:RELEASE_3_22-r-4.5.2@sha256:e34177896c1579f66d48b756e4229b58237499183a089da084af72d7aba1d40a
+    steps:
+      - uses: actions/checkout@v5
+      - name: Parse and adversarially test fixed whole-study summaries
+        run: |
+          Rscript -e 'for(f in c("multiomics-engine/rnaseq_deseq2_null_tail_metrics.R","multiomics-engine/tests/test_rnaseq_deseq2_null_tail_metrics.R","multiomics-engine/validation/rnaseq_deseq2_null_tail_diagnostic.R"))parse(file=f)'
+          Rscript multiomics-engine/tests/test_rnaseq_deseq2_null_tail_metrics.R
+      - name: Install frozen native scientific stack
+        run: |
+          Rscript -e 'stopifnot(identical(as.character(getRversion()),"4.5.2"),identical(as.character(BiocManager::version()),"3.22")); p<-c("DESeq2","edgeR","limma","airway"); m<-p[!vapply(p,requireNamespace,logical(1),quietly=TRUE)]; if(length(m))BiocManager::install(m,ask=FALSE,update=FALSE,quiet=TRUE)'
+          Rscript multiomics-engine/environment/check_reference_runtime.R verify
+      - name: Run prespecified paired whole-study tail diagnostic
+        run: Rscript multiomics-engine/validation/rnaseq_deseq2_null_tail_diagnostic.R tmp/deseq2-null-tail
+      - name: Preserve all outcomes
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: DESeq2-whole-study-null-tail-${{ github.sha }}
+          path: tmp/deseq2-null-tail/
+          if-no-files-found: warn
+          retention-days: 90
