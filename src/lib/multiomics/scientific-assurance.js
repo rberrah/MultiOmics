@@ -300,6 +300,11 @@ export function assessScientificAssurance(result, { demo = false } = {}) {
       'Certaines mesures sont manquantes. Même avec des taux similaires entre groupes, cela peut créer de fausses différences biologiques : vérifier la cause des absences et refaire une analyse de sensibilité. Les p-values/q-values seules ne suffisent pas.',
       'Some measurements are missing. Similar missing-data rates between groups can still create false biological differences: investigate why values are absent and run a sensitivity analysis. P-values/q-values alone are insufficient.',
       'requires_confirmation');
+    if (protocol.objective === 'groups' && layer === 'transcriptomics' &&
+        qc.preprocessingAudit?.declaredValueType === 'raw_counts') add('rnaseq_known_null_fdr_limit',
+      'RNA-seq DESeq2 : les benchmarks nuls indépendants de Research v1 ont montré un excès de faux appels dans certains scénarios. Les q-values restent des sorties du modèle R natif, mais leur calibration doit être vérifiée pour le plan étudié avant toute conclusion confirmatoire.',
+      'DESeq2 RNA-seq: independent Research v1 null benchmarks showed excess false calls in some scenarios. q-values remain native-R model outputs, but their calibration must be checked for the study design before confirmatory interpretation.',
+      'requires_confirmation');
     if (qc?.inferenceTier?.level === 'screening' &&
         data?.numericalProvenance !== 'exact_native_r_reference_table') add(layer + '_count_screening',
       'RNA-seq en comptages : le calcul navigateur sur log2-CPM ne remplace pas DESeq2/limma-voom sur comptages bruts.',
