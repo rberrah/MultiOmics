@@ -1364,12 +1364,15 @@
       analysisError = t('Pour une analyse confirmatoire, choisissez « R requis » et vérifiez sa connexion. Aucune conclusion confirmatoire automatique ne sera produite.', 'For a confirmatory workflow, choose Require R and verify its connection. No automatic confirmatory approval will be given.');
       return;
     }
-    // The reference renderer currently projects only complete native R
-    // differential tables. Other questions must remain explicitly exploratory
-    // until their own native output/figure projections are reproducible.
-    if (analysisIntent === 'confirmatory' && objective !== 'groups') {
+    // Confirmatory display is allowed only for objectives with a complete
+    // native-R projection contract. Group, longitudinal group-by-time and
+    // survival are supported; other outcome families remain exploratory.
+    const confirmatoryObjectiveSupported = objective === 'groups' ||
+      objective === 'time' ||
+      (objective === 'outcome' && outcomeType === 'survival');
+    if (analysisIntent === 'confirmatory' && !confirmatoryObjectiveSupported) {
       const gate = assessConfirmatoryResult({
-        protocol:{analysisIntent,objective}
+        protocol:{analysisIntent,objective,outcomeType}
       });
       analysisError = t(gate.message, gate.messageEn);
       return;
