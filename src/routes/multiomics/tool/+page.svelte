@@ -107,6 +107,15 @@
   function isMissingnessRiskNote(note) {
     return String(note?.code ?? '').endsWith('_missingness_not_ignorable');
   }
+  /** @param {any} result */
+  function primaryEvidenceTier(result) {
+    const layers=Object.values(result?.layers||{});
+    if(!layers.length)return 'none';
+    const nativeCount=layers.filter((layer)=>layer?.numericalProvenance==='exact_native_r_reference_table').length;
+    if(nativeCount===layers.length)return 'native_r_all_layers';
+    if(nativeCount>0)return 'mixed_native_browser';
+    return 'browser_exploratory';
+  }
   let helpTooltip = { visible: false, text: '', left: 0, top: 0, placement: 'above' };
   // External API requests and reference R data forwarding are opt-in.
   let useReactome = false;
@@ -3291,7 +3300,11 @@ Rscript multiomics-engine/run_backend.R</code></pre>
         <p class="eyebrow">
           {demoLoaded
             ? t('Démo synthétique · résultats réellement calculés', 'Synthetic demo · actually computed results')
-            : t('Résultats · moteur déterministe', 'Analysis results · deterministic engine')}
+            : primaryEvidenceTier(analysisResult)==='native_r_all_layers'
+              ? t('Résultats · valeurs principales issues des tableaux natifs R', 'Results · primary values from native R tables')
+              : primaryEvidenceTier(analysisResult)==='mixed_native_browser'
+                ? t('Résultats · sources numériques mixtes R natif / navigateur', 'Results · mixed native-R / browser numerical sources')
+                : t('Résultats · calcul exploratoire du navigateur', 'Results · exploratory browser computation')}
         </p>
 
         <h2>
@@ -3328,6 +3341,28 @@ Rscript multiomics-engine/run_backend.R</code></pre>
         {#if analysisResult.reactome?.combined?.token}
         <a class="btn btn-outline" href={`https://reactome.org/PathwayBrowser/#DTAB=AN&ANALYSIS=${analysisResult.reactome.combined.token}`} target="_blank" rel="noreferrer">{t('Ouvrir dans Reactome ↗', 'Open in Reactome ↗')}</a>
         {/if}
+      </div>
+      <div class="integration-result" data-testid="multiomics-omics2pk-export-panel">
+        <div class="integration-head">
+          <div>
+            <p class="eyebrow">{t('Réutilisation en pharmacométrie', 'Reuse in pharmacometrics')}</p>
+            <h3>{t('Exporter les données individuelles vers Omics2PK', 'Export individual data to Omics2PK')}</h3>
+          </div>
+          <button class="btn btn-outline" type="button" data-testid="multiomics-omics2pk-export"
+            disabled={portableProjectBusy} onclick={downloadOmics2PkExchange}>
+            {portableProjectBusy ? t('Préparation…','Preparing…') : t('Télécharger échange Omics2PK (ZIP)','Download Omics2PK exchange (ZIP)')}
+          </button>
+        </div>
+        <p>{t(
+          'Cet export contient les matrices individuelles originales normalisées en format d’échange, les identités sujet/prélèvement/assay, les échelles déclarées et les SHA-256. Il n’exporte pas les logFC/q-values de groupe comme covariables PK et n’invente aucune dose ni concentration.',
+          'This export contains original individual matrices normalized to the exchange format, subject/specimen/assay identities, declared scales and SHA-256 hashes. It does not export group logFC/q-values as PK covariates and invents no dose or concentration.'
+        )}</p>
+        <p class="note">{t(
+          'Pour tester un effet sur la PK, Omics2PK doit joindre séparément les vraies doses, temps et concentrations des mêmes sujets. Les scores individuels optionnels ne sont acceptés qu’avec modèle figé ou prédiction hors-fold et provenance explicite.',
+          'To test a PK effect, Omics2PK must separately join genuine dose, time and concentration records from the same subjects. Optional individual scores are accepted only with frozen-model or out-of-fold provenance.'
+        )}</p>
+        {#if omics2pkExportMessage}<p role="status" data-testid="multiomics-omics2pk-export-status">{omics2pkExportMessage}</p>{/if}
+        {#if omics2pkExportError}<p role="alert" class="error" data-testid="multiomics-omics2pk-export-error">{omics2pkExportError}</p>{/if}
       </div>
       <p class="simple-hint">{t('Le ZIP contient tous les tableaux, les méthodes, les sources et les paramètres. Données potentiellement sensibles : stockage sécurisé recommandé. Les résultats du navigateur restent exploratoires.', 'ZIP includes complete tables, methods, original data and settings. Potentially sensitive: store securely. Browser results remain exploratory.')}</p>
     <p class="simple-hint" data-testid="multiomics-replay-fidelity-note">
@@ -3391,13 +3426,27 @@ Rscript multiomics-engine/run_backend.R</code></pre>
           </div>
         {/if}
         {#if analysisResult.protocol?.objective === 'time' && analysisResult.protocol?.longitudinal}
-        <p data-testid="multiomics-longitudinal-inference-warning"><strong>{t('Longitudinal : pas de significativité calculée dans le navigateur.', 'Longitudinal: no browser-side statistical significance is reported.')}</strong>
-            {t('Les changements et différences de pente sont descriptifs. Les p-values, q-values et intervalles de confiance exigent l’analyse de référence R avec lmerTest et un plan longitudinal vérifié.', 'Estimated changes and slopes are descriptive. P-values, q-values and confidence intervals require the lmerTest R reference analysis and a verified longitudinal design.')}
-          </p>
+          {#if primaryEvidenceTier(analysisResult)==='native_r_all_layers'}
+            <p data-testid="multiomics-longitudinal-native-note"><strong>{t('Longitudinal : les effets, p-values et q-values affichés proviennent du modèle lmerTest natif R.', 'Longitudinal: displayed effects, p-values and q-values come from the native R lmerTest model.')}</strong>
+              {t('La structure aléatoire réellement ajustée et les fallbacks restent visibles. Vérifiez linéarité du temps, résidus, visites manquantes et structure aléatoire avant toute conclusion.', 'The fitted random-effects structure and fallbacks remain visible. Review time linearity, residuals, missing visits and random-effects structure before drawing conclusions.')}
+            </p>
+          {:else}
+            <p data-testid="multiomics-longitudinal-inference-warning"><strong>{t('Longitudinal : pas de significativité de référence calculée dans le navigateur.', 'Longitudinal: no reference statistical significance is computed in the browser.')}</strong>
+              {t('Les changements et différences de pente sont descriptifs. Les p-values, q-values et intervalles de confiance de référence exigent l’analyse R avec lmerTest et un plan longitudinal vérifié.', 'Estimated changes and slopes are descriptive. Reference p-values, q-values and confidence intervals require the R lmerTest analysis and a verified longitudinal design.')}
+            </p>
+          {/if}
         {/if}
-      <strong>{t('Statut de validité scientifique', 'Scientific evidence status')} · {analysisResult.scientificAssurance.status === 'descriptive'
-            ? t('Exploration descriptive', 'Descriptive exploration')
-        : t('Inférence exploratoire : confirmation requise', 'Exploratory inference: confirmation required')}</strong>
+      <strong>{t('Statut de validité scientifique', 'Scientific evidence status')} · {
+        analysisResult.scientificAssurance.confirmatoryReadiness?.requested &&
+        analysisResult.scientificAssurance.confirmatoryReadiness.status === 'blocked'
+          ? t('Préparation confirmatoire bloquée', 'Confirmatory preparation blocked')
+          : analysisResult.scientificAssurance.confirmatoryReadiness?.requested &&
+            analysisResult.scientificAssurance.confirmatoryReadiness.status === 'independent_review_required'
+            ? t('Préparation confirmatoire native R · revue indépendante requise', 'Native-R confirmatory preparation · independent review required')
+            : analysisResult.scientificAssurance.status === 'descriptive'
+              ? t('Exploration descriptive', 'Descriptive exploration')
+              : t('Inférence exploratoire · confirmation requise', 'Exploratory inference · confirmation required')
+      }</strong>
       <p>{t('Exécution réussie ≠ validation scientifique. Une q-value faible ou un contrôle QC sans alerte ne certifient pas une découverte. Une conclusion publiable exige un design vérifié, une méthode de référence et, selon l’objectif, une validation indépendante.',
           'Successful execution is not scientific validation. Low q-values or apparently clean QC do not certify a finding. Publication claims require a checked design, appropriate reference methods and sometimes external validation.')}</p>
         {#if analysisResult.scientificAssurance.notes?.some(isMissingnessRiskNote)}
