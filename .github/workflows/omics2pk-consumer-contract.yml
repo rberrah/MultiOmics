@@ -88,7 +88,8 @@ jobs:
           assert all(r['collection_time_unit']=='h' for r in rows)
           assert all(r['time_origin']=='first_dose' for r in rows)
           assert pk['temporal_numeric_metadata_ready'] is True
-          assert pk['pk_dose_concentration_data_present'] is False
+          assert pk['has_original_PK_dose_concentration_history'] is False
+          assert 'SUBJECT_MATCHED_ORIGINAL_PK_DOSE_CONCENTRATION_EVENTS' in pk['missing_for_E3_and_E4']
           matrix=(p/'matrices'/'transcriptomics.csv').read_text()
           assert 'feature_id,A10,A11' in matrix
           assert 'ENSG_B,NA,15' in matrix
