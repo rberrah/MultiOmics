@@ -4,21 +4,27 @@
 states **software acceptance and deployment handoff**, not universal
 statistical or biological validation.
 
-## Qualified starting point
+## Research v1 freeze candidate
 
-At 18 October 2026, `main` commit
-`c4c1c51346d4b05acd70754e7680b1f6540fdae8`
-passed all eight post-merge independent GitHub Actions qualifications
-(standalone UI, fixed-URL payload, R reference calibration, public Airway native R,
-real Nutrimouse MOFA2/DIABLO, GSE22871 and Omics2PK exchange).
+Research v1 is accepted only from the final merged source revision whose
+release gate, standalone qualification and required public-data evidence are
+green. The immutable source identity is the final `main` SHA; historical
+passing SHAs remain evidence but are not substituted for the release revision.
 
-The public PMx Pages portal is a **separately pinned application**:
-`rberrah/rberrah.github.io/integration/multiomics-release.json` still pointed
-to source commit `b02cc48e006abf5fd0200e9e2cf376af4cfae526`
-when inspected. A successful MultiOmics CI is **not evidence** the new source
-is deployed at `https://rberrah.github.io/multiomics/`. Changing that pin,
-running assembled Pages tests, merging the separate PMx PR and verifying the
-public site must be performed by the PMx integration owner.
+The frozen scientific scope is deliberately narrower than “universally
+validated omics analysis”. Native-R confirmatory **preparation** is supported
+only for the explicit group, repeated group×time and independent-survival
+contracts below. Public real-data qualification includes Airway, Nutrimouse,
+the authentic 12-file Sacurine raw-MS study, NKI/DMFS survival and GSE191328
+longitudinal execution. Known limitations #44, #47 and #20 remain visible and
+are part of the release contract rather than being hidden or closed by the
+software freeze.
+
+The public PMx Pages portal remains a **separately pinned application**.
+A successful MultiOmics Research v1 freeze does not prove that the same SHA is
+already deployed at `https://rberrah.github.io/multiomics/`. The PMx
+integration owner must update its immutable source pin, run assembled-site
+tests and verify the served public URL separately.
 
 ## Hard acceptance rules for the browser's confirmatory mode
 
@@ -89,10 +95,19 @@ public site must be performed by the PMx integration owner.
    user-generated ZIP, local R guide, no falsely confirmed output).
 5. Only then state that the latest MultiOmics is publicly deployed.
 
-**Outstanding v1 release decisions:** make a permanent versioned research
-release and frozen environment reproducible outside CI; expand R reference
-qualification to new designs, MS batches with jointly observed blanks/QCs;
-perform human usability testing; investigate null-simulation false calls with
-sufficient Monte Carlo precision. See the statistical qualification
-documentation rather than describing current results as universally
-confirmatory.
+## Research v1 release decision
+
+The software may be frozen as **Research v1 / 1.0.0** once the exact final
+source revision passes the release CI and its required public-data evidence.
+The freeze does not close the following scientific work:
+
+- #44 remains a known limitation on universal DESeq2/FDR claims;
+- #47 remains stronger analytical/chemical LC-MS validation beyond the already
+  qualified authentic raw-data execution;
+- #20 remains biological transferability of individual scores toward Omics2PK;
+- independent human usability and study-specific statistical/biological review
+  remain external tasks.
+
+Those items block broader scientific claims, not the bounded Research v1
+software/provenance baseline. A later method, dependency or scope change must
+receive a new version and requalification rather than silently modifying v1.
