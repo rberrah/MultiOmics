@@ -3073,10 +3073,14 @@
           ? t('Le moteur R local devient obligatoire. Les tests contrôlent l’éligibilité, mais ne certifient jamais automatiquement vos résultats. Les fichiers seront envoyés au backend R configuré après lancement de l’analyse.', 'The configured local R engine is required. Checks assess eligibility but never automatically certify findings. Files are sent to the configured R backend when you run the analysis.')
           : t('Le navigateur applique des méthodes exploratoires et parfois des approximations ou simplifications statistiques : ses p-values, q-values et effets peuvent différer des méthodes R de référence. Les analyses R natives (DESeq2, edgeR/limma selon les données) sont préférables pour une inférence appropriée au modèle, mais leur validité dépend du plan, des hypothèses et du contrôle qualité. Aucune installation R n’est nécessaire pour explorer.', 'The browser uses exploratory models and sometimes statistical approximations or simplifications: its p-values, q-values and effects can differ from native reference R methods. Native R methods (DESeq2, edgeR/limma where applicable) are preferable for model-appropriate inference, but validity still depends on design, assumptions and quality checks. No R installation is needed to explore.')}</small>
       </label>
-      {#if analysisIntent === 'confirmatory' && objective !== 'groups'}
+      {#if analysisIntent === 'confirmatory' && !(
+        objective === 'groups' ||
+        objective === 'time' ||
+        (objective === 'outcome' && outcomeType === 'survival')
+      )}
         <p role="alert" class="simple-hint" data-testid="multiomics-confirmatory-projection-unsupported">
-          {t('Les modèles R longitudinaux et de survie sont disponibles dans le moteur scientifique, mais leurs tableaux ne remplacent pas encore les chiffres du navigateur. Pour éviter une présentation trompeuse, le mode confirmatoire est actuellement limité aux comparaisons de groupes avec tableaux R complets pour chaque omique. Utilisez le mode exploratoire pour cette question.',
-             'Longitudinal and survival R methods exist, but their results do not yet replace browser figures and numbers. To prevent misleading confirmatory reporting, this mode currently supports group comparisons only when complete R tables exist for every layer. Select exploration for this question.')}
+          {t('Le mode confirmatoire affiche uniquement les questions disposant d’un tableau R natif complet : comparaison de groupes, interaction groupe × temps et survie. Les autres modèles d’outcome restent exploratoires tant que leur projection R complète n’est pas qualifiée.',
+             'Confirmatory display is limited to objectives with a complete native R table: group comparison, group-by-time interaction and survival. Other outcome models remain exploratory until their full R projection is qualified.')}
         </p>
       {/if}
       {#if analysisIntent !== 'confirmatory'}
