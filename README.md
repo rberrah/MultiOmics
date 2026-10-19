@@ -2,7 +2,7 @@
 
 A public, source-available research environment for reproducible **single- and multi-omics research**, with an optional local R reference engine.
 
-**Release status:** independent source repository with standalone scientific/browser CI and version-pinned overlay artifacts intended for PMx hosting. The preferred public route is [`/multiomics/`](https://rberrah.github.io/multiomics/) and its [analysis tool](https://rberrah.github.io/multiomics/tool/); the older `/pharmacometrie/multiomics/` routes must be retained during migration. **Deployment of a particular source SHA must be verified on the PMx Pages artifact separately from MultiOmics CI.** This is **not** a claim of universal confirmatory statistical validity, clinical use, or a hosted R service.
+**Release status:** **Research v1 / software 1.0.0** — a frozen research-software baseline with standalone scientific/browser CI and version-pinned overlay artifacts intended for PMx hosting. The exact scientific scope and known limitations are defined in [the Research v1 freeze](docs/multiomics/RESEARCH_V1_FREEZE_20261019.md) and [machine-readable manifest](research-v1-manifest.json). The preferred public route is [`/multiomics/`](https://rberrah.github.io/multiomics/) and its [analysis tool](https://rberrah.github.io/multiomics/tool/); the older `/pharmacometrie/multiomics/` routes must be retained during migration. **Deployment of a particular source SHA must be verified on the PMx Pages artifact separately from MultiOmics CI.** This is **not** a claim of universal confirmatory statistical validity, clinical use, or a hosted R service.
 
 ## Download and use independently
 
