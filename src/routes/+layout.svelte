@@ -28,7 +28,7 @@
     { key:'design',href:'/multiomics/learn/',label:t('Plan d’étude et qualité','Study design and QC') },
     { key:'tool',href:'/multiomics/tool/',label:t('Lancer une analyse','Run an analysis') },
     { key:'workflow',href:'/multiomics/tool/',label:t('Découvrir en 1 clic','One-click demos') },
-    { key:'disciplines',href:'/multiomics/disciplines/',label:t('Omiques vers PK/PD','Omics to PK/PD') },
+    { key:'disciplines',href:'/multiomics/disciplines/',label:t('Vue d’ensemble de l’écosystème','Ecosystem overview') },
     { key:'pmx',href:pmxExplain,label:'PMx Explain ↗',external:true },
     { key:'omics2pk',href:'https://rberrah.github.io/Omics2PK/',label:'Omics2PK ↗',external:true },
     { key:'resources',href:'/multiomics/resources/',label:t('Documentation','Documentation') },
@@ -40,7 +40,7 @@
   let groups = $derived([
     {key:'learn',label:t('Apprendre','Learn'),icon:BookOpen,keys:['learn','design']},
     {key:'analyze',label:t('Analyser','Analyze'),icon:ChartNoAxesCombined,keys:['tool','workflow']},
-    {key:'disciplines',label:t('Autres disciplines','Other disciplines'),icon:Library,keys:['disciplines','pmx','omics2pk']},
+    {key:'disciplines',label:t('Écosystème','Ecosystem'),icon:Library,keys:['disciplines','pmx','omics2pk']},
     {key:'resources',label:t('Ressources','Resources'),icon:Library,keys:['resources','glossary','references','source','main-site']}
   ]);
   // SvelteKit 3 only types concrete route IDs; menu hrefs are dynamic.
@@ -160,10 +160,11 @@
     <div class="footer-shell">
       <div>
         <strong>MultiOmics</strong>
-        <p>{t('Analyse mono- et multi-omique reproductible, reliée à l’écosystème PMx.', 'Reproducible single- and multi-omics analysis connected to the PMx ecosystem.')}</p>
+        <p>{t('Analyser les omiques dans un écosystème de recherche partagé avec PMx Explain et Omics2PK.', 'Analyze omics within a research ecosystem shared with PMx Explain and Omics2PK.')}</p>
       </div>
       <nav aria-label={t('Liens de pied de page', 'Footer links')}>
         <a href={pmxExplain}>PMx Explain</a>
+        <a href="https://rberrah.github.io/Omics2PK/">Omics2PK</a>
         <a href={mainSite}>{t('Site principal', 'Main site')} ↗</a>
         <a href="https://github.com/rberrah/MultiOmics">GitHub ↗</a>
       </nav>
