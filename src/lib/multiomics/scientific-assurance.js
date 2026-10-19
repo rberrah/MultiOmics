@@ -31,14 +31,18 @@ export function evaluateConfirmatoryReadiness(result, { demo = false } = {}) {
   if (!layers.length) add('empty', 'blocked',
     'Aucune omique analysée.', 'No analysed omics layer.');
   const conditions = result?.metadataSummary?.conditions || [];
-  const independentDesign = protocol.objective === 'groups' &&
+  const groupObjective = protocol.objective === 'groups';
+  const longitudinalObjective = protocol.objective === 'time';
+  const survivalObjective = protocol.objective === 'outcome' &&
+    protocol.outcomeType === 'survival';
+  const independentDesign = groupObjective &&
     protocol.designType === 'independent' && !protocol.longitudinal &&
     conditions.length === 2;
   const pairedMethod = methods.transcriptomics_differential_deseq2;
   const pairedContract = pairedMethod?.pairedDesignContract;
   // A paired study is eligible for *review* only with the genuine server-side
   // subject-blocked contract, not just a designType flag or an HTTP 200.
-  const pairedDesign = protocol.objective === 'groups' &&
+  const pairedDesign = groupObjective &&
     protocol.designType === 'paired' && !protocol.longitudinal &&
     conditions.length === 2 && layers.length === 1 &&
     layers[0][0] === 'transcriptomics' &&
@@ -57,16 +61,28 @@ export function evaluateConfirmatoryReadiness(result, { demo = false } = {}) {
     pairedContract.residual_degrees_of_freedom >= 2 &&
     Number.isFinite(result?.metadataSummary?.subjects) &&
     result.metadataSummary.subjects === pairedContract.biological_pairs;
-  if (!independentDesign && !pairedDesign) add('design', 'blocked',
-    'Le plan ne possède pas de contrat R valide pour deux groupes indépendants ou un RNA-seq apparié strict. Aucun résultat confirmatoire automatique.',
-    'No valid R contract for two independent groups or a strictly subject-blocked paired RNA-seq study. No automatic confirmatory result.');
+  const longitudinalDesign = longitudinalObjective &&
+    (protocol.longitudinal === true || protocol.designType === 'repeated');
+  const survivalDesign = survivalObjective &&
+    protocol.designType === 'independent' && !protocol.longitudinal;
+  const supportedDesign = independentDesign || pairedDesign ||
+    longitudinalDesign || survivalDesign;
+
+  if (!supportedDesign) add('design', 'blocked',
+    'Le plan déclaré n’a pas de contrat R natif confirmatoire qualifié. Les voies prises en charge sont : deux groupes indépendants, RNA-seq apparié strict, groupe × temps longitudinal répété et survie indépendante.',
+    'The declared design has no qualified native-R confirmatory contract. Supported paths are two independent groups, strictly paired RNA-seq, repeated group-by-time longitudinal analysis, and independent survival.');
+  else if (pairedDesign) add('design', 'pass',
+    'RNA-seq apparié avec blocage sujet R vérifié (éligibilité technique seulement).',
+    'R subject-blocked paired RNA-seq verified (technical eligibility only).');
+  else if (longitudinalDesign) add('design', 'pass',
+    'Plan longitudinal répété reconnu ; l’éligibilité exacte des visites et du contraste groupe × temps est vérifiée par lmerTest avant l’inférence.',
+    'Repeated longitudinal design recognised; exact visit and group-by-time contrast eligibility is checked by lmerTest before inference.');
+  else if (survivalDesign) add('design', 'pass',
+    'Plan de survie indépendant reconnu ; l’unicité des sujets, les événements et les diagnostics PH sont vérifiés dans le backend R.',
+    'Independent survival design recognised; unique subjects, event counts and PH diagnostics are checked in the R backend.');
   else add('design', 'pass',
-    pairedDesign
-      ? 'RNA-seq apparié avec blocage sujet R vérifié (éligibilité technique seulement).'
-      : 'Plan à deux groupes indépendants reconnu.',
-    pairedDesign
-      ? 'R subject-blocked paired RNA-seq verified (technical eligibility only).'
-      : 'Two-independent-group design recognised.');
+    'Plan à deux groupes indépendants reconnu.',
+    'Two-independent-group design recognised.');
 
   if (!Object.keys(methods).length) add('backend', 'blocked',
     'Aucun moteur R de référence exécuté. Lancez le backend R pour toutes les omiques.',
@@ -74,21 +90,49 @@ export function evaluateConfirmatoryReadiness(result, { demo = false } = {}) {
   for (const [layer, data] of layers) {
     const qc = data?.qc || {};
     const declared = qc.preprocessingAudit?.declaredValueType;
-    const key = layer === 'transcriptomics' && declared === 'raw_counts'
-      ? layer + '_differential_deseq2'
-      : layer + '_differential';
-    const status = methods[key]?.status;
+    const key = longitudinalObjective ? layer + '_longitudinal'
+      : survivalObjective ? layer + '_survival'
+      : layer === 'transcriptomics' && declared === 'raw_counts'
+        ? layer + '_differential_deseq2'
+        : layer + '_differential';
+    const method = methods[key];
+    const status = method?.status;
     if (status !== 'ok') add('reference_'+layer, 'blocked',
       layer + ' : modèle R primaire compatible non exécuté (' + key + ').',
       layer + ': matching primary R model not executed (' + key + ').');
     else add('reference_'+layer,'pass',
       layer + ' : modèle R de référence exécuté (' + key + ').',
       layer + ': reference R model executed (' + key + ').');
+
+    if ((longitudinalObjective || survivalObjective) &&
+        layer === 'transcriptomics' && declared === 'raw_counts') {
+      add('raw_count_reference_'+layer,'blocked',
+        layer + ' : les comptages RNA-seq bruts ne sont pas acceptés dans cette voie confirmatoire ; la transformation CPM-log2 automatique reste exploratoire.',
+        layer + ': raw RNA-seq counts are not accepted in this confirmatory path; automatic CPM-log2 transformation remains exploratory.');
+    }
+    if (longitudinalObjective && status === 'ok') {
+      const fallbacks = Number(method?.summary?.randomSlopeFallbacks || 0);
+      add('longitudinal_assumptions_'+layer,'review',
+        layer + ' : vérifier linéarité de l’effet du temps, structure aléatoire, résidus, données manquantes et indépendance des sujets.',
+        layer + ': review linear time effect, random-effects structure, residuals, missing visits and subject independence.');
+      if (fallbacks > 0) add('longitudinal_random_slope_fallback_'+layer,'review',
+        layer + ' : ' + fallbacks + ' variable(s) ont nécessité un fallback de pente aléatoire vers intercept seul ; cette adaptation doit être examinée avant interprétation confirmatoire.',
+        layer + ': ' + fallbacks + ' feature(s) required random-slope fallback to random intercept only; this adaptation must be reviewed before confirmatory interpretation.');
+    }
+    if (survivalObjective && status === 'ok') {
+      const phWarnings = Number(method?.summary?.statusCounts?.ph_assumption_warning || 0);
+      add('survival_assumptions_'+layer,'review',
+        layer + ' : vérifier risques proportionnels, mécanisme de censure, covariables, événements suffisants, competing risks et dépendance temporelle éventuelle.',
+        layer + ': review proportional hazards, censoring mechanism, covariates, event information, competing risks and possible time-dependent effects.');
+      if (phWarnings > 0) add('survival_ph_warning_'+layer,'review',
+        layer + ' : ' + phWarnings + ' variable(s) ont un diagnostic cox.zph < 0,05 ; ne pas interpréter leur hazard ratio comme effet proportionnel constant sans modèle de sensibilité.',
+        layer + ': ' + phWarnings + ' feature(s) have cox.zph < 0.05; do not interpret their hazard ratio as a constant proportional effect without sensitivity modelling.');
+    }
     // Raw-count confirmatory intent is NOT eligible just because a server
     // advertises a successful DESeq2 fit. It must include the exact strict
     // sample/subject, contrast, additive design and raw-count preflight.
     // This remains eligibility only, never a certificate.
-    if (layer === 'transcriptomics' && declared === 'raw_counts') {
+    if (groupObjective && layer === 'transcriptomics' && declared === 'raw_counts') {
       const input = methods[key]?.confirmatoryInputContract;
       const assay = methods[key]?.assayIntegrityContract;
       const requestedContrast = protocol.rnaPrimaryContrast;
@@ -162,10 +206,10 @@ export function evaluateConfirmatoryReadiness(result, { demo = false } = {}) {
       layer + ' : imputation de valeurs manquantes supposées censurées appliquée (' + mnarImputationCount + ' valeurs). Une analyse de sensibilité à des hypothèses MNAR alternatives est requise.',
       layer + ': left-censored missing-value imputation was applied (' + mnarImputationCount + ' values). Sensitivity to alternative MNAR assumptions is required.');
 
-    if (layer === 'transcriptomics' && declared === 'raw_counts') add('rnaseq_design','review',
+    if (groupObjective && layer === 'transcriptomics' && declared === 'raw_counts') add('rnaseq_design','review',
       'RNA-seq : vérifier indépendamment la dispersion, les facteurs d’ajustement et les contrastes DESeq2.',
       'RNA-seq: independently check dispersion, adjustment variables and DESeq2 contrasts.');
-    if (layer === 'transcriptomics' && declared === 'raw_counts') add('rnaseq_null_fdr_calibration','review',
+    if (groupObjective && layer === 'transcriptomics' && declared === 'raw_counts') add('rnaseq_null_fdr_calibration','review',
       'RNA-seq : des simulations nulles indépendantes ont montré un excès de faux appels dans certains scénarios DESeq2. Les q-values demandent une vérification de calibration adaptée au plan ; revue méthodologique indispensable.',
       'RNA-seq: independent null simulations showed excess false calls for DESeq2 in some scenarios. q-values need design-specific calibration assessment and independent methodological review.');
   }
