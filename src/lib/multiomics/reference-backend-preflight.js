@@ -77,6 +77,11 @@ export function evaluateReferenceBackendHealth(health, context = {}) {
         'Group comparisons require R limma for non-raw-count layers, but it is unavailable.');
     }
   } else if (objective === 'time') {
+    if (context.hasTranscriptomics && context.transcriptomicsValues === 'raw_counts') {
+      return fail('unsupported_raw_count_longitudinal',
+        'RNA-seq longitudinal en comptages bruts : la transformation CPM-log2 du moteur n’est pas une inférence RNA-seq longitudinale de référence. Fournissez une matrice d’expression préparée selon un pipeline préspécifié et documenté, ou restez en exploration.',
+        'Longitudinal raw-count RNA-seq: the engine CPM-log2 transform is not a reference longitudinal RNA-seq inference model. Supply an expression matrix prepared with a prespecified documented pipeline, or remain exploratory.');
+    }
     if (!installed(packages,'lmerTest')) {
       return fail('missing_lmerTest',
         'Analyse longitudinale : le package lmerTest requis n’est pas disponible.',
@@ -87,6 +92,11 @@ export function evaluateReferenceBackendHealth(health, context = {}) {
       return fail('unsupported_confirmatory_outcome',
         'Ce type d’outcome n’a pas encore de tableau R natif projeté et qualifié dans le mode confirmatoire. Utilisez le mode exploratoire jusqu’à l’ajout d’un contrat R spécifique.',
         'This outcome type does not yet have a qualified native R table projection for confirmatory mode. Use exploratory mode until a dedicated R contract is implemented.');
+    }
+    if (context.hasTranscriptomics && context.transcriptomicsValues === 'raw_counts') {
+      return fail('unsupported_raw_count_survival',
+        'Survie RNA-seq en comptages bruts : un Cox sur CPM-log2 automatique n’est pas une analyse transcriptomique de survie de référence. Fournissez une matrice d’expression préparée selon un pipeline préspécifié et documenté, ou restez en exploration.',
+        'Raw-count RNA-seq survival: an automatically CPM-log2 transformed Cox model is not a reference transcriptomic survival analysis. Supply an expression matrix prepared with a prespecified documented pipeline, or remain exploratory.');
     }
     if (!installed(packages,'survival')) {
       return fail('missing_survival',
