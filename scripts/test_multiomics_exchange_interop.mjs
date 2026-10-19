@@ -97,6 +97,7 @@ assert.equal(normalized.summary.source_orientations.transcriptomics,'assay_rows_
 assert.equal(normalized.summary.independent_subjects,2);
 assert.equal(normalized.summary.unique_specimens,2);
 assert.equal(normalized.summary.numeric_collection_time_complete,true);
+assert.equal(normalized.summary.pk_temporal_numeric_compatible,true);
 assert.equal(normalized.summary.explicit_time_origin_complete,true);
 assert.equal(normalized.summary.tissue_present,true);
 const normalizedSamples=normalized.entries.find(e=>e.name==='exchange/samples.csv').data;
@@ -108,6 +109,21 @@ assert.equal(normalizedMatrix,
 assert.equal(normalized.manifest.matrices[0].missing_value,'NA');
 assert.equal(normalized.summary.pk_dose_concentration_data_included,false);
 assert.match(normalized.summary.interpretation,/dose\/concentration/i);
+
+const invalidUnitProject=structuredClone(mappedProject);
+invalidUnitProject.inputs.metadata.content=mappedMeta.replaceAll('\th\tfirst_dose','\tfortnight\tfirst_dose');
+const invalidUnit=await buildDownstreamExchange(invalidUnitProject);
+assert.equal(invalidUnit.summary.numeric_collection_time_complete,true,
+  'numeric-looking time plus arbitrary unit remains syntactically complete');
+assert.equal(invalidUnit.summary.pk_temporal_numeric_compatible,false,
+  'unsupported time units must never be advertised as Omics2PK-compatible');
+
+const negativeTimeProject=structuredClone(mappedProject);
+negativeTimeProject.inputs.metadata.content=mappedMeta.replace('\t0\th\tfirst_dose','\t-1\th\tfirst_dose');
+const negativeTime=await buildDownstreamExchange(negativeTimeProject);
+assert.equal(negativeTime.summary.numeric_collection_time_complete,true);
+assert.equal(negativeTime.summary.pk_temporal_numeric_compatible,false,
+  'negative molecular times must not pass the PK consumer preflight');
 
 
 const ambiguousProject={
