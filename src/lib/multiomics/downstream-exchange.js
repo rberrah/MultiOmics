@@ -252,8 +252,14 @@ export async function buildDownstreamExchange(portableProject,{individualSignatu
     nonBlank(row.collection_time)&&Number.isFinite(Number(row.collection_time))&&
     nonBlank(row.collection_time_unit));
   const pkTimeUnits=new Set(['h','hour','hours','min','minute','minutes','d','day','days']);
-  const pkTemporalNumericCompatible=numericTimeComplete&&sampleRows.every(row=>
-    Number(row.collection_time)>=0&&pkTimeUnits.has(String(row.collection_time_unit).trim().toLowerCase()));
+  // Mirror Python float() lexical forms used by the current Omics2PK reader.
+  // JS Number() would also accept 0x/0b/0o literals that Python float rejects.
+  const pkDecimalTime=/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/;
+  const pkTemporalNumericCompatible=numericTimeComplete&&sampleRows.every(row=>{
+    const raw=String(row.collection_time).trim();
+    return pkDecimalTime.test(raw)&&Number(raw)>=0&&
+      pkTimeUnits.has(String(row.collection_time_unit).trim().toLowerCase());
+  });
   const summary={
     status:'source_exchange_ready_not_pk_ready',
     structural_exchange_valid:true,
