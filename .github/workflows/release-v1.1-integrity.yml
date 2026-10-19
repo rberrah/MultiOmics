@@ -2,34 +2,8 @@ name: MultiOmics 1.1 release integrity
 
 on:
   pull_request:
-    paths:
-      - 'package.json'
-      - 'package-lock.json'
-      - 'CITATION.cff'
-      - 'release-v1.1-manifest.json'
-      - 'docs/multiomics/RELEASE_V1_1_0_20261019.md'
-      - 'docs/multiomics/SACURINE_OPENMS_INDEPENDENT_COMPARATOR_20261019.md'
-      - 'scripts/compare_sacurine_xcms_openms.py'
-      - '.github/workflows/sacurine-openms-independent-comparator.yml'
-      - 'SECURITY.md'
-      - '.github/CODEOWNERS'
-      - '.github/dependabot.yml'
-      - '.github/workflows/release-v1.1-integrity.yml'
   push:
     branches: [main]
-    paths:
-      - 'package.json'
-      - 'package-lock.json'
-      - 'CITATION.cff'
-      - 'release-v1.1-manifest.json'
-      - 'docs/multiomics/RELEASE_V1_1_0_20261019.md'
-      - 'docs/multiomics/SACURINE_OPENMS_INDEPENDENT_COMPARATOR_20261019.md'
-      - 'scripts/compare_sacurine_xcms_openms.py'
-      - '.github/workflows/sacurine-openms-independent-comparator.yml'
-      - 'SECURITY.md'
-      - '.github/CODEOWNERS'
-      - '.github/dependabot.yml'
-      - '.github/workflows/release-v1.1-integrity.yml'
   workflow_dispatch:
 
 permissions:
