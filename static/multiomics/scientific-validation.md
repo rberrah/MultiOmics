@@ -2,11 +2,19 @@
 
 ## Positionnement
 
-Ce logiciel est un **outil de recherche exploratoire**. Son bon fonctionnement technique,
-la correction BH et la reproduction de signaux connus **ne constituent pas une validation
-statistique générale**. Une analyse peut être exportée et reproductible tout en reposant
-sur des hypothèses incorrectes. Le logiciel ne déclare donc jamais une analyse
-« publication ready » automatiquement.
+Ce logiciel est un **outil de recherche** avec deux niveaux explicitement séparés :
+un moteur navigateur **exploratoire** et, pour quelques plans strictement éligibles,
+un mode **« Préparer une analyse confirmatoire »** qui exige les résultats numériques
+complets d'un backend R natif. Ce second mode est un contrat de calcul, de provenance
+et de blocage fail-closed ; il **ne constitue pas une validation statistique générale**
+et ne certifie ni le plan d'étude, ni la calibration de l'erreur, ni la causalité,
+ni la transférabilité biologique.
+
+Le bon fonctionnement technique, la correction BH, l'exécution d'un package R de
+référence et la reproduction de signaux connus ne suffisent donc jamais à déclarer
+un résultat « validé » ou « publication ready ». Une analyse peut être exacte et
+reproductible au niveau logiciel tout en reposant sur des hypothèses scientifiques
+incorrectes.
 
 ## MOFA2 sur Nutrimouse réel : contrôle négatif qui reste positif (11 octobre 2026)
 
@@ -856,20 +864,37 @@ puis produit trois catégories : *vérifié automatiquement*,
 *à examiner indépendamment* ou *bloqué*. Aucune option ou case cochée
 ne peut convertir ces éléments en preuve de validité scientifique.
 
-Périmètre initial du précontrôle confirmatoire : deux groupes biologiques
-indépendants ; chaque couche doit avoir une méthode de référence R
-effectivement exécutée (DESeq2 sur comptages bruts RNA-seq, limma
-pour matrices appropriées déjà transformées et contrôlées). Les études
-longitudinales, les critères cliniques, la survie, les modèles prédictifs,
-les marqueurs multi-omiques et l'enrichissement Reactome ne sont
-**pas autorisés automatiquement** comme inférence confirmatoire.
-Ils restent accessibles en exploration, avec les limites affichées.
-L'inférence confirmatoire de ces plans nécessitera une validation
-**spécifique à chaque plan** et des diagnostics supplémentaires.
+Le précontrôle confirmatoire est désormais **fail-closed** et limité à
+trois familles de sorties feature-wise dont les nombres affichés proviennent
+du tableau R natif complet pour **chaque** omique chargée :
+
+- comparaison de groupes indépendants ou appariés lorsque le contrat du plan
+  est satisfait : DESeq2/voom pour les comptages RNA-seq compatibles et limma
+  pour les matrices déjà transformées compatibles ;
+- longitudinal répété : coefficient explicite d'interaction groupe × temps
+  issu de `lmerTest`, avec structure aléatoire réellement utilisée conservée ;
+- survie : coefficient log-hazard issu de `survival::coxph`, effectifs
+  d'événements et diagnostics `cox.zph` conservés.
+
+Les outcomes continus, binaires, de comptage et multiclasse feature-wise,
+les modèles prédictifs, les signatures multi-omiques et l'enrichissement
+Reactome restent **exploratoires** tant qu'un contrat R natif complet,
+des diagnostics propres au plan et des tests indépendants n'ont pas été
+qualifiés. MOFA2 ou DIABLO ne peuvent jamais remplacer un modèle d'inférence
+feature-wise manquant.
 
 La réussite d'un appel R n'implique jamais que l'unité statistique,
 le contraste, la dispersion, les effets de batch, la puissance, les
 hypothèses des modèles ni les familles de tests BH soient corrects.
+En particulier, les simulations nulles RNA-seq de qualification ont observé
+des études avec au moins une fausse découverte DESeq2 à q≤0,05 dans
+**22/128, 23/128 et 18/128** répétitions selon trois générateurs ; les bornes
+inférieures simultanées à 95 % étaient supérieures à 5 %. Les tests séparés
+du calcul BH sont corrects, et l'ablation Cook/filtrage indépendant n'a pas
+expliqué ce signal. Cette observation ne démontre pas que DESeq2 est
+universellement mal calibré, mais interdit de présenter l'exécution native
+ou une q-value BH comme une certification du FDR pour une étude donnée.
+L'issue scientifique #44 reste volontairement ouverte.
 
 ### Prédiction : suppression partielle de la fuite pré-CV
 
