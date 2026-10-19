@@ -79,8 +79,17 @@ patient <- patient_raw
 if(!all(c("infliximab") %in% unique(treatment)) ||
    !all(c("baseline","2w") %in% unique(tp)) ||
    !all(c("remission","nonremission") %in% unique(remission)) ||
-   !any(grepl("discovery",cohort)))
-  stop("GSE191328 parsed characteristic levels do not match the prespecified public source contract.")
+   !any(grepl("discovery",cohort))) {
+  compact <- function(x) paste(utils::head(sort(unique(as.character(x))),20L),collapse=" | ")
+  stop(paste(
+    "GSE191328 parsed characteristic levels do not match the prespecified public source contract.",
+    "columns:",patient_col,cohort_col,treatment_col,remission_col,time_col,
+    "cohort=",compact(cohort_raw),
+    "treatment=",compact(treatment_raw),
+    "remission=",compact(remission_raw),
+    "time=",compact(time_raw)
+  ))
+}
 
 keep <- grepl("discovery",cohort) & grepl("infliximab",cohort) &
         treatment=="infliximab" & tp %in% c("baseline","2w") &
