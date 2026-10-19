@@ -94,7 +94,7 @@ jobs:
             tmp/sacurine-v3-native-r/prespecified-peak-picking-sensitivity
       - name: Preserve compact provenance and biological limitations, not original raw human spectra
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: MultiOmics-real-Sacurine-v3-12raw-blank-QC-native-${{ github.sha }}
           path: |

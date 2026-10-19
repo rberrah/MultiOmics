@@ -54,7 +54,7 @@ jobs:
         run: Rscript multiomics-engine/validation/rnaseq_deseq2_null_tail_diagnostic.R tmp/deseq2-null-tail
       - name: Preserve all outcomes
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: DESeq2-whole-study-null-tail-${{ github.sha }}
           path: tmp/deseq2-null-tail/

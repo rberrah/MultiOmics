@@ -53,14 +53,14 @@ jobs:
           node scripts/build_short_url_overlay.mjs
           node scripts/test_short_url_overlay.mjs
       - name: Upload proposed direct URL; never deploy from this repository
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: multiomics-root-short-url-${{ github.sha }}
           path: short-url-overlay/
           if-no-files-found: error
           retention-days: 14
       - name: Store integration artifact; never deploy automatically
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: multiomics-fixed-urls-${{ github.sha }}
           path: compat-overlay/

@@ -46,7 +46,7 @@ jobs:
       - name: Exercise portable downloaded bundle in real desktop/mobile browser
         run: npx playwright test --config playwright.portable.config.js --workers=1 --retries=0
       - name: Publish independently usable browser package as Actions artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: MultiOmics-portable-web-${{ github.sha }}
           path: |

@@ -63,7 +63,7 @@ jobs:
         run: Rscript multiomics-engine/tests/test_survival_backend.R
       - name: Archive survival numerical qualification evidence
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: multiomics-survival-independent-validation
           path: tmp/multiomics/cox-reference/

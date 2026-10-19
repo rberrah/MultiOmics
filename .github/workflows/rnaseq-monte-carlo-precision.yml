@@ -90,7 +90,7 @@ jobs:
         run: Rscript multiomics-engine/validation/rnaseq_precision_decision.R tmp/rnaseq-precision
       - name: Archive every per-study result including negative outcomes
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: MultiOmics-independent-RNAseq-precision-${{ github.sha }}
           path: |

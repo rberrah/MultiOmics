@@ -59,7 +59,7 @@ jobs:
             tmp/external-public-results
       - name: Preserve external observations, source hashes and scientific limitations
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: measured-public-drosophila-external-QC-evidence
           path: |

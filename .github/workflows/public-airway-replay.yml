@@ -59,7 +59,7 @@ jobs:
         run: node scripts/test_public_airway_website_r_numeric_figures.mjs
       - name: Confirm reference API syntax remains valid
         run: Rscript -e 'p<-plumber::plumb("multiomics-engine/server.R");stopifnot(inherits(p,"Plumber"))'
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: standalone-airway-GSE52778-replay-evidence

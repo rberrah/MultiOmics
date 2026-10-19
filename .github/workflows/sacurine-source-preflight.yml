@@ -41,7 +41,7 @@ jobs:
         run: python3 scripts/sacurine_source_preflight.py --output tmp/sacurine-preflight
       - name: Preserve source hashes, scientific limitations and failure evidence only
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: sacurine-36-mzxml-source-integrity-evidence
           path: |

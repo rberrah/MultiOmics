@@ -36,7 +36,7 @@ jobs:
         run: python3 scripts/sacurine_ebi_metadata_probe.py
       - name: Archive only original source fingerprint and schema, never subject records
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: mtbls404-ebi-primary-metadata-source-evidence
           path: tmp/mtbls404-metadata-probe/metabolights_source_probe.json

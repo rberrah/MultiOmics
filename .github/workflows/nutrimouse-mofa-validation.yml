@@ -73,7 +73,7 @@ jobs:
         run: python3 scripts/verify_mofa_basilisk_evidence.py tmp/multiomics/mofa-nutrimouse-real/basilisk_python_environment.json
       - name: Preserve all model factors, source provenance, permutations and failures
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: multiomics-real-nutrimouse-MOFA2-metadata-evidence
           path: tmp/multiomics/mofa-nutrimouse-real/

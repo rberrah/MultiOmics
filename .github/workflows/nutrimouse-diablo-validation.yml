@@ -76,14 +76,14 @@ jobs:
             tmp/multiomics/real-nutrimouse-frozen-score/exchange
       - name: Preserve genuine frozen-score model, full source and negative result
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: nutrimouse-public-real-frozen-assay-score-not-pk-validated
           path: tmp/multiomics/real-nutrimouse-frozen-score/
           if-no-files-found: warn
       - name: Archive ALL outcomes even if observed model performs poorly
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: multiomics-real-nutrimouse-diablo-true-observations
           path: tmp/multiomics/real-nutrimouse-diablo/

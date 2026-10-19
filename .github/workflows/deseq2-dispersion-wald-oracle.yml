@@ -60,7 +60,7 @@ jobs:
             tmp/deseq2-true-dispersion-wald-study
       - name: Retain all negative outcomes including partial real package outputs on failure
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: DESeq2-independent-original-NB-dispersion-Wald-${{ github.sha }}
           path: |

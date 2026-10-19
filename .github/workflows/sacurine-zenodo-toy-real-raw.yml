@@ -57,7 +57,7 @@ jobs:
             tmp/sacurine-zenodo-raw tmp/sacurine-zenodo-results/real-raw-fit
       - name: Preserve hashes and compact quantitative findings, NOT original raw samples
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: real-sacurine-zenodo-true-blank-xcms-evidence
           path: |

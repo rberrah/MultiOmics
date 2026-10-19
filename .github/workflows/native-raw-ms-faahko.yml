@@ -50,7 +50,7 @@ jobs:
         run: Rscript multiomics-engine/tests/test_ms_qc_multiscenario_stress.R
       - name: Preserve synthetic tests as explicitly NON-REAL study evidence
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: synthetic-known-truth-MS-QC-regression
           path: tmp/multiomics/synthetic-ms-qc/
@@ -95,7 +95,7 @@ jobs:
         run: Rscript multiomics-engine/capture_environment.R tmp/multiomics/faahko-xcms-evidence/r_environment.json
       - name: Preserve failures and complete real-data scientific outputs
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: genuine-faahKO-xcms-native-reference-evidence
           path: tmp/multiomics/faahko-xcms-evidence/

@@ -37,7 +37,7 @@ jobs:
         run: Rscript multiomics-engine/validation/external_nki_survival_research_v1.R
       - name: Preserve compact real-data evidence
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: Research-v1-external-NKI-survival
           path: |
@@ -68,7 +68,7 @@ jobs:
         run: rm -rf tmp/external-longitudinal-gse191328/downloaded-counts
       - name: Preserve compact source hashes and numerical evidence
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: Research-v1-external-GSE191328-longitudinal
           path: |

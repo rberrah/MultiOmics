@@ -54,7 +54,7 @@ jobs:
             tmp/deseq2-oracle-normalization
       - name: Preserve original negative findings and uncertainty, not fitted patient data
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: native-DESeq2-global-null-depth-oracle-${{ github.sha }}
           path: |

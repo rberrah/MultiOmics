@@ -47,7 +47,7 @@ jobs:
               for r in rows:w.writerow({k:r[k] for k in w.fieldnames})
           print('xcms coordinate rows',len(rows))
           PY
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: sacurine-xcms-coordinate-baseline
           path: |
@@ -113,7 +113,7 @@ jobs:
         run: |
           sha256sum tmp/openms/sacurine.consensusXML > tmp/openms/consensus.sha256
           cp tmp/sacurine-source/sacurine_v3_12_original_source_manifest.json tmp/openms/source_manifest.json
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: sacurine-openms-independent-consensus
           path: |
@@ -158,7 +158,7 @@ jobs:
             --out tmp/comparison
       - name: Preserve complete compact comparator evidence
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: sacurine-xcms-openms-independent-coordinate-comparison
           path: tmp/comparison/

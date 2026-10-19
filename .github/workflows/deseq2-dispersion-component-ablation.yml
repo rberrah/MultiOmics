@@ -60,7 +60,7 @@ jobs:
             tmp/deseq2-dispersion-four-component-evidence
       - name: Preserve original per-study findings, including scientific negatives
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: MultiOmics-true-DESeq2-four-dispersion-components-${{ github.sha }}
           path: |

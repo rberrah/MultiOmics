@@ -84,7 +84,7 @@ jobs:
           PY
       - name: Archive source bytes and all original dataset checksums, including unfavorable or blocked outcomes
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: external-GSE22871-authentic-probe-level-GEO-metadata-no-PK-claims
           path: tmp/multiomics/real-external-GSE22871/
@@ -299,14 +299,14 @@ jobs:
           PY
       - name: Preserve favorable and unfavorable exploratory source-related external phenotypic contrasts
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: genuine-GSE22871-Cyp3a11-exposure-contrasts-not-PK-validation
           path: tmp/multiomics/real-external-GSE22871/external_native_PFOS_exploratory_contrasts/
           if-no-files-found: warn
       - name: Preserve genuine concordance, source discrepancies, candidate gene mappings and blocked claim
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: independent-Bioconductor-mouse4302-GPL1261-probe-gene-disagreements
           path: tmp/multiomics/real-external-GSE22871/independent-bioc-concordance/
