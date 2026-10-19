@@ -32,7 +32,7 @@ test('Ecosystem dropdown connects PMx Explain, MultiOmics and Omics2PK', async (
   const group=page.getByTestId('goal-disciplines');
   await expect(group.locator('summary')).toContainText(/Ecosystem|Écosystème/);
   await group.locator('summary').click();
-  await expect(group.getByTestId('nav-disciplines')).toHaveAttribute('href',/\/multiomics\/disciplines\/$/);
+  await expect(group.getByTestId('nav-disciplines')).toHaveAttribute('href',/\/multiomics\/ecosystem\/$/);
   await expect(group.getByTestId('nav-pmx')).toHaveAttribute('href','https://rberrah.github.io/pharmacometrie/');
   await expect(group.getByTestId('nav-omics2pk')).toHaveAttribute('href','https://rberrah.github.io/Omics2PK/');
   await page.goto('/multiomics/glossary/?lang=en');
