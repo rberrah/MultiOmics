@@ -82,3 +82,33 @@ test('expert signature upload refuses invalid untraceable scores without affecti
   await page.getByTestId('multiomics-research-bundle-download').click();
   await expect(page.getByTestId('multiomics-research-bundle-error')).toContainText('Individual signature import is invalid');
 });
+
+
+test('results explain evidence tier and verify Omics2PK structural exchange without claiming PK readiness', async ({page}) => {
+  await page.goto('/multiomics/tool?lang=fr');
+  await page.getByTestId('multiomics-load-demo').click();
+  await expect(page.getByTestId('multiomics-results')).toBeVisible({timeout:30_000});
+
+  const interpretation=page.getByTestId('multiomics-result-interpretation');
+  await expect(interpretation).toBeVisible();
+  await expect(interpretation).toContainText('Source numérique');
+  await expect(interpretation).toContainText('Exploratoire navigateur');
+  await expect(interpretation).toContainText('ne certifie ni le design');
+
+  const reuse=page.getByTestId('multiomics-omics2pk-readiness');
+  await expect(reuse).toContainText('Échange structurel vérifié');
+  await expect(reuse).toContainText('8 sujets');
+  await expect(reuse).toContainText('16 prélèvements');
+  await expect(reuse).toContainText('49 assays');
+  await expect(reuse).toContainText('PK non prête');
+
+  const panel=page.getByTestId('multiomics-omics2pk-export-panel');
+  await expect(panel).toContainText('sans renormaliser les valeurs biologiques');
+  await expect(panel).toContainText('n’invente aucune dose ni concentration');
+
+  await page.locator('.language-toggle').getByRole('button',{name:'EN',exact:true}).click();
+  await expect(interpretation).toContainText('Browser exploratory');
+  await expect(reuse).toContainText('Structural exchange verified');
+  await expect(reuse).toContainText('Not PK-ready');
+  await expect(panel).toContainText('without renormalizing biological values');
+});
