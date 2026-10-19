@@ -3412,9 +3412,9 @@ Rscript multiomics-engine/run_backend.R</code></pre>
                 {omics2pkReadiness.independent_subjects} {t('sujets', 'subjects')} ·
                 {omics2pkReadiness.unique_specimens} {t('prélèvements', 'specimens')} ·
                 {omics2pkReadiness.assays} assays.
-                {omics2pkReadiness.numeric_collection_time_complete && omics2pkReadiness.explicit_time_origin_complete
-                  ? t(' Temps moléculaires numériques et origine explicite présents ; il faut encore joindre les vraies doses et concentrations des mêmes sujets avant toute analyse PK.', ' Numeric molecular times and an explicit time origin are present; genuine dose and concentration records for the same subjects are still required before any PK analysis.')
-                  : t(' Temps PK incomplets : Omics2PK doit joindre la vraie chronologie PK/doses/concentrations et vérifier une origine temporelle commune.', ' PK timing is incomplete: Omics2PK must join genuine PK timing/dose/concentration records and verify a shared time origin.')}
+                {omics2pkReadiness.pk_temporal_numeric_compatible && omics2pkReadiness.explicit_time_origin_complete
+                  ? t(' Temps moléculaires compatibles et origine moléculaire explicite présents ; cette origine doit encore être vérifiée contre le repère temporel PK, puis les vraies doses et concentrations des mêmes sujets doivent être jointes.', ' Compatible numeric molecular times and an explicit molecular time origin are present; that origin still has to be verified against the PK time reference, and genuine dose/concentration records for the same subjects must be joined.')
+                  : t(' Métadonnées temporelles non compatibles avec le contrat PK : utiliser un temps non négatif en min/h/jour, déclarer son unité et une origine explicite, puis joindre les vraies doses/concentrations des mêmes sujets.', ' Temporal metadata are not compatible with the PK contract: use a non-negative time in min/h/day with its unit and an explicit origin, then join genuine dose/concentration records for the same subjects.')}
               </small>
             {:else if omics2pkReadinessError}
               <strong>{t('Échange bloqué', 'Exchange blocked')}</strong>
