@@ -1,0 +1,164 @@
+name: Independent Sacurine xcms versus OpenMS feature-coordinate comparator
+
+on:
+  pull_request:
+    paths:
+      - 'docs/multiomics/SACURINE_OPENMS_INDEPENDENT_COMPARATOR_20261019.md'
+      - 'scripts/compare_sacurine_xcms_openms.py'
+      - '.github/workflows/sacurine-openms-independent-comparator.yml'
+      - 'multiomics-engine/raw_ms_processing.R'
+      - 'multiomics-engine/tests/real_sacurine_zenodo_12raw_xcms.R'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  xcms-baseline:
+    name: Replay frozen xcms coordinates on authentic 12-file source
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    container:
+      image: bioconductor/bioconductor_docker:RELEASE_3_22-r-4.5.2@sha256:e34177896c1579f66d48b756e4229b58237499183a089da084af72d7aba1d40a
+    steps:
+      - uses: actions/checkout@v5
+      - name: Download and authenticate the exact twelve Zenodo v3 mzML
+        run: python3 scripts/verify_sacurine_zenodo_12raw.py --output tmp/sacurine-source
+      - name: Install frozen xcms reference dependencies
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq libnetcdf-dev libhdf5-dev libxml2-dev libcurl4-openssl-dev
+          Rscript -e 'p<-c("xcms","MsExperiment","Spectra","mzR","BiocParallel","jsonlite","digest");m<-p[!vapply(p,requireNamespace,logical(1),quietly=TRUE)];if(length(m))BiocManager::install(m,version="3.22",ask=FALSE,update=FALSE,quiet=TRUE);stopifnot(all(vapply(p,requireNamespace,logical(1),quietly=TRUE)))'
+      - name: Replay qualified xcms preprocessing
+        run: |
+          Rscript multiomics-engine/tests/real_sacurine_zenodo_12raw_xcms.R tmp/sacurine-source tmp/xcms
+          python3 - <<'PY'
+          import csv
+          from pathlib import Path
+          p=Path('tmp/xcms/metabolomics_feature_definitions.csv')
+          rows=list(csv.DictReader(p.open()))
+          assert rows and {'feature_id','mzmed','rtmed'} <= set(rows[0])
+          out=Path('tmp/xcms/xcms_feature_centroids.csv')
+          with out.open('w',newline='') as f:
+              w=csv.DictWriter(f,fieldnames=['feature_id','mzmed','rtmed'])
+              w.writeheader()
+              for r in rows:w.writerow({k:r[k] for k in w.fieldnames})
+          print('xcms coordinate rows',len(rows))
+          PY
+      - uses: actions/upload-artifact@v6
+        with:
+          name: sacurine-xcms-coordinate-baseline
+          path: |
+            tmp/xcms/xcms_feature_centroids.csv
+            tmp/xcms/raw_ms_processing_manifest.json
+            tmp/sacurine-source/sacurine_v3_12_original_source_manifest.json
+          if-no-files-found: error
+          retention-days: 90
+
+  openms-independent:
+    name: Pinned OpenMS 3.5.0-pre-HEAD FeatureFinderMetabo independent source replay
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    container:
+      image: ghcr.io/openms/openms-tools-thirdparty:35fix_docker-amd64@sha256:818c36f0dde156b8888ac34289066f846ab38edfef6f3c8b771e4f61c3c58702
+    steps:
+      - uses: actions/checkout@v5
+      - name: Ensure basic source tooling and exact pinned OpenMS build
+        run: |
+          if ! command -v python3 >/dev/null; then apt-get update -qq && apt-get install -y -qq python3; fi
+          FeatureFinderMetabo --help 2>&1 | tee tmp-openms-version.txt
+          grep -E 'Version: 3\.5\.0-pre-HEAD-2025-12-12 .*Revision: 92e4db6' tmp-openms-version.txt
+      - name: Download and independently authenticate the same twelve mzML
+        run: python3 scripts/verify_sacurine_zenodo_12raw.py --output tmp/sacurine-source
+      - name: Freeze complete OpenMS default parameter files before processing
+        run: |
+          mkdir -p tmp/openms/features tmp/openms/aligned tmp/openms/params
+          FeatureFinderMetabo -write_ini tmp/openms/params/FeatureFinderMetabo.ini
+          MapAlignerPoseClustering -write_ini tmp/openms/params/MapAlignerPoseClustering.ini
+          FeatureLinkerUnlabeledKD -write_ini tmp/openms/params/FeatureLinkerUnlabeledKD.ini
+          sha256sum tmp/openms/params/*.ini > tmp/openms/params/sha256.txt
+      - name: Feature-find all twelve original acquisitions without silent centroid conversion
+        shell: bash
+        run: |
+          set -euo pipefail
+          for raw in tmp/sacurine-source/*.mzML; do
+            stem="$(basename "$raw" .mzML)"
+            FeatureFinderMetabo -ini tmp/openms/params/FeatureFinderMetabo.ini -in "$raw" -out "tmp/openms/features/${stem}.featureXML"
+          done
+          test "$(find tmp/openms/features -name '*.featureXML' | wc -l)" -eq 12
+      - name: Align and link only biological plus pooled-QC maps
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import csv
+          from pathlib import Path
+          root=Path('tmp/sacurine-source')
+          rows=list(csv.DictReader((root/'sampleMetadata_12samp_completed.tsv').open(),delimiter='\t'))
+          selected=[r['sample_name'] for r in rows if r['class']!='blk']
+          assert len(selected)==9 and sum(r['class']=='blk' for r in rows)==3
+          Path('tmp/openms/nonblank_names.txt').write_text('\n'.join(selected)+'\n')
+          PY
+          mapfile -t names < tmp/openms/nonblank_names.txt
+          inputs=(); outputs=()
+          for stem in "${names[@]}"; do
+            inputs+=("tmp/openms/features/${stem}.featureXML")
+            outputs+=("tmp/openms/aligned/${stem}.featureXML")
+          done
+          MapAlignerPoseClustering -ini tmp/openms/params/MapAlignerPoseClustering.ini -in "${inputs[@]}" -out "${outputs[@]}"
+          FeatureLinkerUnlabeledKD -ini tmp/openms/params/FeatureLinkerUnlabeledKD.ini -in "${outputs[@]}" -out tmp/openms/sacurine.consensusXML
+          test -s tmp/openms/sacurine.consensusXML
+      - name: Record independent engine identity and source boundary
+        run: |
+          sha256sum tmp/openms/sacurine.consensusXML > tmp/openms/consensus.sha256
+          cp tmp/sacurine-source/sacurine_v3_12_original_source_manifest.json tmp/openms/source_manifest.json
+      - uses: actions/upload-artifact@v6
+        with:
+          name: sacurine-openms-independent-consensus
+          path: |
+            tmp/openms/sacurine.consensusXML
+            tmp/openms/consensus.sha256
+            tmp/openms/nonblank_names.txt
+            tmp/openms/params/
+            tmp/openms/source_manifest.json
+            tmp-openms-version.txt
+          if-no-files-found: error
+          retention-days: 90
+
+  coordinate-comparison:
+    name: Reciprocal unique xcms/OpenMS m-z RT comparison
+    needs: [xcms-baseline, openms-independent]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v6
+        with:
+          name: sacurine-xcms-coordinate-baseline
+          path: tmp/xcms
+      - uses: actions/download-artifact@v6
+        with:
+          name: sacurine-openms-independent-consensus
+          path: tmp/openms
+      - name: Reject ambiguous matching and parse a native consensusXML fixture
+        run: python3 scripts/compare_sacurine_xcms_openms.py --self-test
+      - name: Compare all coordinates without a post-hoc success threshold
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t xcms_files < <(find tmp/xcms -type f -name 'xcms_feature_centroids.csv' -print)
+          mapfile -t openms_files < <(find tmp/openms -type f -name 'sacurine.consensusXML' -print)
+          test "${#xcms_files[@]}" -eq 1
+          test "${#openms_files[@]}" -eq 1
+          printf 'Resolved xcms artifact: %s\n' "${xcms_files[0]}"
+          printf 'Resolved OpenMS artifact: %s\n' "${openms_files[0]}"
+          python3 scripts/compare_sacurine_xcms_openms.py \
+            --xcms "${xcms_files[0]}" \
+            --openms "${openms_files[0]}" \
+            --out tmp/comparison
+      - name: Preserve complete compact comparator evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: sacurine-xcms-openms-independent-coordinate-comparison
+          path: tmp/comparison/
+          if-no-files-found: error
+          retention-days: 90
