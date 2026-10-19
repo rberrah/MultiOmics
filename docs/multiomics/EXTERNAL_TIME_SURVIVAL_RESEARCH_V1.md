@@ -36,7 +36,7 @@ Design fixé avant calcul :
 - traitement : discovery–infliximab uniquement ;
 - groupes stables : **rémission S14 vs non-rémission S14** ;
 - visites : **baseline et 2 semaines** uniquement ;
-- seuls les patients possédant exactement ces deux prélèvements RNA-seq sont éligibles ;
+- seuls les patients possédant exactement ces deux prélèvements RNA-seq sont éligibles ; cette règle source-only conduit à **13 paires complètes (6 rémissions, 7 non-rémissions)**, alors que la cohorte clinique totale publiée comprend 14 patients (7/7) ;
 - les comptages featureCounts publics sont téléchargés individuellement et hashés ;
 - preprocessing avant modèle mixte : `edgeR::filterByExpr`, TMM, logCPM
   (`prior.count=2`) ; les comptages bruts ne sont donc jamais présentés à
