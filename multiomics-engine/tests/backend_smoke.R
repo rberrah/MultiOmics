@@ -190,7 +190,7 @@ native_fixture <- data.frame(
 native_contract <- reference_complete_table(native_fixture, original_features=2L)
 stopifnot(isTRUE(native_contract$referenceTableComplete))
 stopifnot(identical(native_contract$referenceTableRows,2L))
-stopifnot(identical(native_contract$referenceOriginalFeatureCount,2L))
+stopifnot(identical(native_contract$referenceTableOriginalFeatures,2L))
 stopifnot(is.character(native_contract$referenceTableCsv),
           grepl("feature,estimate,p_value,q_bh",native_contract$referenceTableCsv,fixed=TRUE))
 stopifnot(grepl("F1,0.25,0.004,0.008",native_contract$referenceTableCsv,fixed=TRUE))
