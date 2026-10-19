@@ -30,9 +30,9 @@ The current qualified xcms path is replayed on the 12 files with its previously 
 
 The existing negative QC findings remain unchanged and are not filtered away.
 
-## Pipeline B — independent OpenMS
+## Pipeline B — independent pinned OpenMS build
 
-OpenMS **3.5.0** is used through the official OpenMS GitHub container package, pinned by image digest. The job must verify the executable reports version 3.5.0.
+The independent implementation uses the immutable OpenMS container digest already frozen in the protocol. Runtime inspection of the first successful source-processing artifact showed that this image identifies itself as **OpenMS 3.5.0-pre-HEAD-2025-12-12, Revision 92e4db6**, not a pure 3.5.0 release. This provenance correction was made after reading the runtime identity and does **not** change feature-finding, alignment, linking, matching tolerances or any observed result. The workflow now verifies that exact build string in addition to the pinned container digest.
 
 The pipeline is deliberately generic and non-optimized:
 
