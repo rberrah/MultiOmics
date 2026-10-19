@@ -251,6 +251,9 @@ export async function buildDownstreamExchange(portableProject,{individualSignatu
   const numericTimeComplete=sampleRows.length>0&&sampleRows.every(row=>
     nonBlank(row.collection_time)&&Number.isFinite(Number(row.collection_time))&&
     nonBlank(row.collection_time_unit));
+  const pkTimeUnits=new Set(['h','hour','hours','min','minute','minutes','d','day','days']);
+  const pkTemporalNumericCompatible=numericTimeComplete&&sampleRows.every(row=>
+    Number(row.collection_time)>=0&&pkTimeUnits.has(String(row.collection_time_unit).trim().toLowerCase()));
   const summary={
     status:'source_exchange_ready_not_pk_ready',
     structural_exchange_valid:true,
@@ -263,6 +266,7 @@ export async function buildDownstreamExchange(portableProject,{individualSignatu
     source_orientations:sourceOrientations,
     categorical_timepoint_present:sampleRows.some(r=>nonBlank(r.timepoint)),
     numeric_collection_time_complete:numericTimeComplete,
+    pk_temporal_numeric_compatible:pkTemporalNumericCompatible,
     explicit_time_origin_complete:sampleRows.length>0&&sampleRows.every(r=>nonBlank(r.time_origin)),
     tissue_present:sampleRows.some(r=>nonBlank(r.tissue)),
     individual_signature_rows:0,
