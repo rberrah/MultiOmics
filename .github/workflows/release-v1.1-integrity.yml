@@ -45,6 +45,7 @@ jobs:
             "research-v1-manifest.json",
             "docs/multiomics/RESEARCH_V1_FREEZE_20261019.md",
             "docs/multiomics/RELEASE_V1_1_0_20261019.md",
+            "docs/multiomics/RELEASE_V1_1_1_20261019.md",
             "docs/multiomics/SACURINE_OPENMS_INDEPENDENT_COMPARATOR_20261019.md",
             "scripts/compare_sacurine_xcms_openms.py",
             ".github/workflows/sacurine-openms-independent-comparator.yml",
@@ -64,4 +65,4 @@ jobs:
         run: python3 scripts/compare_sacurine_xcms_openms.py --self-test
       - name: Refuse accidental post-v1 development version
         run: |
-          ! grep -R --line-number --fixed-string '1.1.1-dev.0' package.json package-lock.json CITATION.cff release-v1.1-manifest.json docs/multiomics/RELEASE_V1_1_0_20261019.md
+          ! grep -R --line-number --fixed-string '1.1.1-dev.0' package.json package-lock.json CITATION.cff release-v1.1-manifest.json docs/multiomics/RELEASE_V1_1_0_20261019.md docs/multiomics/RELEASE_V1_1_1_20261019.md
