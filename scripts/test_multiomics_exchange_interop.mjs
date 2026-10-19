@@ -59,3 +59,48 @@ const anchored={...root,inputs:{...root.inputs,metadata:{...root.inputs.metadata
 }}};
 assert((await buildDownstreamExchange(anchored)).entries.find(x=>x.name==='exchange/samples.csv').data.includes('after_inclusion'));
 console.log('PASS: issue #20 categorical time, assay-vs-subject cardinality, mono/multi-omic, SHA-256 and negative guards');
+
+
+// The website accepts mapped source columns, TSV/semicolon input and transposed
+// matrices. The Omics2PK exchange must normalize the SAME accepted study
+// rather than becoming a narrower hidden export contract.
+const mappedMeta=[
+  'patient_id\tspecimen\trun\tmodality\ttissue_name\tvisit\tvisit_unit\tanchor',
+  'P10\tS10\tA10\trna\tblood\t0\th\tfirst_dose',
+  'P11\tS11\tA11\trna\tblood\t12\th\tfirst_dose'
+].join('\n')+'\n';
+const mappedProject={
+  inputs:{
+    metadata:{content:mappedMeta,sha256:'d'.repeat(64)},
+    transcriptomics:{content:'assay;ENSG_A;ENSG_B\nA10;10;\nA11;12;15\n'}
+  },
+  settings:{
+    organism:'human',unitType:'participant',
+    transcriptomicsValues:'normalized',transcriptomicsIdType:'ensembl_gene',
+    columnMapping:{
+      subject_id:'patient_id',sample_id:'specimen',assay_id:'run',omic:'modality',
+      tissue:'tissue_name',collection_time:'visit',collection_time_unit:'visit_unit',
+      time_origin:'anchor'
+    }
+  }
+};
+const normalized=await buildDownstreamExchange(mappedProject);
+assert.equal(normalized.manifest.schema_version,'1.0.0');
+assert.equal(normalized.manifest.matrices[0].orientation,'feature_rows_sample_columns');
+assert.equal('source_orientation' in normalized.manifest.matrices[0],false,
+  'source orientation must not break the strict V1 manifest schema');
+assert.equal(normalized.summary.source_orientations.transcriptomics,'assay_rows_feature_columns');
+assert.equal(normalized.summary.independent_subjects,2);
+assert.equal(normalized.summary.unique_specimens,2);
+assert.equal(normalized.summary.numeric_collection_time_complete,true);
+assert.equal(normalized.summary.explicit_time_origin_complete,true);
+assert.equal(normalized.summary.tissue_present,true);
+const normalizedSamples=normalized.entries.find(e=>e.name==='exchange/samples.csv').data;
+assert.match(normalizedSamples,/A10,S10,P10,transcriptomics,blood,0,h/);
+assert.match(normalizedSamples,/A11,S11,P11,transcriptomics,blood,12,h/);
+const normalizedMatrix=normalized.entries.find(e=>e.name==='exchange/matrices/transcriptomics.csv').data;
+assert.equal(normalizedMatrix,
+  'feature_id,A10,A11\r\nENSG_A,10,12\r\nENSG_B,NA,15\r\n');
+assert.equal(normalized.manifest.matrices[0].missing_value,'NA');
+assert.equal(normalized.summary.pk_dose_concentration_data_included,false);
+assert.match(normalized.summary.interpretation,/dose\/concentration/i);
