@@ -184,7 +184,7 @@ export async function buildDownstreamExchange(portableProject,{individualSignatu
   for(const sample of sampleRows)
     if(!supplied.has(sample.omic))throw Error('Sample sheet declares '+sample.omic+' without its original matrix');
   const entries=[],features=[['omic','feature_id','id_namespace','display_name','organism','taxon_id','annotation_database','annotation_version','tissue_scope','mapping_status']];
-  const matrices=[];let total=0;
+  const matrices=[];const sourceOrientations={};let total=0;
   async function add(path,content){
     const sha256=await digest(content);
     entries.push({name:'exchange/'+path,data:content});
@@ -220,7 +220,8 @@ export async function buildDownstreamExchange(portableProject,{individualSignatu
     }
     const file=await add('matrices/'+omic+'.csv',csv([matrix.header,...canonicalRows]));
     matrices.push({omic,file,value_type:scale,orientation:'feature_rows_sample_columns',
-      normalization:null,missing_value:'NA',source_orientation:matrix.source_orientation});
+      normalization:null,missing_value:'NA'});
+    sourceOrientations[omic]=matrix.source_orientation;
     total++;
   }
   if(!total)throw Error('No original omic matrix available');
@@ -251,6 +252,7 @@ export async function buildDownstreamExchange(portableProject,{individualSignatu
     unique_specimens:new Set(sampleRows.map(r=>r.sample_id)).size,
     assays:sampleRows.length,
     omics:[...new Set(sampleRows.map(r=>r.omic))],
+    source_orientations:sourceOrientations,
     categorical_timepoint_present:sampleRows.some(r=>nonBlank(r.timepoint)),
     numeric_collection_time_complete:numericTimeComplete,
     explicit_time_origin_complete:sampleRows.length>0&&sampleRows.every(r=>nonBlank(r.time_origin)),
