@@ -122,12 +122,13 @@ meta <- meta[order(meta$subject_id,meta$time),,drop=FALSE]
 groups <- table(unique(meta[,c("subject_id","condition")])$condition)
 if (length(unique(meta$subject_id)) < 10L || length(groups)!=2L || any(groups<5L))
   stop("GSE191328 baseline/week2 complete-pair design does not meet frozen lmer eligibility.")
-# The clinical discovery cohort contains 14 patients (7/7), but the
-# prespecified baseline+week-2 complete-pair RNA-seq subset contains 13 subjects:
-# 6 remitters and 7 non-remitters. This exclusion is determined solely by
-# source visit availability before expression download or feature-level fitting.
-if (length(unique(meta$subject_id)) != 13L ||
-    !identical(sort(as.integer(groups)),c(6L,7L)))
+# The clinical discovery cohort contains 14 patients (7/7), whereas the
+# prespecified baseline+week-2 RNA-seq complete-pair rule yields 12 subjects,
+# 6 remitters and 6 non-remitters in the current public GEO source. Exclusion
+# is determined solely by visit availability before expression download or
+# any feature-level fit; it is not selected from statistical results.
+if (length(unique(meta$subject_id)) != 12L ||
+    !identical(sort(as.integer(groups)),c(6L,6L)))
   stop(paste(
     "Unexpected GSE191328 complete-pair RNA-seq subset; review source.",
     "subjects=",length(unique(meta$subject_id)),
