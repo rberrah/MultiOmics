@@ -1,9 +1,11 @@
 # Qualification externe instrumentale — 12 acquisitions Sacurine v3 réellement mesurées
 
-**Statut de cette phase : protocole et code créés ; le résultat instrumental final
-dépend de l'exécution du workflow sur les 12 chromatogrammes originaux.**
-Une CI de code PASS et une origine MD5 vérifiée ne suffisent pas à déclarer
-une qualification instrumentale réussie.
+**Statut de cette phase : exécutée sur les 12 chromatogrammes originaux le
+18 octobre 2026.** Le workflow natif xcms, l'audit quantitatif indépendant et
+la sensibilité préspécifiée aux paramètres ont terminé avec succès. Cela
+qualifie l'exécution logicielle sur cette source réelle ; cela **ne valide pas**
+l'identité chimique, la qualité analytique de toutes les features, la
+reproductibilité interlaboratoire ni une association biologique/PK.
 
 ## Données originales et indépendance
 
@@ -87,6 +89,19 @@ seulement trois QC et trois blancs. Seul le lot source `ne1` est admis.
 7. Si une source est indisponible, corrompue, ou un résultat R
    devient incompatible avec le backend, le job échoue et ne
    publie aucun faux succès instrumental.
+
+## Résultats observés sur l'exécution réelle
+
+- **41 588** pics chromatographiques natifs et **3 135** features groupées.
+- Fraction manquante de la matrice : **26,86 %**.
+- RSD pooled-QC évaluable pour **2 850** features ; **1 843/2 850 (64,67 %)** dépassent 30 %.
+- Ratio médian blanc/urine évaluable pour **535** features ; **389/535 (72,71 %)** atteignent ou dépassent 20 %.
+- **2 600/3 135** ratios blanc/urine sont non évaluables et restent `NA` ; ils ne sont jamais assimilés à un signal de blanc nul.
+- Sensibilité préspécifiée `ppm 25 / snthresh 8` → `ppm 20 / snthresh 10` : **2 727** appariements réciproques uniques m/z–RT, soit **87,0 %** des features de référence et **91,5 %** des features de la variante. Parmi les paires évaluables dans les deux traitements, l'écran RSD >30 % concorde à **97,36 %** et l'écran blanc/urine >20 % à **98,10 %**.
+
+Ces observations montrent à la fois une compatibilité réelle du pipeline et
+des **limites QC substantielles** de ce petit jeu externe. Aucun filtre aval
+n'est choisi a posteriori pour améliorer ces chiffres.
 
 ## Exécution et limites
 
