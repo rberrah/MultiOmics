@@ -209,8 +209,11 @@ export function methodsMarkdown(result,locale='fr'){
              t('non exécuté','not executed')),
       '- '+t('Contrôle de multiplicité déclaré','Declared multiple-testing policy')+': '+print(audit.fdr_family),
       '',
-      t('Le tableau CSV contient toutes les variables renvoyées par le moteur navigateur, sans troncature. Une exécution R de référence, lorsqu’elle existe, est conservée séparément dans analysis_complete.json ; les lignes navigateur ne doivent jamais être attribuées à DESeq2, limma ou mixOmics par défaut.',
-        'The CSV contains every feature returned by the browser engine without truncation. When R reference computations exist, they are preserved separately in analysis_complete.json; browser result rows must not be attributed to DESeq2, limma or mixOmics by default.'),
+      entry?.numericalProvenance==='exact_native_r_reference_table'
+        ? t('Le tableau CSV primaire de cette couche est la table R native complète vérifiée, avec les identifiants originaux. Les calculs navigateur restent séparés dans analysis_complete.json et ne sont pas mélangés aux statistiques R.',
+            'The primary CSV for this layer is the verified complete native-R table with original identifiers. Browser calculations remain separate in analysis_complete.json and are not mixed with R statistics.')
+        : t('Le tableau CSV contient toutes les variables renvoyées par le moteur navigateur, sans troncature. Une exécution R de référence éventuelle est archivée séparément et ne transforme jamais rétroactivement ces lignes navigateur en résultats DESeq2, limma ou mixOmics.',
+            'The CSV contains every feature returned by the browser engine without truncation. Any R reference execution is archived separately and never retroactively turns these browser rows into DESeq2, limma or mixOmics results.'),
       '');
   }
 

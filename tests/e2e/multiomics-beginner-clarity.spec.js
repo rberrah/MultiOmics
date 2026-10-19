@@ -79,6 +79,38 @@ test('expert signature upload refuses invalid untraceable scores without affecti
     buffer:Buffer.from('subject_id,sample_id,assay_id,omic,signature_id,score\\nP01,S01,RNA1,transcriptomics,group_logfc,2.4\\n')
   });
   await expect(page.getByTestId('multiomics-signature-error')).toContainText('missing required');
+  await expect(page.getByTestId('multiomics-omics2pk-readiness')).toContainText('Exchange blocked');
   await page.getByTestId('multiomics-research-bundle-download').click();
   await expect(page.getByTestId('multiomics-research-bundle-error')).toContainText('Individual signature import is invalid');
+});
+
+
+test('results explain evidence tier and verify Omics2PK structural exchange without claiming PK readiness', async ({page}) => {
+  await page.goto('/multiomics/tool?lang=fr');
+  await page.getByTestId('multiomics-load-demo').click();
+  await expect(page.getByTestId('multiomics-results')).toBeVisible({timeout:30_000});
+
+  const interpretation=page.getByTestId('multiomics-result-interpretation');
+  await expect(interpretation).toBeVisible();
+  await expect(interpretation).toContainText('Source numérique');
+  await expect(interpretation).toContainText('Exploratoire navigateur');
+  await expect(interpretation).toContainText('ne certifie ni le design');
+
+  const reuse=page.getByTestId('multiomics-omics2pk-readiness');
+  await expect(reuse).toContainText('Échange structurel vérifié');
+  await expect(reuse).toContainText('8 sujets');
+  await expect(reuse).toContainText('16 prélèvements');
+  await expect(reuse).toContainText('49 assays');
+  await expect(reuse).toContainText('PK non prête');
+  await expect(reuse).toContainText('Métadonnées temporelles non compatibles');
+
+  const panel=page.getByTestId('multiomics-omics2pk-export-panel');
+  await expect(panel).toContainText('sans renormaliser les valeurs biologiques');
+  await expect(panel).toContainText('n’invente aucune dose ni concentration');
+
+  const downloadPromise=page.waitForEvent('download');
+  await page.getByTestId('multiomics-omics2pk-export').click();
+  await downloadPromise;
+  await expect(page.getByTestId('multiomics-omics2pk-export-status'))
+    .toContainText('non prêt pour une analyse PK');
 });

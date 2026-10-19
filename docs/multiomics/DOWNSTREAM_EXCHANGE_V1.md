@@ -65,6 +65,8 @@ Every matrix column must have exactly one matching `samples.csv` row for the sam
 
 See [JSON Schema](./DOWNSTREAM_EXCHANGE_V1.schema.json). The manifest enumerates all files with relative paths and SHA-256, the original dataset access conditions, sample-unit definition, values scale/normalization, producer commit, exact runtime/dependency versions **or explicit nulls when unavailable**, and per-method qualification. Neither a green pipeline nor `passed_technical` means inferential or biological confirmation.
 
+The optional machine-readable `validation.downstream_pk_readiness` object makes the direct ZIP self-describing without changing schema version 1.0.0. It records that the source exchange is structurally valid but **not PK-ready**, whether quantitative molecular times use the current Omics2PK-compatible non-negative minute/hour/day units, whether a molecular time origin was explicitly declared, and that a shared molecular↔PK clock, subject-matched dose/concentration history and PK/clinical effect remain unverified. A declared molecular `time_origin` is metadata, not proof that it is aligned to the PK event clock.
+
 **No inferred tissue/time** and **no invented lock versions**. For controlled/private data, local archiving and opt-in transfer only; clinical data must not enter public CI artifacts.
 
 ## Validation and compatibility

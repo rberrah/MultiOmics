@@ -251,8 +251,19 @@ export async function buildDownstreamExchange(portableProject,{individualSignatu
   const numericTimeComplete=sampleRows.length>0&&sampleRows.every(row=>
     nonBlank(row.collection_time)&&Number.isFinite(Number(row.collection_time))&&
     nonBlank(row.collection_time_unit));
+  const pkTimeUnits=new Set(['h','hour','hours','min','minute','minutes','d','day','days']);
+  // Mirror Python float() lexical forms used by the current Omics2PK reader.
+  // JS Number() would also accept 0x/0b/0o literals that Python float rejects.
+  const pkDecimalTime=/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/;
+  const pkTemporalNumericCompatible=numericTimeComplete&&sampleRows.every(row=>{
+    const raw=String(row.collection_time).trim();
+    return pkDecimalTime.test(raw)&&Number(raw)>=0&&
+      pkTimeUnits.has(String(row.collection_time_unit).trim().toLowerCase());
+  });
   const summary={
     status:'source_exchange_ready_not_pk_ready',
+    structural_exchange_valid:true,
+    pk_ready:false,
     analysis_id:manifest.analysis_id,
     independent_subjects:new Set(sampleRows.map(r=>r.subject_id)).size,
     unique_specimens:new Set(sampleRows.map(r=>r.sample_id)).size,
@@ -261,12 +272,24 @@ export async function buildDownstreamExchange(portableProject,{individualSignatu
     source_orientations:sourceOrientations,
     categorical_timepoint_present:sampleRows.some(r=>nonBlank(r.timepoint)),
     numeric_collection_time_complete:numericTimeComplete,
+    pk_temporal_numeric_compatible:pkTemporalNumericCompatible,
     explicit_time_origin_complete:sampleRows.length>0&&sampleRows.every(r=>nonBlank(r.time_origin)),
     tissue_present:sampleRows.some(r=>nonBlank(r.tissue)),
     individual_signature_rows:0,
     individual_signature_fit_scopes:[],
     pk_dose_concentration_data_included:false,
-    interpretation:'Source matrices are structurally usable by Omics2PK after extraction. PK readiness still requires subject-matched dose/concentration events, time origin and study-specific preprocessing.'
+    interpretation:'Source matrices are structurally usable by Omics2PK after extraction. Values are canonicalized, not biologically renormalized. PK readiness still requires subject-matched dose/concentration events, a verified shared time origin and study-specific fit-ready preprocessing.'
+  };
+  manifest.validation.downstream_pk_readiness={
+    status:'source_exchange_only_not_pk_ready',
+    structural_exchange_valid:true,
+    pk_dose_concentration_data_included:false,
+    numeric_collection_time_complete:numericTimeComplete,
+    pk_temporal_numeric_compatible:pkTemporalNumericCompatible,
+    explicit_molecular_time_origin_declared_complete:summary.explicit_time_origin_complete,
+    shared_molecular_pk_time_origin_verified:false,
+    clinical_or_pk_effect_validated:false,
+    note:'This exchange preserves individual molecular source data only. Declared molecular timing/origin is not proof of a shared PK clock; genuine subject-matched dose/concentration events must be joined and verified downstream.'
   };
   // Optional *individual* biological scores from an explicit, traceable
   // upstream scoring result. Never synthesize such scores from differential
