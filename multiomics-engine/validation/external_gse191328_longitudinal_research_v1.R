@@ -122,10 +122,17 @@ meta <- meta[order(meta$subject_id,meta$time),,drop=FALSE]
 groups <- table(unique(meta[,c("subject_id","condition")])$condition)
 if (length(unique(meta$subject_id)) < 10L || length(groups)!=2L || any(groups<5L))
   stop("GSE191328 baseline/week2 complete-pair design does not meet frozen lmer eligibility.")
-# Published discovery cohort is 14 with 7 remission / 7 non-remission. Do not
-# silently accept a materially changed public source.
-if (length(unique(meta$subject_id)) != 14L || !identical(sort(as.integer(groups)),c(7L,7L)))
-  stop("Unexpected GSE191328 discovery cohort size/remission balance; review source.")
+# The clinical discovery cohort contains 14 patients (7/7), but the
+# prespecified baseline+week-2 complete-pair RNA-seq subset contains 13 subjects:
+# 6 remitters and 7 non-remitters. This exclusion is determined solely by
+# source visit availability before expression download or feature-level fitting.
+if (length(unique(meta$subject_id)) != 13L ||
+    !identical(sort(as.integer(groups)),c(6L,7L)))
+  stop(paste(
+    "Unexpected GSE191328 complete-pair RNA-seq subset; review source.",
+    "subjects=",length(unique(meta$subject_id)),
+    "groups=",paste(names(groups),as.integer(groups),collapse="|")
+  ))
 
 # Resolve per-GSM supplementary count URL from GEO metadata. Prefer a URL in
 # the series phenotype table; otherwise query the GSM record itself.
