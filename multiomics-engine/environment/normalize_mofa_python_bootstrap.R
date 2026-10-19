@@ -24,23 +24,8 @@ proc <- basilisk::basiliskStart(env)
 on.exit(basilisk::basiliskStop(proc),add=TRUE)
 
 result <- basilisk::basiliskRun(proc,function(expected){
-  reticulate::py_run_string("
-import json, re, subprocess, sys
-from importlib import metadata
-pins = json.loads(multiomics_expected_bootstrap_json)
-req = [f\"{name}=={version}\" for name, version in pins.items()]
-subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--upgrade', '--no-user', *req])
-actual = {}
-for package in metadata.distributions():
-    name = package.metadata.get('Name')
-    if name:
-        actual[re.sub(r'[-_.]+','-',name).lower()] = package.version
-multiomics_bootstrap_json = json.dumps({k: actual.get(k) for k in pins}, sort_keys=True)
-",local=FALSE)
-  assign("multiomics_expected_bootstrap_json",
-         jsonlite::toJSON(as.list(expected),auto_unbox=TRUE),
-         envir=reticulate::py)
-  # Re-run after exposing the JSON to Python.
+  reticulate::py$multiomics_expected_bootstrap_json <-
+    jsonlite::toJSON(as.list(expected),auto_unbox=TRUE)
   reticulate::py_run_string("
 import json, re, subprocess, sys
 from importlib import metadata
