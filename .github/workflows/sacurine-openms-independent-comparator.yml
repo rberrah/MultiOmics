@@ -1,0 +1,182 @@
+name: Independent Sacurine xcms versus OpenMS raw preprocessing qualification
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/inspect_mzml_peak_mode.py'
+      - 'scripts/audit_sacurine_openms_comparator.py'
+      - 'scripts/test_audit_sacurine_openms_comparator.py'
+      - 'scripts/verify_sacurine_zenodo_12raw.py'
+      - 'multiomics-engine/tests/real_sacurine_zenodo_12raw_xcms.R'
+      - 'multiomics-engine/tests/export_sacurine_xcms_reference_for_openms.R'
+      - 'docs/multiomics/SACURINE_OPENMS_INDEPENDENT_COMPARATOR_20261019.md'
+      - '.github/workflows/sacurine-openms-independent-comparator.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/inspect_mzml_peak_mode.py'
+      - 'scripts/audit_sacurine_openms_comparator.py'
+      - 'scripts/test_audit_sacurine_openms_comparator.py'
+      - 'scripts/verify_sacurine_zenodo_12raw.py'
+      - 'multiomics-engine/tests/real_sacurine_zenodo_12raw_xcms.R'
+      - 'multiomics-engine/tests/export_sacurine_xcms_reference_for_openms.R'
+      - 'docs/multiomics/SACURINE_OPENMS_INDEPENDENT_COMPARATOR_20261019.md'
+      - '.github/workflows/sacurine-openms-independent-comparator.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  xcms-reference:
+    name: Rebuild authenticated xcms reference on the same 12 mzML
+    runs-on: ubuntu-latest
+    timeout-minutes: 140
+    container:
+      image: bioconductor/bioconductor_docker:RELEASE_3_22-r-4.5.2@sha256:e34177896c1579f66d48b756e4229b58237499183a089da084af72d7aba1d40a
+    env:
+      QUALIFIED_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      MULTIOMICS_RAW_MS_OUTPUT: tmp/sacurine-openms-comparator/xcms-runtime
+    steps:
+      - uses: actions/checkout@v5
+      - name: Static negative tests and syntax
+        run: |
+          python3 -m py_compile scripts/inspect_mzml_peak_mode.py scripts/audit_sacurine_openms_comparator.py scripts/test_audit_sacurine_openms_comparator.py
+          python3 scripts/test_audit_sacurine_openms_comparator.py
+          Rscript -e 'parse(file="multiomics-engine/tests/export_sacurine_xcms_reference_for_openms.R")'
+      - name: Download and authenticate the exact twelve Sacurine v3 mzML
+        run: |
+          python3 scripts/verify_sacurine_zenodo_12raw.py             --output tmp/sacurine-openms-comparator/source-xcms
+      - name: Install the frozen xcms scientific dependencies
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq libnetcdf-dev libhdf5-dev libxml2-dev libcurl4-openssl-dev
+          Rscript -e '
+            stopifnot(identical(as.character(getRversion()),"4.5.2"),
+              identical(as.character(BiocManager::version()),"3.22"))
+            packages<-c("xcms","MsExperiment","Spectra","mzR","faahKO",
+                        "BiocParallel","jsonlite","digest")
+            missing<-packages[!vapply(packages,requireNamespace,logical(1),quietly=TRUE)]
+            if(length(missing)) BiocManager::install(missing,version="3.22",
+              ask=FALSE,update=FALSE,quiet=TRUE)
+            stopifnot(all(vapply(packages,requireNamespace,logical(1),quietly=TRUE)))
+          '
+      - name: Verify frozen xcms runtime
+        run: |
+          mkdir -p "$MULTIOMICS_RAW_MS_OUTPUT"
+          Rscript multiomics-engine/environment/verify_raw_ms_runtime.R verify
+      - name: Re-run qualified xcms reference without hiding adverse QC
+        run: |
+          Rscript multiomics-engine/tests/real_sacurine_zenodo_12raw_xcms.R             tmp/sacurine-openms-comparator/source-xcms             tmp/sacurine-openms-comparator/xcms-fit
+          Rscript multiomics-engine/tests/export_sacurine_xcms_reference_for_openms.R             tmp/sacurine-openms-comparator/xcms-fit             tmp/sacurine-openms-comparator/xcms-reference
+      - name: Preserve compact xcms reference only
+        uses: actions/upload-artifact@v6
+        with:
+          name: sacurine-xcms-reference-for-openms
+          path: |
+            tmp/sacurine-openms-comparator/source-xcms/sacurine_v3_12_original_source_manifest.json
+            tmp/sacurine-openms-comparator/xcms-runtime/raw_ms_frozen_environment.json
+            tmp/sacurine-openms-comparator/xcms-reference/
+          if-no-files-found: error
+          retention-days: 90
+
+  openms-independent:
+    name: OpenMS 3.6.0 independent feature extraction and xcms comparison
+    needs: xcms-reference
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    env:
+      OPENMS_IMAGE: ghcr.io/openms/openms-executables:3.6.0
+      QUALIFIED_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v6
+        with:
+          name: sacurine-xcms-reference-for-openms
+          path: tmp/sacurine-openms-comparator/xcms-artifact
+      - name: Refuse comparator parser ambiguity before any real result
+        run: |
+          python -m py_compile scripts/inspect_mzml_peak_mode.py scripts/audit_sacurine_openms_comparator.py
+          python scripts/test_audit_sacurine_openms_comparator.py
+      - name: Independently re-download and authenticate the same twelve mzML
+        run: |
+          python scripts/verify_sacurine_zenodo_12raw.py             --output tmp/sacurine-openms-comparator/source-openms
+          cmp             tmp/sacurine-openms-comparator/source-openms/sacurine_v3_12_original_source_manifest.json             tmp/sacurine-openms-comparator/xcms-artifact/sacurine_v3_12_original_source_manifest.json
+      - name: Determine source MS1 peak representation before feature finding
+        run: |
+          python scripts/inspect_mzml_peak_mode.py             --raw-dir tmp/sacurine-openms-comparator/source-openms             --output tmp/sacurine-openms-comparator/openms/peak-mode.json
+      - name: Pull stable OpenMS release and record the exact container digest
+        run: |
+          docker pull "$OPENMS_IMAGE"
+          mkdir -p tmp/sacurine-openms-comparator/openms
+          docker image inspect --format '{{index .RepoDigests 0}}' "$OPENMS_IMAGE"             > tmp/sacurine-openms-comparator/openms/openms-image-digest.txt
+          docker run --rm "$OPENMS_IMAGE" FeatureFinderMetabo --help             > tmp/sacurine-openms-comparator/openms/featurefindermetabo-help.txt 2>&1
+          grep -Eq 'Version:[[:space:]]+3\.6\.0([[:space:]]|$)'             tmp/sacurine-openms-comparator/openms/featurefindermetabo-help.txt
+      - name: Execute prespecified independent OpenMS feature workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="tmp/sacurine-openms-comparator"
+          mkdir -p "$root/openms/features" "$root/openms/aligned" "$root/openms/picked"
+          mode="$(python - <<'PY'
+          import json
+          print(json.load(open("tmp/sacurine-openms-comparator/openms/peak-mode.json"))["common_mode"])
+          PY
+          )"
+          mapfile -t stems < <(python - <<'PY'
+          import csv
+          rows=list(csv.DictReader(open("tmp/sacurine-openms-comparator/source-openms/sampleMetadata_12samp_completed.tsv",encoding="utf-8-sig"),delimiter="\t"))
+          for row in sorted(rows,key=lambda x:int(x["injectionOrder"])):
+              print(row["sample_name"])
+          PY
+          )
+          if [ "${#stems[@]}" -ne 12 ]; then echo "Expected 12 authentic source rows" >&2; exit 2; fi
+          ref_index="$(python - <<'PY'
+          import csv
+          rows=list(csv.DictReader(open("tmp/sacurine-openms-comparator/source-openms/sampleMetadata_12samp_completed.tsv",encoding="utf-8-sig"),delimiter="\t"))
+          rows=sorted(rows,key=lambda x:int(x["injectionOrder"]))
+          qc=[i+1 for i,row in enumerate(rows) if row["class"]=="QC"]
+          if len(qc)!=3: raise SystemExit("Expected exactly 3 pooled QC")
+          print(qc[0])
+          PY
+          )"
+          for stem in "${stems[@]}"; do
+            src="/work/$root/source-openms/$stem.mzML"
+            input="$src"
+            if [ "$mode" = "profile" ]; then
+              docker run --rm -v "$GITHUB_WORKSPACE:/work" -w /work "$OPENMS_IMAGE"                 PeakPickerHiRes -in "$src" -out "/work/$root/openms/picked/$stem.mzML"
+              input="/work/$root/openms/picked/$stem.mzML"
+            elif [ "$mode" != "centroid" ]; then
+              echo "Unsupported peak mode $mode" >&2; exit 3
+            fi
+            docker run --rm -v "$GITHUB_WORKSPACE:/work" -w /work "$OPENMS_IMAGE"               FeatureFinderMetabo -in "$input"               -out "/work/$root/openms/features/$stem.featureXML"
+          done
+          in_args=();out_args=()
+          for stem in "${stems[@]}"; do
+            in_args+=("/work/$root/openms/features/$stem.featureXML")
+            out_args+=("/work/$root/openms/aligned/$stem.featureXML")
+          done
+          docker run --rm -v "$GITHUB_WORKSPACE:/work" -w /work "$OPENMS_IMAGE"             MapAlignerPoseClustering -in "${in_args[@]}" -out "${out_args[@]}"             -reference:index "$ref_index"
+          link_args=()
+          for stem in "${stems[@]}"; do link_args+=("/work/$root/openms/aligned/$stem.featureXML"); done
+          docker run --rm -v "$GITHUB_WORKSPACE:/work" -w /work "$OPENMS_IMAGE"             FeatureLinkerUnlabeledQT -in "${link_args[@]}"             -out "/work/$root/openms/sacurine-openms.consensusXML"
+          docker run --rm -v "$GITHUB_WORKSPACE:/work" -w /work "$OPENMS_IMAGE"             TextExporter -in "/work/$root/openms/sacurine-openms.consensusXML"             -out "/work/$root/openms/sacurine-openms-consensus.tsv" -out_type tsv
+      - name: Audit all features, QC, blanks and reciprocal xcms/OpenMS coordinate matches
+        run: |
+          python scripts/audit_sacurine_openms_comparator.py             --metadata tmp/sacurine-openms-comparator/source-openms/sampleMetadata_12samp_completed.tsv             --openms-text tmp/sacurine-openms-comparator/openms/sacurine-openms-consensus.tsv             --xcms-coordinates tmp/sacurine-openms-comparator/xcms-artifact/xcms_feature_coordinates.csv             --xcms-qc tmp/sacurine-openms-comparator/xcms-artifact/xcms_qc_blank_screens.csv             --openms-image-digest tmp/sacurine-openms-comparator/openms/openms-image-digest.txt             --output tmp/sacurine-openms-comparator/comparison
+      - name: Preserve compact independent evidence, never original human spectra
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: sacurine-xcms-openms-independent-comparator-${{ github.sha }}
+          path: |
+            tmp/sacurine-openms-comparator/source-openms/sacurine_v3_12_original_source_manifest.json
+            tmp/sacurine-openms-comparator/openms/peak-mode.json
+            tmp/sacurine-openms-comparator/openms/openms-image-digest.txt
+            tmp/sacurine-openms-comparator/openms/featurefindermetabo-help.txt
+            tmp/sacurine-openms-comparator/comparison/
+          if-no-files-found: warn
+          retention-days: 90
