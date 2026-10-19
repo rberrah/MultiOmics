@@ -1605,13 +1605,18 @@
     individualSignatureError = '';
     const input = event.currentTarget;
     const file = input instanceof HTMLInputElement ? input.files?.[0] : null;
-    if (!file) return;
+    if (!file) {
+      await refreshOmics2pkReadiness();
+      return;
+    }
     try {
       individualSignatureRows = parseIndividualSignatureCsv(await file.text());
       individualSignatureFilename = file.name;
       await refreshOmics2pkReadiness();
     } catch (error) {
       individualSignatureError = error instanceof Error ? error.message : 'Invalid score CSV.';
+      omics2pkReadiness = null;
+      omics2pkReadinessError = 'Individual signature import is invalid: '+individualSignatureError;
     }
   }
 
