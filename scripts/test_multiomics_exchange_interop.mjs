@@ -104,3 +104,18 @@ assert.equal(normalizedMatrix,
 assert.equal(normalized.manifest.matrices[0].missing_value,'NA');
 assert.equal(normalized.summary.pk_dose_concentration_data_included,false);
 assert.match(normalized.summary.interpretation,/dose\/concentration/i);
+
+
+const ambiguousProject={
+  inputs:{
+    metadata:{content:'subject_id,sample_id,assay_id,omic\nP1,S1,A1,transcriptomics\nP2,S2,A2,transcriptomics\n',sha256:'e'.repeat(64)},
+    transcriptomics:{content:'feature_id,A1,A2\nA1,1,2\nA2,3,4\n'}
+  },
+  settings:{organism:'human',unitType:'participant',
+    transcriptomicsValues:'normalized',transcriptomicsIdType:'unknown'}
+};
+await assert.rejects(
+  ()=>buildDownstreamExchange(ambiguousProject),
+  /Ambiguous transcriptomics matrix orientation/,
+  'an exchange must never guess when assay identifiers match both axes'
+);
