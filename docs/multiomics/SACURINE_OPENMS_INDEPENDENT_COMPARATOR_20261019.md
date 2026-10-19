@@ -37,8 +37,8 @@ OpenMS **3.5.0** is used through the official OpenMS GitHub container package, p
 The pipeline is deliberately generic and non-optimized:
 
 1. `FeatureFinderMetabo` independently on every original mzML;
-2. `MapAlignerPoseClustering` across the 12 feature maps;
-3. `FeatureLinkerUnlabeledKD` to obtain a consensus map.
+2. `MapAlignerPoseClustering` across the **9 non-blank feature maps** (6 biological + 3 pooled-QC); all 12 acquisitions are still authenticated and feature-found;
+3. `FeatureLinkerUnlabeledKD` across those same 9 non-blank aligned maps to obtain the comparison consensus. Analytical blanks are excluded from consensus definition so blank-only signals cannot enlarge the biological comparison universe; the blank acquisitions remain preserved in the authenticated source and existing xcms QC evidence.
 
 For reproducibility, each OpenMS tool writes its own complete default INI under this exact version and every subsequent command consumes that frozen INI. Parameters are therefore version-frozen defaults, not tuned after looking at Sacurine overlap.
 
