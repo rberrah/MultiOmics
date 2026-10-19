@@ -1542,6 +1542,7 @@
       }
       await attachMsProvenance(analysisResult);
       analysisResult.scientificAssurance = assessScientificAssurance(analysisResult, { demo: demoLoaded });
+      await refreshOmics2pkReadiness();
       analysisStatus = 'done';
     } catch (error) {
       // Never display an incomplete result when a later essential step fails.
@@ -1571,6 +1572,30 @@
   }
 
 
+  /**
+   * Build the exact DOWNSTREAM_EXCHANGE_V1 in memory without downloading it.
+   * Success proves structural/source compatibility only, not PK readiness.
+   */
+  async function refreshOmics2pkReadiness() {
+    omics2pkReadiness = null;
+    omics2pkReadinessError = '';
+    if (!analysisResult) return;
+    try {
+      const sourceProject = await createPortableProject({
+        files,
+        extraFiles:{ msOriginal:msOriginalFile, msUserAnnotations:msUserAnnotationFile },
+        settings:currentPortableSettings(),
+        result:null
+      });
+      const exchange = await buildDownstreamExchange(sourceProject,{
+        individualSignatures:individualSignatureRows.length?individualSignatureRows:null
+      });
+      omics2pkReadiness = exchange.summary;
+    } catch (error) {
+      omics2pkReadinessError = error instanceof Error ? error.message : 'Omics2PK exchange preflight failed.';
+    }
+  }
+
   // One self-contained researcher dossier: full spreadsheets + methods +
   // provenance/hash manifest + source study for manual reproducible rerun.
   /** @param {Event} event */
@@ -1584,6 +1609,7 @@
     try {
       individualSignatureRows = parseIndividualSignatureCsv(await file.text());
       individualSignatureFilename = file.name;
+      await refreshOmics2pkReadiness();
     } catch (error) {
       individualSignatureError = error instanceof Error ? error.message : 'Invalid score CSV.';
     }
@@ -1661,6 +1687,8 @@
       a.click();
       URL.revokeObjectURL(url);
       const summary=exchange.summary;
+      omics2pkReadiness=summary;
+      omics2pkReadinessError='';
       omics2pkExportMessage=t(
         'Export Omics2PK prêt : '+summary.independent_subjects+' sujet(s), '+
           summary.unique_specimens+' prélèvement(s), '+summary.assays+
