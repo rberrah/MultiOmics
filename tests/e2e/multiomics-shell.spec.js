@@ -27,9 +27,10 @@ test('PMx identical editorial dropdown shell with mO monogram', async ({page}) =
   expect(css.height).toBeGreaterThan(50);
 });
 
-test('Other disciplines dropdown directs to PMx Explain and Omics2PK', async ({page}) => {
+test('Ecosystem dropdown connects PMx Explain, MultiOmics and Omics2PK', async ({page}) => {
   await page.goto('/multiomics/?lang=en');
   const group=page.getByTestId('goal-disciplines');
+  await expect(group.locator('summary')).toContainText(/Ecosystem|Écosystème/);
   await group.locator('summary').click();
   await expect(group.getByTestId('nav-disciplines')).toHaveAttribute('href',/\/multiomics\/disciplines\/$/);
   await expect(group.getByTestId('nav-pmx')).toHaveAttribute('href','https://rberrah.github.io/pharmacometrie/');
