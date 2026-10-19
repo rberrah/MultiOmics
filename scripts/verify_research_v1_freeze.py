@@ -6,7 +6,8 @@ from pathlib import Path
 import re
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = "1.0.0"
+RELEASE_VERSION = "1.0.0"
+POST_V1_PATTERN = r"^1\.1\.0-dev\.\d+$"
 DATE = "2026-10-19"
 
 def load_json(path: str):
@@ -22,10 +23,11 @@ def main():
     freeze = (ROOT / "docs/multiomics/RESEARCH_V1_FREEZE_20261019.md").read_text(encoding="utf-8")
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
 
-    assert pkg["version"] == VERSION
-    assert lock["version"] == VERSION
-    assert lock["packages"][""]["version"] == VERSION
-    assert manifest["release"]["softwareVersion"] == VERSION
+    current_version = pkg["version"]
+    assert lock["version"] == current_version
+    assert lock["packages"][""]["version"] == current_version
+    assert current_version == RELEASE_VERSION or re.match(POST_V1_PATTERN, current_version)
+    assert manifest["release"]["softwareVersion"] == RELEASE_VERSION
     assert manifest["release"]["freezeDate"] == DATE
     assert manifest["release"]["intendedTag"] == "research-v1.0.0"
     assert re.search(r"(?m)^version:\s*[\"']?1\.0\.0[\"']?\s*$", citation)
@@ -94,7 +96,13 @@ def main():
     ]
     assert not any(x in freeze.lower() for x in forbidden_release_claims)
 
-    print("PASS: Research v1 version, runtime, evidence inventory and scientific boundaries are internally consistent.")
+    if current_version != RELEASE_VERSION:
+        assert "release/research-v1.0.0" in readme
+        assert "post-v1 development" in readme.lower()
+    print(
+        "PASS: frozen Research v1 evidence remains internally consistent; "
+        f"current source version is {current_version}."
+    )
 
 if __name__ == "__main__":
     main()

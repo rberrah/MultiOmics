@@ -247,6 +247,9 @@ export function assessScientificAssurance(result, { demo = false } = {}) {
   const layers = Object.entries(result?.layers || {});
   const protocol = result?.protocol || {};
   const exploratory = protocol.objective === 'explore';
+  const allPrimaryNativeR = layers.length > 0 && layers.every(([,data]) =>
+    data?.numericalProvenance === 'exact_native_r_reference_table'
+  );
   /** @type {Array<{code:string,fr:string,en:string,level:string}>} */
   const notes = [];
   /** @param {string} code @param {string} fr @param {string} en @param {string} [level] */
@@ -259,7 +262,11 @@ export function assessScientificAssurance(result, { demo = false } = {}) {
     'ACP et visualisations : structures descriptives, sans test d’hypothèse biologique.',
     'PCA and plots describe patterns, not tests of a biological hypothesis.');
   else {
-    add('independent_confirmation',
+    if (allPrimaryNativeR) add('native_r_independent_review',
+      'Les effets, p-values et q-values principaux affichés proviennent des tableaux R natifs complets. Cela qualifie la source numérique, pas le design, la calibration, la causalité ni la portée biologique : une revue scientifique indépendante reste requise.',
+      'Displayed primary effects, p-values and q-values come from complete native R tables. This qualifies the numerical source, not the design, calibration, causality or biological interpretation: independent scientific review remains required.',
+      'requires_confirmation');
+    else add('independent_confirmation',
       'Les associations et les q-values du moteur navigateur doivent être confirmées par la méthode statistique de référence adaptée au plan.',
       'Browser-model associations and q-values need confirmation with the design-appropriate reference statistical method.',
       'requires_confirmation');
@@ -293,10 +300,15 @@ export function assessScientificAssurance(result, { demo = false } = {}) {
       'Certaines mesures sont manquantes. Même avec des taux similaires entre groupes, cela peut créer de fausses différences biologiques : vérifier la cause des absences et refaire une analyse de sensibilité. Les p-values/q-values seules ne suffisent pas.',
       'Some measurements are missing. Similar missing-data rates between groups can still create false biological differences: investigate why values are absent and run a sensitivity analysis. P-values/q-values alone are insufficient.',
       'requires_confirmation');
-    if (qc?.inferenceTier?.level === 'screening') add(layer + '_count_screening',
+    if (qc?.inferenceTier?.level === 'screening' &&
+        data?.numericalProvenance !== 'exact_native_r_reference_table') add(layer + '_count_screening',
       'RNA-seq en comptages : le calcul navigateur sur log2-CPM ne remplace pas DESeq2/limma-voom sur comptages bruts.',
       'RNA-seq counts: browser log2-CPM screening is not a substitute for count-aware DESeq2/limma-voom.',
       'requires_confirmation');
+    else if (qc?.inferenceTier?.level === 'screening' &&
+        data?.numericalProvenance === 'exact_native_r_reference_table') add(layer + '_native_count_reference',
+      'RNA-seq en comptages : les statistiques principales affichées proviennent du modèle R natif complet ; le calcul log2-CPM du navigateur reste un écran QC/exploratoire séparé.',
+      'RNA-seq counts: displayed primary statistics come from the complete native R model; browser log2-CPM remains a separate QC/exploratory screen.');
     for (const warning of qc.warnings || []) {
       add(layer + '_qc_warning_' + notes.length,
         layer + ' : ' + warning, layer + ': ' + warning, 'requires_confirmation');
@@ -316,14 +328,26 @@ export function assessScientificAssurance(result, { demo = false } = {}) {
         'requires_confirmation');
     }
   }
-  if (protocol.objective === 'outcome' && protocol.outcomeType === 'survival') add('survival_browser_inference_blocked',
-    'Survie : le moteur navigateur affiche uniquement les coefficients Cox (gestion Breslow des ex æquo), sans p-value, q-value ni intervalle de confiance. La validation confirmatoire exige un modèle R indépendant, la vérification de l’hypothèse de risques proportionnels et l’examen du mécanisme de censure.',
-    'Survival: browser Cox reports exploratory coefficients only (Breslow ties), with no p/q-values or confidence intervals. Confirmatory inference requires independent R survival fitting, proportional-hazards diagnostics and review of censoring assumptions.',
-    'requires_confirmation');
-    if (protocol.objective === 'time' && protocol.longitudinal) add('longitudinal_browser_uncalibrated',
-    'Le modèle longitudinal navigateur ne fournit plus de p-value, q-value ou intervalle de confiance : une simulation nulle a révélé une inflation possible des faux positifs. Les effets affichés restent descriptifs. Pour conclure, utilisez lmerTest sur le plan complet.',
-    'The browser longitudinal model no longer reports p-values, q-values or confidence intervals: null simulation suggested possible type-I inflation. Effects are descriptive only. Use lmerTest with the full study design for inference.',
-    'requires_confirmation');
+  if (protocol.objective === 'outcome' && protocol.outcomeType === 'survival') {
+    if (allPrimaryNativeR) add('survival_native_r_review',
+      'Survie : coefficients, p-values, q-values, hazard ratios et diagnostics PH affichés proviennent du Cox natif R. Vérifier néanmoins risques proportionnels, mécanisme de censure, événements, covariables et competing risks avant conclusion.',
+      'Survival: displayed coefficients, p-values, q-values, hazard ratios and PH diagnostics come from native R Cox. Still review proportional hazards, censoring, event information, covariates and competing risks before drawing conclusions.',
+      'requires_confirmation');
+    else add('survival_browser_inference_blocked',
+      'Survie : le moteur navigateur affiche uniquement les coefficients Cox exploratoires, sans p-value, q-value ni intervalle de confiance de référence. La préparation confirmatoire exige le modèle R, les diagnostics PH et l’examen de la censure.',
+      'Survival: browser Cox reports exploratory coefficients only, without reference p/q-values or confidence intervals. Confirmatory preparation requires the R model, PH diagnostics and censoring review.',
+      'requires_confirmation');
+  }
+  if (protocol.objective === 'time' && protocol.longitudinal) {
+    if (allPrimaryNativeR) add('longitudinal_native_r_review',
+      'Longitudinal : effets, p-values et q-values affichés proviennent de lmerTest natif R. Vérifier néanmoins la forme temporelle, la structure aléatoire, les résidus, les visites manquantes et les fallbacks avant conclusion.',
+      'Longitudinal: displayed effects, p-values and q-values come from native R lmerTest. Still review time functional form, random-effects structure, residuals, missing visits and fallbacks before drawing conclusions.',
+      'requires_confirmation');
+    else add('longitudinal_browser_uncalibrated',
+      'Le modèle longitudinal navigateur ne fournit pas de p-value, q-value ou intervalle de confiance de référence ; les effets restent descriptifs. Pour conclure, utilisez lmerTest sur le plan complet.',
+      'The browser longitudinal model does not provide reference p-values, q-values or confidence intervals; effects remain descriptive. Use lmerTest with the full study design for inference.',
+      'requires_confirmation');
+  }
   if (result?.predictiveOutcome?.status === 'ok') {
     if (result.predictiveOutcome.preprocessingLeakageRisk !== false) add('cv_preprocessing_limit',
       'La validation croisée reste exploratoire : au moins une omique peut subir un prétraitement global avant la séparation des sujets.',

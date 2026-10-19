@@ -30,9 +30,14 @@ export function buildResearchMethodsManifest(result){
     const maxSampleMissingFraction=missingProfiles.length
       ? Math.max(...missingProfiles):null;
 
-    const backendKey=layer==='transcriptomics' &&
-        qc?.preprocessingAudit?.declaredValueType==='raw_counts' ?
-        layer+'_differential_deseq2':layer+'_differential';
+    const backendKey=p.objective==='time'
+      ? layer+'_longitudinal'
+      : p.objective==='outcome' && p.outcomeType==='survival'
+        ? layer+'_survival'
+        : layer==='transcriptomics' &&
+          qc?.preprocessingAudit?.declaredValueType==='raw_counts'
+          ? layer+'_differential_deseq2'
+          : layer+'_differential';
     const backend=result.referenceBackend?.methods?.[backendKey];
     layers[layer]={
       reported_model:safe(entry?.inferenceMethod||entry?.mode)||'not_reported',
@@ -45,8 +50,11 @@ export function buildResearchMethodsManifest(result){
       sample_missingness_profiles_available:missingProfiles.length,
       sample_profiles_with_missing_features:incompleteProfiles.length,
       feature_level_missingness_evaluated:profiles.length>0,
-      fdr_family:'one BH family per omics layer; exploratory q<=0.10',
+      fdr_family:'BH adjustment within each omics-layer feature family; any UI q<=0.10 threshold is exploratory ranking and not universal FDR certification',
       statistical_calibration_certified:false,
+      primary_numeric_source:entry?.numericalProvenance==='exact_native_r_reference_table'
+        ? 'complete_native_R_reference_table'
+        : 'browser_exploratory_model',
       null_rnaseq_calibration_review_required:
         layer==='transcriptomics' &&
         qc?.preprocessingAudit?.declaredValueType==='raw_counts',

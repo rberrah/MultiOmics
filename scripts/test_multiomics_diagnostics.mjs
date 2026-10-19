@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { File } from 'node:buffer';
 import { runDeterministicAnalysis } from '../src/lib/multiomics/deterministic.js';
-import { evaluateConfirmatoryReadiness } from '../src/lib/multiomics/scientific-assurance.js';
+import { evaluateConfirmatoryReadiness, assessScientificAssurance } from '../src/lib/multiomics/scientific-assurance.js';
 
 function matrixFile(name, assayIds, shift = 0) {
   const header = ['feature_id', ...assayIds].join(',');
@@ -152,6 +152,25 @@ assert.ok(survivalReady.checks.some(x=>
   x.code==='survival_assumptions_transcriptomics'&&x.status==='review'));
 assert.ok(survivalReady.checks.some(x=>
   x.code==='survival_ph_warning_transcriptomics'&&x.status==='review'));
+
+const nativeLongAssurance=assessScientificAssurance({
+  ...longitudinalCandidate,
+  layers:Object.fromEntries(Object.entries(longitudinalCandidate.layers).map(([key,value])=>[
+    key,{...value,numericalProvenance:'exact_native_r_reference_table'}
+  ]))
+});
+assert.ok(nativeLongAssurance.notes.some(x=>x.code==='native_r_independent_review'));
+assert.ok(nativeLongAssurance.notes.some(x=>x.code==='longitudinal_native_r_review'));
+assert.ok(!nativeLongAssurance.notes.some(x=>x.code==='longitudinal_browser_uncalibrated'));
+
+const nativeSurvivalAssurance=assessScientificAssurance({
+  ...survivalCandidate,
+  layers:Object.fromEntries(Object.entries(survivalCandidate.layers).map(([key,value])=>[
+    key,{...value,numericalProvenance:'exact_native_r_reference_table'}
+  ]))
+});
+assert.ok(nativeSurvivalAssurance.notes.some(x=>x.code==='survival_native_r_review'));
+assert.ok(!nativeSurvivalAssurance.notes.some(x=>x.code==='survival_browser_inference_blocked'));
 
 const rawLongitudinal={
   ...longitudinalCandidate,

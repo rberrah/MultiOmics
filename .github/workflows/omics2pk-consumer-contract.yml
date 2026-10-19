@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v5
         with:
           repository: rberrah/Omics2PK
-          ref: 1155c274376b4ec5ea1ddf3db63b0fd7d49da107
+          ref: a4d04bd7acb755d5ea8d38e57612f2b1f908e770
           path: consumer
           persist-credentials: false
       - uses: actions/setup-node@v5

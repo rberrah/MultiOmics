@@ -1,6 +1,6 @@
 # MultiOmics → downstream methods: exchange contract v1 (2026-10-15)
 
-**Status: proposed integration in PR #110; generated as an optional subfolder of the research ZIP for compatible original CSV inputs.** This independent interchange layer does not change existing single-omic workflows or imply that network analyses are validated.
+**Status: implemented and independently consumer-tested.** The contract is generated inside the research ZIP and can also be downloaded directly from the results page as `multiomics_omics2pk_exchange_v1.zip`. The producer normalizes compatible CSV/TSV/semicolon inputs, mapped metadata columns and transposed matrices into one strict canonical exchange; it does not change the original archived source files. This interchange layer does not imply that network analyses, biomarkers or PK effects are validated.
 
 ## Directory layout
 
@@ -71,22 +71,21 @@ See [JSON Schema](./DOWNSTREAM_EXCHANGE_V1.schema.json). The manifest enumerates
 
 Run `python3 scripts/validate_multiomics_exchange.py exchange/` (Python standard library only). Checks file hashes, required columns, referential integrity, duplicate IDs, non-finite values, row counts and missingness. This is an **interchange validation**, not a biological benchmark.
 
-The PR #110 browser dossier now attempts an optional `exchange/` directory from the archived **original** source CSV and writes `downstream_exchange.status` in its outer manifest. For incompatible layouts the original ZIP still exports and records a reason rather than misrepresenting the data. A successful ZIP/validator fixture test is not yet a public-dataset biological qualification or proof of lossless round-trip for every vendor format.
+The browser dossier attempts an optional `exchange/` directory from the archived **original** source files and writes `downstream_exchange.status` plus an aggregate Omics2PK-readiness summary in its outer manifest. The dedicated Omics2PK download exposes the same contract at the ZIP root for direct consumption. Source metadata may use researcher-mapped column names and CSV/TSV/semicolon delimiters; compatible transposed matrices are normalized to `feature_rows_sample_columns`. Empty numeric source cells become explicit `NA`, never zero. For incompatible layouts the research dossier records a reason rather than misrepresenting the data.
 
-## Research qualification still outstanding
+The independent Omics2PK consumer gate verifies hashes, subject/specimen/assay identity, matrix values, categorical time preservation and optional frozen/out-of-fold individual-score syntax. This remains a **technical source-exchange qualification**, not evidence that an exported molecular feature improves measured PK.
 
-- Run independent reference comparisons for DESeq2, edgeR, limma, fgsea, MOFA2 and DIABLO, retaining failed and null tests; report sample design, exact contrast, effect orientation, full results and tolerances.
-- Freeze **R/Bioconductor, Python, JS**, datasets, seeds and artifact SHA; do not assert that package-lock alone freezes R.
-- DESeq2 FDR deviations remain an unresolved, *scenario-dependent* calibration investigation, not a reason to silently swap inference engines.
-- User testing with novices and screen readers remains distinct from automated tests.
+## Scientific limits retained after Research v1
 
-No claims of universally controlled FDR, cross-cohort transfer or independent biological confirmation are supported merely by this contract.
+Research v1 freezes R 4.5.2 / Bioconductor 3.22, the immutable container digest, the full R package inventory, Node/package locks and the qualification workflows. The exchange contract itself is therefore no longer waiting for a generic runtime freeze.
 
-## Capturing exact runtime inventories (not yet a full freeze)
+Three scientific boundaries remain deliberately open:
 
-Run `Rscript multiomics-engine/capture_environment.R private-r-runtime.json` in the **actual** reference engine environment (requires jsonlite) and `python3 scripts/capture_multiomics_python_environment.py --output private-python-runtime.json --datasets path/to/public_dataset.csv` in the validation environment. The latter fingerprints only explicitly supplied dataset files; these tools never download or upload data. Keep patient/private files out of publicly uploaded CI artifacts.
+- **#20 — individual signatures → Omics2PK:** schema/provenance checks and consumer compatibility are qualified; biological transferability and incremental PK value still require genuine subject-matched PK/PGx data and held-out/external validation.
+- **#44 — DESeq2 calibration:** native DESeq2 execution is reproducible, but null simulations showed excess false discoveries in several tested generators. A q-value is not a universal 5% FDR certificate.
+- **#47 — LC-MS analytical validation:** authentic raw Sacurine xcms execution and QC are qualified, including unfavourable QC observations; chemical identity, standards/interlaboratory accuracy and a universally valid feature-exclusion policy remain outside the claim.
 
-Neither inventory is a true `renv.lock`, a Python hashes lock, nor a container digest. The deployment freeze remains incomplete until a real package restore succeeds on a clean runner, public dataset source versions and checksums are recorded, and independently reproduced results are archived.
+No claim of universally controlled FDR, cross-cohort score transfer, metabolite identity or clinical PK benefit is supported merely by this contract.
 
 ## Exact source-based replay of R results (when R actually ran)
 
@@ -109,14 +108,14 @@ This is a **source-exact replay candidate**, not yet a tested guarantee of match
 
 ### Figures and exploratory JavaScript
 
-The browser's default numeric tables and its Svelte figures are computed/drawn using JavaScript, even when R reference results are attached as a separate analysis. The ZIP can contain `figures_browser/*.svg` for the **currently displayed vector figures**, including their state and visible data. These are saved output images, *not* figures regenerated by the R runner.
+The Svelte figures are drawn in JavaScript, but the **primary numerical source is explicit per layer**. When a complete native-R table passes the strict completeness and identity contract, the displayed feature-wise effects/p/q values are projected from that table and the figures consume those same projected effects without refitting. Otherwise the layer remains browser-exploratory. Mixed-source analyses are labelled as such.
 
-Therefore, `r_source_replay.scope = r_backend_only`, `browser_svg_snapshots.r_replayable = false` and `exact_r_numeric_and_figure_equivalence_certified = false` must remain explicit. To promise the *same* figures and numbers from R alone, the UI must use R as its canonical calculation **and** plotting engine, with numerical and SVG regression tests on public reference datasets.
+The ZIP can contain `figures_browser/*.svg` for the currently displayed vector figures. These are saved browser output images, not figures regenerated by the R runner. Therefore `browser_svg_snapshots.r_replayable = false` and `exact_r_numeric_and_figure_equivalence_certified = false` remain explicit even when the underlying primary numerical table is native R.
 
 ### Beginner workflow
 
 1. Select your research question and upload an omic matrix, then run the guided workflow.
-2. Download the researcher ZIP. For exploratory/browser-only runs, the numerical tables remain labelled **browser calculations, not R results**.
+2. Download the researcher ZIP, or use the dedicated **Omics2PK exchange** download when the goal is downstream pharmacometrics. Each primary table records whether it is a complete native-R table or a browser-exploratory table.
 3. If the local R backend was used, locate `reproduction/` and run its `run_reference_backend.R` with the exact package versions. Compare the replayed results to `reference_expected.json` and the full R CSVs before citing reproducibility.
 4. Retain `figures_browser/` as vector snapshots; do not assert R recreated them.
 5. For future omics-to-PK/PD work, join biological subject, specimen, assay, collection time and tissue by explicit identifiers. Never join by row position or mistake repeated measurements for independent subjects.

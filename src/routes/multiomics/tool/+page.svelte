@@ -3,8 +3,8 @@
   import { resolve, asset } from '$app/paths';
   import { language } from '#lib/stores/language.js';
   import { runDeterministicAnalysis } from '#lib/multiomics/deterministic.js';
-  import { buildResearchBundle, fullLayerCsv, referencePreviewAudit } from '#lib/multiomics/research-export-package.js';
-  import { parseIndividualSignatureCsv } from '#lib/multiomics/downstream-exchange.js';
+  import { buildResearchBundle, fullLayerCsv, referencePreviewAudit, zipEntries } from '#lib/multiomics/research-export-package.js';
+  import { buildDownstreamExchange, parseIndividualSignatureCsv } from '#lib/multiomics/downstream-exchange.js';
   import { auditPairedRnaStudy, pairedExampleSampleSheetCsv } from '#lib/multiomics/paired-study-client.js';
   import MultiomicsVisualizations from '#lib/components/MultiomicsVisualizations.svelte';
   import ExternalValidationPanel from '#lib/components/ExternalValidationPanel.svelte';
@@ -93,6 +93,8 @@
   let portableProjectError = '';
   let researchBundleMessage = '';
   let researchBundleError = '';
+  let omics2pkExportMessage = '';
+  let omics2pkExportError = '';
   // Optional user-supplied scores, computed *outside* the default browser
   // workflow using frozen/out-of-fold models. No automatic signature fitting.
   /** @type {Array<Record<string,any>>} */
@@ -104,6 +106,15 @@
   /** @param {any} note */
   function isMissingnessRiskNote(note) {
     return String(note?.code ?? '').endsWith('_missingness_not_ignorable');
+  }
+  /** @param {any} result */
+  function primaryEvidenceTier(result) {
+    const layers=Object.values(result?.layers||{});
+    if(!layers.length)return 'none';
+    const nativeCount=layers.filter((layer)=>layer?.numericalProvenance==='exact_native_r_reference_table').length;
+    if(nativeCount===layers.length)return 'native_r_all_layers';
+    if(nativeCount>0)return 'mixed_native_browser';
+    return 'browser_exploratory';
   }
   let helpTooltip = { visible: false, text: '', left: 0, top: 0, placement: 'above' };
   // External API requests and reference R data forwarding are opt-in.
@@ -234,7 +245,13 @@
     assay_id: ['Nom de la mesure dans le fichier', 'Measurement name in the file'],
     omic: ['Type de mesure', 'Measurement type'],
     condition: ['Groupe (ex. traité / témoin)', 'Group (e.g. treated / control)'],
-    timepoint: ['Moment du prélèvement', 'Sampling time'],
+    timepoint: ['Moment / visite source', 'Source time point / visit'],
+    tissue: ['Tissu / matrice biologique', 'Tissue / biological matrix'],
+    collection_time: ['Temps numérique du prélèvement', 'Numeric collection time'],
+    collection_time_unit: ['Unité du temps numérique', 'Numeric time unit'],
+    timepoint_unit: ['Unité du libellé temporel', 'Time-point unit'],
+    time_origin: ['Origine temporelle / événement de référence', 'Time origin / reference event'],
+    source_dataset_id: ['Identifiant du jeu source', 'Source dataset ID'],
     batch: ['Lot de mesures', 'Measurement batch'],
     technical_replicate: ['Mesure répétée au laboratoire', 'Repeated laboratory measurement'],
     outcome: ['Résultat étudié', 'Outcome of interest'],
@@ -285,6 +302,42 @@
       label: 'Time point',
       required: false,
       aliases: ['timepoint', 'time_point', 'time', 'visit', 'visit_id', 'visit_name', 'day', 'week', 'temps', 'temps_j', 'jour', 'semaine', 'visite', 'id_visite']
+    },
+    {
+      key: 'tissue',
+      label: 'Tissue / biological matrix',
+      required: false,
+      aliases: ['tissue','organ','tissue_type','specimen_tissue','biological_matrix','matrix_type','tissu','organe','matrice_biologique']
+    },
+    {
+      key: 'collection_time',
+      label: 'Numeric collection time',
+      required: false,
+      aliases: ['collection_time','sampling_time','sample_time','relative_time','elapsed_time','time_numeric','temps_prelevement','temps_relatif','heure_prelevement']
+    },
+    {
+      key: 'collection_time_unit',
+      label: 'Collection time unit',
+      required: false,
+      aliases: ['collection_time_unit','sampling_time_unit','time_unit','relative_time_unit','unite_temps','unite_temps_prelevement']
+    },
+    {
+      key: 'timepoint_unit',
+      label: 'Time-point unit',
+      required: false,
+      aliases: ['timepoint_unit','visit_unit','timepoint_units','unite_visite','unite_timepoint']
+    },
+    {
+      key: 'time_origin',
+      label: 'Time origin / reference event',
+      required: false,
+      aliases: ['time_origin','reference_event','time_anchor','origin_event','landmark','origine_temps','evenement_reference']
+    },
+    {
+      key: 'source_dataset_id',
+      label: 'Source dataset identifier',
+      required: false,
+      aliases: ['source_dataset_id','dataset_id','study_id','cohort_id','source_study','id_jeu','id_etude','id_cohorte']
     },
     {
       key: 'batch',
@@ -1560,6 +1613,58 @@
     }
   }
 
+  async function downloadOmics2PkExchange() {
+    if (!analysisResult || portableProjectBusy) return;
+    portableProjectBusy = true;
+    omics2pkExportMessage = '';
+    omics2pkExportError = '';
+    try {
+      if (individualSignatureError)
+        throw Error('Individual signature import is invalid: '+individualSignatureError);
+      const sourceProject = await createPortableProject({
+        files,
+        extraFiles:{ msOriginal:msOriginalFile, msUserAnnotations:msUserAnnotationFile },
+        settings:currentPortableSettings(),
+        result:null
+      });
+      const exchange = await buildDownstreamExchange(sourceProject,{
+        individualSignatures:individualSignatureRows.length?individualSignatureRows:null
+      });
+      const directEntries=exchange.entries.map(entry=>({
+        name:entry.name.replace(/^exchange\//,''),
+        data:entry.data
+      }));
+      const blob=zipEntries(directEntries);
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url;
+      a.download='multiomics_omics2pk_exchange_v1.zip';
+      a.click();
+      URL.revokeObjectURL(url);
+      const summary=exchange.summary;
+      omics2pkExportMessage=t(
+        'Export Omics2PK prêt : '+summary.independent_subjects+' sujet(s), '+
+          summary.unique_specimens+' prélèvement(s), '+summary.assays+
+          ' mesure(s). Les matrices et identités sont vérifiables par SHA-256. '+
+          (summary.individual_signature_rows
+            ? summary.individual_signature_rows+' score(s) individuel(s) explicite(s) inclus ; leur validité biologique reste à démontrer. '
+            : 'Aucun score individuel n’a été inventé. ')+
+          'Les doses/concentrations PK ne sont pas incluses : Omics2PK doit les joindre séparément chez les mêmes sujets.',
+        'Omics2PK export ready: '+summary.independent_subjects+' subject(s), '+
+          summary.unique_specimens+' specimen(s), '+summary.assays+
+          ' assay(s). Matrices and identities are SHA-256 verifiable. '+
+          (summary.individual_signature_rows
+            ? summary.individual_signature_rows+' explicit individual score(s) included; biological validity still requires evidence. '
+            : 'No individual score was invented. ')+
+          'PK dose/concentration data are not included: Omics2PK must join them separately for the same subjects.'
+      );
+    } catch (error) {
+      omics2pkExportError = error instanceof Error ? error.message : 'Could not create the Omics2PK exchange.';
+    } finally {
+      portableProjectBusy = false;
+    }
+  }
+
   // Export original study text and protocol alongside the current results.
   // This is a sensitive local file, never uploaded to a third-party service.
   async function exportPortableProject() {
@@ -1751,6 +1856,11 @@
       return '<section><h2>' + escapeHtml(omicLabel(layer)) + '</h2>' +
         '<p>Preview only: first ' + Math.min(layerRows.length, 50) + ' of ' + layerRows.length + ' features. Complete CSV tables are available in the research ZIP dossier.</p>' +
         '<p><strong>Model:</strong> ' + escapeHtml(layerResult.inferenceMethod || layerResult.mode || '') + '</p>' +
+        '<p><strong>Primary numerical source:</strong> ' + escapeHtml(
+          layerResult.numericalProvenance==='exact_native_r_reference_table'
+            ? 'complete native R reference table ('+(layerResult.primaryReferenceMethodKey||'unknown method')+')'
+            : 'browser exploratory calculation'
+        ) + '</p>' +
         '<p><strong>QC:</strong> ' + escapeHtml(qc.featuresAfter ?? '—') + '/' + escapeHtml(qc.featuresBefore ?? '—') +
         ' features retained; median missing ' + escapeHtml(Number.isFinite(qc.medianMissingFraction) ? (100 * qc.medianMissingFraction).toFixed(1) + '%' : '—') + '.</p>' +
         (qc.inferenceTier?.note ? '<p><strong>Inference tier:</strong> ' + escapeHtml(qc.inferenceTier.label || qc.inferenceTier.level) + ' — ' + escapeHtml(qc.inferenceTier.note) + '</p>' : '') +
@@ -1799,8 +1909,13 @@
     if (!rows?.length) return;
     const methodKey = analysisResult.layers[layer]?.primaryReferenceMethodKey;
     const method = methodKey ? analysisResult.referenceBackend?.methods?.[methodKey] : null;
-    const nativeCsv = method?.status === 'ok' && method?.referenceTableComplete === true &&
-      typeof method?.referenceTableCsv === 'string' ? method.referenceTableCsv : null;
+    const referenceTable = method?.referenceTable && typeof method.referenceTable === 'object'
+      ? method.referenceTable : method;
+    const nativeCsv = method?.status === 'ok' &&
+      referenceTable?.referenceTableComplete === true &&
+      referenceTable?.referenceTableStatus === 'complete' &&
+      typeof referenceTable?.referenceTableCsv === 'string'
+        ? referenceTable.referenceTableCsv : null;
     const blob = new Blob([nativeCsv ?? fullLayerCsv(rows)], { type: 'text/csv;charset=utf-8' });
     const href = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
@@ -1890,19 +2005,30 @@
         });
       }
     } else if (result.protocol?.objective === 'time') {
+      const nativeLongitudinal=primaryEvidenceTier(result)==='native_r_all_layers';
       items.push({
         title: pick('Interaction groupe × temps', 'Group × time interaction'),
-        text: pick(
-          'L’effet natif R est la différence de pente temporelle entre les deux groupes, par unité de temps déclarée. Ce coefficient n’est ni un fold ratio ni un changement moyen entre deux visites.',
-          'The native R effect is the difference in time slopes between the two groups per declared time unit. This coefficient is neither a fold ratio nor a mean change between two visits.'
-        )
+        text: nativeLongitudinal
+          ? pick(
+              'L’effet affiché provient de lmerTest natif R : différence de pente temporelle entre les deux groupes, par unité de temps déclarée. Ce coefficient n’est ni un fold ratio ni un changement moyen entre deux visites.',
+              'The displayed effect comes from native R lmerTest: the difference in time slopes between the groups per declared time unit. It is neither a fold ratio nor a mean change between two visits.'
+            )
+          : pick(
+              'L’effet navigateur est une estimation descriptive de différence de pente. Il ne fournit pas l’inférence longitudinale de référence ; exécutez lmerTest R avant d’interpréter p-values/q-values ou incertitude.',
+              'The browser effect is a descriptive slope-difference estimate. It is not the reference longitudinal inference; run R lmerTest before interpreting p/q-values or uncertainty.'
+            )
       });
       items.push({
         title: pick('Hypothèses longitudinales', 'Longitudinal assumptions'),
-        text: pick(
-          'Le modèle lmerTest suppose ici une évolution temporelle linéaire, une appartenance de groupe stable et le plan répété déclaré. Les fits singuliers, visites incomplètes et replis de pente aléatoire restent à examiner.',
-          'The lmerTest model assumes a linear time trend, stable group membership and the declared repeated-measures design. Singular fits, incomplete visits and random-slope fallbacks still require review.'
-        )
+        text: nativeLongitudinal
+          ? pick(
+              'Le modèle lmerTest suppose ici une évolution temporelle linéaire, une appartenance de groupe stable et le plan répété déclaré. Les fits singuliers, visites incomplètes et replis de pente aléatoire restent à examiner.',
+              'The lmerTest model assumes a linear time trend, stable group membership and the declared repeated-measures design. Singular fits, incomplete visits and random-slope fallbacks still require review.'
+            )
+          : pick(
+              'Le calcul navigateur reste exploratoire. La structure aléatoire, les visites manquantes, les résidus et la forme temporelle doivent être évalués dans le modèle R adapté.',
+              'The browser calculation remains exploratory. Random effects, missing visits, residuals and the time functional form must be assessed in the appropriate R model.'
+            )
       });
     } else {
       items.push({
@@ -3195,7 +3321,11 @@ Rscript multiomics-engine/run_backend.R</code></pre>
         <p class="eyebrow">
           {demoLoaded
             ? t('Démo synthétique · résultats réellement calculés', 'Synthetic demo · actually computed results')
-            : t('Résultats · moteur déterministe', 'Analysis results · deterministic engine')}
+            : primaryEvidenceTier(analysisResult)==='native_r_all_layers'
+              ? t('Résultats · valeurs principales issues des tableaux natifs R', 'Results · primary values from native R tables')
+              : primaryEvidenceTier(analysisResult)==='mixed_native_browser'
+                ? t('Résultats · sources numériques mixtes R natif / navigateur', 'Results · mixed native-R / browser numerical sources')
+                : t('Résultats · calcul exploratoire du navigateur', 'Results · exploratory browser computation')}
         </p>
 
         <h2>
@@ -3232,6 +3362,28 @@ Rscript multiomics-engine/run_backend.R</code></pre>
         {#if analysisResult.reactome?.combined?.token}
         <a class="btn btn-outline" href={`https://reactome.org/PathwayBrowser/#DTAB=AN&ANALYSIS=${analysisResult.reactome.combined.token}`} target="_blank" rel="noreferrer">{t('Ouvrir dans Reactome ↗', 'Open in Reactome ↗')}</a>
         {/if}
+      </div>
+      <div class="integration-result" data-testid="multiomics-omics2pk-export-panel">
+        <div class="integration-head">
+          <div>
+            <p class="eyebrow">{t('Réutilisation en pharmacométrie', 'Reuse in pharmacometrics')}</p>
+            <h3>{t('Exporter les données individuelles vers Omics2PK', 'Export individual data to Omics2PK')}</h3>
+          </div>
+          <button class="btn btn-outline" type="button" data-testid="multiomics-omics2pk-export"
+            disabled={portableProjectBusy} onclick={downloadOmics2PkExchange}>
+            {portableProjectBusy ? t('Préparation…','Preparing…') : t('Télécharger échange Omics2PK (ZIP)','Download Omics2PK exchange (ZIP)')}
+          </button>
+        </div>
+        <p>{t(
+          'Cet export contient les matrices individuelles originales normalisées en format d’échange, les identités sujet/prélèvement/assay, les échelles déclarées et les SHA-256. Il n’exporte pas les logFC/q-values de groupe comme covariables PK et n’invente aucune dose ni concentration.',
+          'This export contains original individual matrices normalized to the exchange format, subject/specimen/assay identities, declared scales and SHA-256 hashes. It does not export group logFC/q-values as PK covariates and invents no dose or concentration.'
+        )}</p>
+        <p class="note">{t(
+          'Pour tester un effet sur la PK, Omics2PK doit joindre séparément les vraies doses, temps et concentrations des mêmes sujets. Les scores individuels optionnels ne sont acceptés qu’avec modèle figé ou prédiction hors-fold et provenance explicite.',
+          'To test a PK effect, Omics2PK must separately join genuine dose, time and concentration records from the same subjects. Optional individual scores are accepted only with frozen-model or out-of-fold provenance.'
+        )}</p>
+        {#if omics2pkExportMessage}<p role="status" data-testid="multiomics-omics2pk-export-status">{omics2pkExportMessage}</p>{/if}
+        {#if omics2pkExportError}<p role="alert" class="error" data-testid="multiomics-omics2pk-export-error">{omics2pkExportError}</p>{/if}
       </div>
       <p class="simple-hint">{t('Le ZIP contient tous les tableaux, les méthodes, les sources et les paramètres. Données potentiellement sensibles : stockage sécurisé recommandé. Les résultats du navigateur restent exploratoires.', 'ZIP includes complete tables, methods, original data and settings. Potentially sensitive: store securely. Browser results remain exploratory.')}</p>
     <p class="simple-hint" data-testid="multiomics-replay-fidelity-note">
@@ -3295,13 +3447,27 @@ Rscript multiomics-engine/run_backend.R</code></pre>
           </div>
         {/if}
         {#if analysisResult.protocol?.objective === 'time' && analysisResult.protocol?.longitudinal}
-        <p data-testid="multiomics-longitudinal-inference-warning"><strong>{t('Longitudinal : pas de significativité calculée dans le navigateur.', 'Longitudinal: no browser-side statistical significance is reported.')}</strong>
-            {t('Les changements et différences de pente sont descriptifs. Les p-values, q-values et intervalles de confiance exigent l’analyse de référence R avec lmerTest et un plan longitudinal vérifié.', 'Estimated changes and slopes are descriptive. P-values, q-values and confidence intervals require the lmerTest R reference analysis and a verified longitudinal design.')}
-          </p>
+          {#if primaryEvidenceTier(analysisResult)==='native_r_all_layers'}
+            <p data-testid="multiomics-longitudinal-native-note"><strong>{t('Longitudinal : les effets, p-values et q-values affichés proviennent du modèle lmerTest natif R.', 'Longitudinal: displayed effects, p-values and q-values come from the native R lmerTest model.')}</strong>
+              {t('La structure aléatoire réellement ajustée et les fallbacks restent visibles. Vérifiez linéarité du temps, résidus, visites manquantes et structure aléatoire avant toute conclusion.', 'The fitted random-effects structure and fallbacks remain visible. Review time linearity, residuals, missing visits and random-effects structure before drawing conclusions.')}
+            </p>
+          {:else}
+            <p data-testid="multiomics-longitudinal-inference-warning"><strong>{t('Longitudinal : pas de significativité de référence calculée dans le navigateur.', 'Longitudinal: no reference statistical significance is computed in the browser.')}</strong>
+              {t('Les changements et différences de pente sont descriptifs. Les p-values, q-values et intervalles de confiance de référence exigent l’analyse R avec lmerTest et un plan longitudinal vérifié.', 'Estimated changes and slopes are descriptive. Reference p-values, q-values and confidence intervals require the R lmerTest analysis and a verified longitudinal design.')}
+            </p>
+          {/if}
         {/if}
-      <strong>{t('Statut de validité scientifique', 'Scientific evidence status')} · {analysisResult.scientificAssurance.status === 'descriptive'
-            ? t('Exploration descriptive', 'Descriptive exploration')
-        : t('Inférence exploratoire : confirmation requise', 'Exploratory inference: confirmation required')}</strong>
+      <strong>{t('Statut de validité scientifique', 'Scientific evidence status')} · {
+        analysisResult.scientificAssurance.confirmatoryReadiness?.requested &&
+        analysisResult.scientificAssurance.confirmatoryReadiness.status === 'blocked'
+          ? t('Préparation confirmatoire bloquée', 'Confirmatory preparation blocked')
+          : analysisResult.scientificAssurance.confirmatoryReadiness?.requested &&
+            analysisResult.scientificAssurance.confirmatoryReadiness.status === 'independent_review_required'
+            ? t('Préparation confirmatoire native R · revue indépendante requise', 'Native-R confirmatory preparation · independent review required')
+            : analysisResult.scientificAssurance.status === 'descriptive'
+              ? t('Exploration descriptive', 'Descriptive exploration')
+              : t('Inférence exploratoire · confirmation requise', 'Exploratory inference · confirmation required')
+      }</strong>
       <p>{t('Exécution réussie ≠ validation scientifique. Une q-value faible ou un contrôle QC sans alerte ne certifient pas une découverte. Une conclusion publiable exige un design vérifié, une méthode de référence et, selon l’objectif, une validation indépendante.',
           'Successful execution is not scientific validation. Low q-values or apparently clean QC do not certify a finding. Publication claims require a checked design, appropriate reference methods and sometimes external validation.')}</p>
         {#if analysisResult.scientificAssurance.notes?.some(isMissingnessRiskNote)}
@@ -3338,7 +3504,7 @@ Rscript multiomics-engine/run_backend.R</code></pre>
 
   <div class="simple-qc-status" data-testid="multiomics-quality-summary">
       <strong>{t('Méthodes réellement exécutées', 'Methods actually run')}</strong>
-      <span>{t('Navigateur : ', 'Browser: ')}{Object.entries(analysisResult.layers || {}).map(([key, value]) => omicLabel(key) + ' — ' + (value.inferenceMethod || value.mode || 'QC')).join(' ; ')}</span>
+      <span>{t('Analyse locale / QC : ', 'Local analysis / QC: ')}{Object.entries(analysisResult.layers || {}).map(([key, value]) => omicLabel(key) + ' — ' + (value.inferenceMethod || value.mode || 'QC')).join(' ; ')}</span>
     <small data-testid="multiomics-numeric-source">{analysisResult.displayedReferenceMethodCount > 0
       ? t('Les tableaux des couches portant « Native R » proviennent des résultats R exhaustifs ; les figures JS utilisent ces mêmes effets, sans refaire les tests. Les contrôles QC et les autres méthodes exploratoires restent distincts.',
           'Layers labeled Native R show full R reference values; JavaScript figures use these same effects without refitting. QC and other exploratory calculations remain distinct.')
@@ -3358,6 +3524,38 @@ Rscript multiomics-engine/run_backend.R</code></pre>
       <span class:qc-alert={layerResult.qc?.warnings?.length}>{omicLabel(layer)} : {layerResult.qc?.warnings?.length ? t('points à vérifier', 'needs review') : layerResult.qc?.inferenceTier?.level === 'screening' ? t('exploration uniquement', 'exploratory only') : t('aucune alerte détectée', 'no warning detected')}</span>
       {/each}
     </div>
+  {#if analysisResult.layers?.metabolomics?.qc?.msQc}
+    {@const ms = analysisResult.layers.metabolomics.qc.msQc}
+    <div class="simple-qc-status" data-testid="multiomics-ms-qc-summary">
+      <strong>{t('QC analytique métabolomique réellement appliqué', 'Metabolomics analytical QC actually applied')}</strong>
+      <span>{t('Injections biologiques', 'Biological injections')}: <b>{ms.biologicalAssays ?? 0}</b> · pooled-QC: <b>{ms.qcAssays ?? 0}</b> · {t('blancs', 'blanks')}: <b>{ms.blankAssays ?? 0}</b></span>
+      <span>
+        {t('Signal de blanc', 'Blank signal')}: <b>{ms.blankFlaggedFeatures ?? 0}</b> {t('feature(s) signalée(s)', 'feature(s) flagged')}
+        {#if (ms.blankRemovedFeatures ?? 0) > 0} · <b>{ms.blankRemovedFeatures}</b> {t('retirée(s)', 'removed')}{/if}
+        · {t('mode', 'mode')}: <code>{ms.blankMode ?? '—'}</code>
+      </span>
+      <span>
+        {t('Précision pooled-QC', 'Pooled-QC precision')}: <b>{ms.qcRsdFilteredFeatures ?? 0}</b>
+        {t('feature(s) au-dessus du seuil RSD et retirée(s) lorsque le filtre est actif', 'feature(s) above the RSD threshold and removed when filtering is active')}
+        · {t('seuil', 'threshold')}: {Number.isFinite(ms.qcRsdThreshold) ? (100*ms.qcRsdThreshold).toFixed(0)+' %' : '—'}
+      </span>
+      <span>
+        {t('Dérive', 'Drift')}: {ms.driftCorrection?.applied
+          ? t('correction interpolée appliquée', 'interpolated correction applied')
+          : t('non appliquée', 'not applied')}
+        · pooled-QC {t('avec ordre utilisable', 'with usable order')}: <b>{ms.driftCorrection?.orderedQcCount ?? 0}</b>
+        {#if (ms.driftCorrection?.outsideQcSupport ?? 0) > 0}
+          · <b>{ms.driftCorrection.outsideQcSupport}</b> {t('injection(s) biologique(s) hors support QC, non extrapolée(s)', 'biological injection(s) outside QC support, not extrapolated')}
+        {/if}
+      </span>
+      <span>{t('Imputation MNAR', 'MNAR imputation')}: <b>{ms.mnar?.imputedValues ?? 0}</b> {t('valeur(s)', 'value(s)')} · <code>{ms.mnar?.strategy ?? 'none'}</code></span>
+      <small>{t(
+        'Ces indicateurs décrivent la qualité analytique observée et les transformations effectuées. Ils ne prouvent ni l’identité chimique d’une feature m/z–RT, ni l’absence de contamination, ni la validité biologique d’un biomarqueur. Les résultats défavorables et les NA doivent rester visibles.',
+        'These indicators describe observed analytical quality and the transformations performed. They do not prove chemical identity of an m/z–RT feature, absence of contamination, or biological biomarker validity. Unfavourable results and NAs must remain visible.'
+      )}</small>
+    </div>
+  {/if}
+
   <details class="advanced-results" data-testid="multiomics-quality-details">
       <summary>{t('Voir les vérifications détaillées', 'View detailed quality checks')}</summary>
 
@@ -3399,7 +3597,7 @@ Rscript multiomics-engine/run_backend.R</code></pre>
               <p class="eyebrow">{t('Moteur R de référence', 'Reference R engine')}</p>
           <h3>{analysisResult.referenceBackend.status === 'ok'
                   ? analysisResult.referenceBackend.referenceMethodExecuted
-                    ? t('Méthodes R exécutées (résultats distincts des figures du navigateur)', 'R methods executed (results separate from browser figures)')
+                    ? t('Méthodes R exécutées (tableaux complets projetés lorsque éligibles ; figures rendues dans le navigateur)', 'R methods executed (complete tables projected when eligible; figures rendered in the browser)')
                     : t('Moteur R connecté — aucune méthode statistique de référence exécutée', 'R backend connected — no reference statistical method executed')
             : t('Backend R non utilisé', 'R backend not used')}</h3>
             </div>
