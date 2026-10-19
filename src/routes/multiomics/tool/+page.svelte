@@ -1695,14 +1695,14 @@
       omics2pkReadiness=summary;
       omics2pkReadinessError='';
       omics2pkExportMessage=t(
-        'Export Omics2PK prêt : '+summary.independent_subjects+' sujet(s), '+
+        'Export structurel Omics2PK généré — non prêt pour une analyse PK : '+summary.independent_subjects+' sujet(s), '+
           summary.unique_specimens+' prélèvement(s), '+summary.assays+
           ' mesure(s). Les matrices et identités sont vérifiables par SHA-256. '+
           (summary.individual_signature_rows
             ? summary.individual_signature_rows+' score(s) individuel(s) explicite(s) inclus ; leur validité biologique reste à démontrer. '
             : 'Aucun score individuel n’a été inventé. ')+
           'Les doses/concentrations PK ne sont pas incluses : Omics2PK doit les joindre séparément chez les mêmes sujets.',
-        'Omics2PK export ready: '+summary.independent_subjects+' subject(s), '+
+        'Structural Omics2PK export generated — not PK-analysis ready: '+summary.independent_subjects+' subject(s), '+
           summary.unique_specimens+' specimen(s), '+summary.assays+
           ' assay(s). Matrices and identities are SHA-256 verifiable. '+
           (summary.individual_signature_rows
