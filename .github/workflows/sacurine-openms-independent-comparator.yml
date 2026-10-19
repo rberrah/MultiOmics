@@ -104,7 +104,7 @@ jobs:
       - name: Independently re-download and authenticate the same twelve mzML
         run: |
           python scripts/verify_sacurine_zenodo_12raw.py             --output tmp/sacurine-openms-comparator/source-openms
-          cmp             tmp/sacurine-openms-comparator/source-openms/sacurine_v3_12_original_source_manifest.json             tmp/sacurine-openms-comparator/xcms-artifact/sacurine_v3_12_original_source_manifest.json
+          cmp             tmp/sacurine-openms-comparator/source-openms/sacurine_v3_12_original_source_manifest.json             tmp/sacurine-openms-comparator/xcms-artifact/source-xcms/sacurine_v3_12_original_source_manifest.json
       - name: Determine source MS1 peak representation before feature finding
         run: |
           python scripts/inspect_mzml_peak_mode.py             --raw-dir tmp/sacurine-openms-comparator/source-openms             --output tmp/sacurine-openms-comparator/openms/peak-mode.json
@@ -166,7 +166,7 @@ jobs:
           docker run --rm -v "$GITHUB_WORKSPACE:/work" -w /work "$OPENMS_IMAGE"             TextExporter -in "/work/$root/openms/sacurine-openms.consensusXML"             -out "/work/$root/openms/sacurine-openms-consensus.tsv" -out_type tsv
       - name: Audit all features, QC, blanks and reciprocal xcms/OpenMS coordinate matches
         run: |
-          python scripts/audit_sacurine_openms_comparator.py             --metadata tmp/sacurine-openms-comparator/source-openms/sampleMetadata_12samp_completed.tsv             --openms-text tmp/sacurine-openms-comparator/openms/sacurine-openms-consensus.tsv             --xcms-coordinates tmp/sacurine-openms-comparator/xcms-artifact/xcms_feature_coordinates.csv             --xcms-qc tmp/sacurine-openms-comparator/xcms-artifact/xcms_qc_blank_screens.csv             --openms-image-digest tmp/sacurine-openms-comparator/openms/openms-image-digest.txt             --output tmp/sacurine-openms-comparator/comparison
+          python scripts/audit_sacurine_openms_comparator.py             --metadata tmp/sacurine-openms-comparator/source-openms/sampleMetadata_12samp_completed.tsv             --openms-text tmp/sacurine-openms-comparator/openms/sacurine-openms-consensus.tsv             --xcms-coordinates tmp/sacurine-openms-comparator/xcms-artifact/xcms-reference/xcms_feature_coordinates.csv             --xcms-qc tmp/sacurine-openms-comparator/xcms-artifact/xcms-reference/xcms_qc_blank_screens.csv             --openms-image-digest tmp/sacurine-openms-comparator/openms/openms-image-digest.txt             --output tmp/sacurine-openms-comparator/comparison
       - name: Preserve compact independent evidence, never original human spectra
         if: always()
         uses: actions/upload-artifact@v6
