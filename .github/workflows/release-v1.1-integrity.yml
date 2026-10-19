@@ -1,0 +1,93 @@
+name: MultiOmics 1.1 release integrity
+
+on:
+  pull_request:
+    paths:
+      - 'package.json'
+      - 'package-lock.json'
+      - 'CITATION.cff'
+      - 'release-v1.1-manifest.json'
+      - 'docs/multiomics/RELEASE_V1_1_0_20261019.md'
+      - 'docs/multiomics/SACURINE_OPENMS_INDEPENDENT_COMPARATOR_20261019.md'
+      - 'scripts/compare_sacurine_xcms_openms.py'
+      - '.github/workflows/sacurine-openms-independent-comparator.yml'
+      - 'SECURITY.md'
+      - '.github/CODEOWNERS'
+      - '.github/dependabot.yml'
+      - '.github/workflows/release-v1.1-integrity.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'package.json'
+      - 'package-lock.json'
+      - 'CITATION.cff'
+      - 'release-v1.1-manifest.json'
+      - 'docs/multiomics/RELEASE_V1_1_0_20261019.md'
+      - 'docs/multiomics/SACURINE_OPENMS_INDEPENDENT_COMPARATOR_20261019.md'
+      - 'scripts/compare_sacurine_xcms_openms.py'
+      - '.github/workflows/sacurine-openms-independent-comparator.yml'
+      - 'SECURITY.md'
+      - '.github/CODEOWNERS'
+      - '.github/dependabot.yml'
+      - '.github/workflows/release-v1.1-integrity.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release-integrity:
+    name: MultiOmics 1.1 release integrity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Verify release metadata and frozen Research v1 identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          package=json.loads(Path("package.json").read_text())
+          lock=json.loads(Path("package-lock.json").read_text())
+          manifest=json.loads(Path("release-v1.1-manifest.json").read_text())
+
+          assert package["version"]=="1.1.0"
+          assert lock["version"]=="1.1.0"
+          assert lock["packages"][""]["version"]=="1.1.0"
+          assert manifest["release"]["softwareVersion"]=="1.1.0"
+          assert manifest["release"]["researchV1BaselineSha"]=="54dc8f0f8284cf970ed1a5be0533a298ae27639d"
+          assert manifest["scope"]["researchV1ScientificBoundaryPreserved"] is True
+          assert manifest["scope"]["medicalDevice"] is False
+          assert manifest["scope"]["universalConfirmatoryValidity"] is False
+
+          cff=Path("CITATION.cff").read_text()
+          assert 'version: "1.1.0"' in cff
+
+          required=[
+            "research-v1-manifest.json",
+            "docs/multiomics/RESEARCH_V1_FREEZE_20261019.md",
+            "docs/multiomics/RELEASE_V1_1_0_20261019.md",
+            "docs/multiomics/SACURINE_OPENMS_INDEPENDENT_COMPARATOR_20261019.md",
+            "scripts/compare_sacurine_xcms_openms.py",
+            ".github/workflows/sacurine-openms-independent-comparator.yml",
+            "SECURITY.md",
+            ".github/CODEOWNERS",
+            ".github/dependabot.yml",
+          ]
+          for p in required:
+              assert Path(p).is_file() and Path(p).stat().st_size>0, p
+
+          issues={x["issue"] for x in manifest["knownOpenScientificLimitations"]}
+          assert issues=={20,44,47}
+          print("PASS: MultiOmics 1.1 metadata, scientific boundaries and comparator evidence are release-consistent")
+          PY
+          test "$(git ls-remote origin refs/heads/release/research-v1.0.0 | awk '{print $1}')" = "54dc8f0f8284cf970ed1a5be0533a298ae27639d"
+      - name: Verify independent comparator parser negative controls
+        run: python3 scripts/compare_sacurine_xcms_openms.py --self-test
+      - name: Refuse accidental post-v1 development version
+        run: |
+          ! grep -R --line-number --fixed-string '1.1.0-dev.0' package.json package-lock.json CITATION.cff release-v1.1-manifest.json docs/multiomics/RELEASE_V1_1_0_20261019.md
