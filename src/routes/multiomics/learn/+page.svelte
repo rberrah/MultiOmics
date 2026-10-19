@@ -31,8 +31,8 @@
     },
     {
       title:'DIABLO',
-      fr:'Classification supervisée multi-omique avec validation sur sujets distincts. Prétraitement et sélection uniquement dans les données d’entraînement.',
-      en:'Supervised multi-omic classification with independent-subject testing. Fit preprocessing and feature selection only on training data.'
+      fr:'Classification supervisée multi-omique avec évaluation interne sur sujets distincts. Le prétraitement et la sélection gérés par le modèle sont ajustés dans les données d’entraînement ; les étapes réalisées avant import doivent être auditées séparément et une validation externe reste nécessaire.',
+      en:'Supervised multi-omic classification with internal independent-subject testing. Model-managed preprocessing and feature selection are fitted within training data; preprocessing performed before import requires separate audit and external validation remains necessary.'
     }
   ];
 </script>
@@ -56,7 +56,7 @@
       <article><h3>{t('Explorer','Explore')}</h3><p>{t('ACP mono-omique ou exploration multi-omique, puis MOFA2 si les sujets sont réellement appariés.', 'Single-omic PCA or multi-omic exploration, then MOFA2 when subjects truly match.')}</p></article>
       <article><h3>{t('Comparer','Compare')}</h3><p>{t('Comptages RNA-seq : DESeq2/edgeR. Valeurs continues : limma selon les prétraitements.', 'RNA-seq counts: DESeq2/edgeR. Continuous values: limma with suitable preprocessing.')}</p></article>
       <article><h3>{t('Interpréter','Interpret')}</h3><p>{t('fgsea pour les voies, avec un classement signé complet et une base de voies versionnée.', 'fgsea for pathways, with a complete signed ranking and versioned pathway definitions.')}</p></article>
-      <article><h3>{t('Prédire','Predict')}</h3><p>{t('DIABLO avec entraînement et validation séparés, sans fuite de données.', 'DIABLO with separate training and validation, without data leakage.')}</p></article>
+      <article><h3>{t('Prédire','Predict')}</h3><p>{t('DIABLO avec séparation des sujets et prétraitements internes ajustés dans l’entraînement ; vérifier les étapes faites avant import et valider ensuite sur une cohorte externe.', 'DIABLO with subject-separated internal evaluation and training-fold preprocessing; audit pre-import steps and then validate on an external cohort.')}</p></article>
     </div>
   </section>
 

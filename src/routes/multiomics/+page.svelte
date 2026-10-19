@@ -223,8 +223,8 @@
 
 <section class="panel validation">
   <div>
-    <p class="eyebrow">{t('Validation publique', 'Public validation')}</p>
-    <h2>{t('Le pipeline est testé sur plusieurs jeux de données publics', 'The pipeline is tested on several public datasets')}</h2>
+    <p class="eyebrow">{t('Qualification sur données publiques', 'Qualification on public datasets')}</p>
+    <h2>{t('Le logiciel est éprouvé sur plusieurs jeux publics, sans valider automatiquement votre étude', 'The software is exercised on several public datasets without automatically validating your study')}</h2>
   </div>
   <p>{t('La suite automatisée couvre notamment Nutrimouse, TCGA breast, IntLIM NCI-60/BRCA, AgingHFCD, STATegra, LRRK2, PaintOmics à signal planté et missRows.', 'The automated suite covers Nutrimouse, TCGA breast, IntLIM NCI-60/BRCA, AgingHFCD, STATegra, LRRK2, a planted-signal PaintOmics dataset and missRows.')}</p>
 

@@ -172,6 +172,27 @@ const nativeSurvivalAssurance=assessScientificAssurance({
 assert.ok(nativeSurvivalAssurance.notes.some(x=>x.code==='survival_native_r_review'));
 assert.ok(!nativeSurvivalAssurance.notes.some(x=>x.code==='survival_browser_inference_blocked'));
 
+const rawCountGroupAssurance=assessScientificAssurance({
+  ...candidate,
+  layers:{
+    ...candidate.layers,
+    transcriptomics:{
+      ...candidate.layers.transcriptomics,
+      numericalProvenance:'exact_native_r_reference_table',
+      qc:{
+        ...candidate.layers.transcriptomics.qc,
+        preprocessingAudit:{
+          ...candidate.layers.transcriptomics.qc.preprocessingAudit,
+          declaredValueType:'raw_counts'
+        }
+      }
+    }
+  }
+});
+assert.ok(rawCountGroupAssurance.notes.some(x=>
+  x.code==='rnaseq_known_null_fdr_limit'&&x.level==='requires_confirmation'),
+  'Known DESeq2 null-calibration limitation must be visible in the general result assurance');
+
 const rawLongitudinal={
   ...longitudinalCandidate,
   layers:{

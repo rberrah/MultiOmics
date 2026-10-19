@@ -95,6 +95,25 @@
   let researchBundleError = '';
   let omics2pkExportMessage = '';
   let omics2pkExportError = '';
+  /** Exact preflight of the same source exchange later downloaded for Omics2PK. */
+  /** @type {any} */
+  let omics2pkReadiness = null;
+  let omics2pkReadinessError = '';
+
+  /** @param {any} result */
+  function evidenceTierLabel(result) {
+    const tier=primaryEvidenceTier(result);
+    if(tier==='native_r_all_layers') return t('R natif complet','Complete native R');
+    if(tier==='mixed_native_browser') return t('Mixte R / navigateur','Mixed R / browser');
+    return t('Exploratoire navigateur','Browser exploratory');
+  }
+  /** @param {any} result */
+  function assuranceLabel(result) {
+    const status=result?.scientificAssurance?.status;
+    if(status==='descriptive') return t('Descriptif','Descriptive');
+    if(status==='needs_reference_confirmation') return t('Revue scientifique requise','Scientific review required');
+    return t('Interprétation prudente','Interpret with caution');
+  }
   // Optional user-supplied scores, computed *outside* the default browser
   // workflow using frozen/out-of-fold models. No automatic signature fitting.
   /** @type {Array<Record<string,any>>} */
@@ -1523,6 +1542,7 @@
       }
       await attachMsProvenance(analysisResult);
       analysisResult.scientificAssurance = assessScientificAssurance(analysisResult, { demo: demoLoaded });
+      await refreshOmics2pkReadiness();
       analysisStatus = 'done';
     } catch (error) {
       // Never display an incomplete result when a later essential step fails.
@@ -1552,6 +1572,30 @@
   }
 
 
+  /**
+   * Build the exact DOWNSTREAM_EXCHANGE_V1 in memory without downloading it.
+   * Success proves structural/source compatibility only, not PK readiness.
+   */
+  async function refreshOmics2pkReadiness() {
+    omics2pkReadiness = null;
+    omics2pkReadinessError = '';
+    if (!analysisResult) return;
+    try {
+      const sourceProject = await createPortableProject({
+        files,
+        extraFiles:{ msOriginal:msOriginalFile, msUserAnnotations:msUserAnnotationFile },
+        settings:currentPortableSettings(),
+        result:null
+      });
+      const exchange = await buildDownstreamExchange(sourceProject,{
+        individualSignatures:individualSignatureRows.length?individualSignatureRows:null
+      });
+      omics2pkReadiness = exchange.summary;
+    } catch (error) {
+      omics2pkReadinessError = error instanceof Error ? error.message : 'Omics2PK exchange preflight failed.';
+    }
+  }
+
   // One self-contained researcher dossier: full spreadsheets + methods +
   // provenance/hash manifest + source study for manual reproducible rerun.
   /** @param {Event} event */
@@ -1561,12 +1605,18 @@
     individualSignatureError = '';
     const input = event.currentTarget;
     const file = input instanceof HTMLInputElement ? input.files?.[0] : null;
-    if (!file) return;
+    if (!file) {
+      await refreshOmics2pkReadiness();
+      return;
+    }
     try {
       individualSignatureRows = parseIndividualSignatureCsv(await file.text());
       individualSignatureFilename = file.name;
+      await refreshOmics2pkReadiness();
     } catch (error) {
       individualSignatureError = error instanceof Error ? error.message : 'Invalid score CSV.';
+      omics2pkReadiness = null;
+      omics2pkReadinessError = 'Individual signature import is invalid: '+individualSignatureError;
     }
   }
 
@@ -1642,15 +1692,17 @@
       a.click();
       URL.revokeObjectURL(url);
       const summary=exchange.summary;
+      omics2pkReadiness=summary;
+      omics2pkReadinessError='';
       omics2pkExportMessage=t(
-        'Export Omics2PK prêt : '+summary.independent_subjects+' sujet(s), '+
+        'Export structurel Omics2PK généré — non prêt pour une analyse PK : '+summary.independent_subjects+' sujet(s), '+
           summary.unique_specimens+' prélèvement(s), '+summary.assays+
           ' mesure(s). Les matrices et identités sont vérifiables par SHA-256. '+
           (summary.individual_signature_rows
             ? summary.individual_signature_rows+' score(s) individuel(s) explicite(s) inclus ; leur validité biologique reste à démontrer. '
             : 'Aucun score individuel n’a été inventé. ')+
           'Les doses/concentrations PK ne sont pas incluses : Omics2PK doit les joindre séparément chez les mêmes sujets.',
-        'Omics2PK export ready: '+summary.independent_subjects+' subject(s), '+
+        'Structural Omics2PK export generated — not PK-analysis ready: '+summary.independent_subjects+' subject(s), '+
           summary.unique_specimens+' specimen(s), '+summary.assays+
           ' assay(s). Matrices and identities are SHA-256 verifiable. '+
           (summary.individual_signature_rows
@@ -3338,6 +3390,50 @@ Rscript multiomics-engine/run_backend.R</code></pre>
           href={resolve('multiomics/learn/')}
           class="simple-hint"
         >{t('Comprendre ces méthodes et figures', 'Learn how to interpret methods and figures')}</a>
+
+        <div class="result-interpretation-summary" data-testid="multiomics-result-interpretation">
+          <article>
+            <span>{t('Source numérique', 'Numerical source')}</span>
+            <strong>{evidenceTierLabel(analysisResult)}</strong>
+            <small>{primaryEvidenceTier(analysisResult)==='native_r_all_layers'
+              ? t('Les statistiques principales affichées proviennent des tableaux R natifs complets.', 'Displayed primary statistics come from complete native-R tables.')
+              : t('Ne pas présenter ces nombres comme une inférence R confirmatoire.', 'Do not present these numbers as confirmatory R inference.')}</small>
+          </article>
+          <article>
+            <span>{t('Portée scientifique', 'Scientific scope')}</span>
+            <strong>{assuranceLabel(analysisResult)}</strong>
+            <small>{t('Un calcul reproductible ne certifie ni le design, ni le FDR, ni la causalité, ni la validité clinique.', 'A reproducible calculation does not certify study design, FDR calibration, causality or clinical validity.')}</small>
+          </article>
+          <article data-testid="multiomics-omics2pk-readiness">
+            <span>{t('Réutilisation Omics2PK', 'Omics2PK reuse')}</span>
+            {#if omics2pkReadiness}
+              <strong>{t('Échange structurel vérifié · PK non prête', 'Structural exchange verified · not PK-ready')}</strong>
+              <small>
+                {omics2pkReadiness.independent_subjects} {t('sujets', 'subjects')} ·
+                {omics2pkReadiness.unique_specimens} {t('prélèvements', 'specimens')} ·
+                {omics2pkReadiness.assays} assays.
+                {omics2pkReadiness.pk_temporal_numeric_compatible && omics2pkReadiness.explicit_time_origin_complete
+                  ? t(' Temps moléculaires compatibles et origine moléculaire explicite présents ; cette origine doit encore être vérifiée contre le repère temporel PK, puis les vraies doses et concentrations des mêmes sujets doivent être jointes.', ' Compatible numeric molecular times and an explicit molecular time origin are present; that origin still has to be verified against the PK time reference, and genuine dose/concentration records for the same subjects must be joined.')
+                  : t(' Métadonnées temporelles non compatibles avec le contrat PK : utiliser un temps non négatif en min/h/jour, déclarer son unité et une origine explicite, puis joindre les vraies doses/concentrations des mêmes sujets.', ' Temporal metadata are not compatible with the PK contract: use a non-negative time in min/h/day with its unit and an explicit origin, then join genuine dose/concentration records for the same subjects.')}
+              </small>
+            {:else if omics2pkReadinessError}
+              <strong>{t('Échange bloqué', 'Exchange blocked')}</strong>
+              <small>{omics2pkReadinessError}</small>
+            {:else}
+              <strong>{t('Préflight non disponible', 'Preflight unavailable')}</strong>
+            {/if}
+          </article>
+        </div>
+        {#if analysisResult.scientificAssurance?.notes?.length}
+          <details class="simple-disclosure interpretation-limits" data-testid="multiomics-key-limitations">
+            <summary>{t('Limites principales à vérifier avant publication', 'Key limitations to review before publication')}</summary>
+            <ul>
+              {#each analysisResult.scientificAssurance.notes.slice(0,6) as note}
+                <li>{($language === 'en' ? note.en : note.fr)}</li>
+              {/each}
+            </ul>
+          </details>
+        {/if}
       </div>
       <div class="result-actions">
       <button class="btn btn-primary" type="button" data-testid="multiomics-research-bundle-download" disabled={portableProjectBusy} onclick={downloadResearchBundle}>{portableProjectBusy ? t('Préparation du dossier…', 'Preparing dossier…') : t('Télécharger résultats + figures + code R (ZIP)', 'Download results + figures + R code (ZIP)')}</button>
@@ -3375,8 +3471,8 @@ Rscript multiomics-engine/run_backend.R</code></pre>
           </button>
         </div>
         <p>{t(
-          'Cet export contient les matrices individuelles originales normalisées en format d’échange, les identités sujet/prélèvement/assay, les échelles déclarées et les SHA-256. Il n’exporte pas les logFC/q-values de groupe comme covariables PK et n’invente aucune dose ni concentration.',
-          'This export contains original individual matrices normalized to the exchange format, subject/specimen/assay identities, declared scales and SHA-256 hashes. It does not export group logFC/q-values as PK covariates and invents no dose or concentration.'
+          'Cet export canonicalise les matrices individuelles originales vers le format d’échange (orientation, identifiants, NA et métadonnées) sans renormaliser les valeurs biologiques. Il conserve les échelles déclarées et SHA-256, n’exporte pas les logFC/q-values de groupe comme covariables PK et n’invente aucune dose ni concentration.',
+          'This export canonicalizes the original individual matrices into the exchange format (orientation, identifiers, NA and metadata) without renormalizing biological values. It preserves declared scales and SHA-256 hashes, does not export group logFC/q-values as PK covariates, and invents no dose or concentration.'
         )}</p>
         <p class="note">{t(
           'Pour tester un effet sur la PK, Omics2PK doit joindre séparément les vraies doses, temps et concentrations des mêmes sujets. Les scores individuels optionnels ne sont acceptés qu’avec modèle figé ou prédiction hors-fold et provenance explicite.',
@@ -4169,7 +4265,7 @@ Rscript multiomics-engine/run_backend.R</code></pre>
   <b>r reference <span class="help-tip" tabindex="0" data-tooltip={t('Corrélation de Spearman entre les deux variables dans le groupe de référence.', 'Spearman correlation between the two features in the reference group.')}>?</span></b>
   <b>r comparison <span class="help-tip" tabindex="0" data-tooltip={t('Même corrélation de Spearman dans le groupe comparé.', 'The same Spearman correlation in the comparison group.')}>?</span></b>
   <b>Δr <span class="help-tip" tabindex="0" data-tooltip={t('Différence r_comparison − r_reference. Une grande valeur absolue indique un changement important de couplage entre les deux conditions.', 'Difference r_comparison − r_reference. A large absolute value indicates a strong change in coupling between conditions.')}>?</span></b>
-  <b>q BH <span class="help-tip" tabindex="0" data-tooltip={t('FDR Benjamini–Hochberg appliqué à toutes les paires inter-omiques testées. Il indique si le changement de corrélation reste crédible après correction multiple.', 'Benjamini–Hochberg FDR across all tested cross-omics pairs. It indicates whether the correlation change remains credible after multiple-testing correction.')}>?</span></b>
+  <b>q BH <span class="help-tip" tabindex="0" data-tooltip={t('q-value Benjamini–Hochberg calculée sur toutes les paires inter-omiques testées. Une petite valeur réduit le risque de faux appel dans cette famille sous les hypothèses du test, mais ne confirme ni causalité, ni mécanisme, ni réplication biologique.', 'Benjamini–Hochberg q-value across all tested cross-omics pairs. A small value reduces false-call risk within this tested family under the model assumptions, but does not establish causality, mechanism or biological replication.')}>?</span></b>
               </div>
               {#each analysisResult.crossOmics.pairs.slice(0, 15) as pair}
                 <div>
@@ -5558,6 +5654,45 @@ Rscript multiomics-engine/run_backend.R</code></pre>
 
   .mapping-result-head {
     color: var(--text-muted);
+  }
+
+  .result-interpretation-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+  }
+
+  .result-interpretation-summary article {
+    padding: var(--space-3);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius);
+    background: var(--bg-secondary);
+    min-width: 0;
+  }
+
+  .result-interpretation-summary span,
+  .result-interpretation-summary strong,
+  .result-interpretation-summary small {
+    display: block;
+  }
+
+  .result-interpretation-summary span,
+  .result-interpretation-summary small {
+    color: var(--text-muted);
+  }
+
+  .result-interpretation-summary strong {
+    margin: 4px 0;
+  }
+
+  .interpretation-limits {
+    margin-top: var(--space-3);
+  }
+
+  .interpretation-limits li {
+    margin-bottom: 6px;
+    color: var(--text-secondary);
   }
 
   .computed-summary article {

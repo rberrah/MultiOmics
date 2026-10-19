@@ -177,6 +177,24 @@ assert.match(methodsMarkdown(fullMethod,'fr'),/Unités biologiques indépendante
 assert.match(methodsMarkdown(fullMethod,'en'),/Fitted samples.*8/);
 assert.equal(fullBundle.manifest.reference_method_previews[0].paired_design.biological_pairs,4);
 assert.equal(fullBundle.manifest.reference_method_previews[0].paired_design.certified,false);
+const nativePrimary={
+  ...fullMethod,
+  layers:{
+    transcriptomics:{
+      ...fullMethod.layers.transcriptomics,
+      rows:Array.from({length:165},(_,i)=>({
+        feature:'GENE_'+String(i+1),effect:0,pValue:0.01,qValue:0.04,
+        numericalProvenance:'exact_native_r_reference_table'
+      })),
+      numericalProvenance:'exact_native_r_reference_table',
+      primaryReferenceMethodKey:'transcriptomics_differential_deseq2'
+    }
+  }
+};
+const nativePrimaryMethods=methodsMarkdown(nativePrimary,'en');
+assert.match(nativePrimaryMethods,/primary CSV for this layer is the verified complete native-R table/);
+assert.doesNotMatch(nativePrimaryMethods,/every feature returned by the browser engine without truncation/);
+assert.match(methodsMarkdown(result,'en'),/every feature returned by the browser engine without truncation/);
 const failedFit=structuredClone(fullMethod);
 failedFit.referenceBackend.methods.transcriptomics_differential_deseq2.status='blocked';
 await assert.rejects(buildResearchBundle({result:failedFit,portableProject:portable}),
