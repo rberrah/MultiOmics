@@ -1,13 +1,13 @@
 # MultiOmics — état de maturité et décision de publication scientifique
 
-**Revue du 18 octobre 2026. Périmètre : dépôt autonome MultiOmics uniquement.**
+**Revue initiale du 18 octobre 2026 ; décision de gel mise à jour le 19 octobre 2026. Périmètre : dépôt autonome MultiOmics uniquement.**
 
 ## Trois décisions différentes
 
 | Usage / décision | État vérifiable | Formulation scientifiquement autorisée |
 | --- | --- | --- |
 | Utilisation pour produire des résultats publiables dans un article de biologie | **Possible sous conditions** | Des jeux de données réels peuvent être traités ; archiver la version, le plan, les paramètres, les fichiers d'entrée, les sorties R réellement calculées, le rapport et la revue scientifique du cas |
-| Première version citée et figée d'un logiciel de recherche | **Préparation avancée, non encore figée** | Le code autonome, les jeux de référence, le ZIP reproductible et les vérifications numériques existent ; un tag immuable, un dépôt pérenne avec DOI et des scénarios utilisateurs indépendants restent à finaliser |
+| Première version citée et figée d'un logiciel de recherche | **Research v1 / 1.0.0 : gel logiciel accepté sous gate CI** | Le code autonome, le ZIP reproductible, les contrats natifs R, les qualifications publiques Airway/Nutrimouse/Sacurine/NKI/GSE191328 et la fermeture transitive R sont intégrés. L'identité définitive est le SHA `main` issu du merge de freeze ; un GitHub Release/DOI pérenne reste une étape de diffusion, pas une condition de validité du code gelé. |
 | Publication méthodologique du logiciel dans une revue à évaluation par les pairs | **Dossier incomplet** | Il faut démontrer indépendance, intérêt scientifique comparatif, utilité externe et limites avec résultats quantitatifs et reproductibles ; ne pas confondre la réussite CI et une validité statistique universelle |
 
 ## Fonctions réelles disponibles
@@ -25,12 +25,12 @@
 1. L'inflation **DESeq2 FDR** en nul global est significative dans trois générateurs indépendants (22/128, 23/128, 18/128 études faussement significatives) : [résultats persistants](RNASEQ_HIGH_REP_FDR_FINDINGS_20261018.md) et [issue #44](https://github.com/rberrah/MultiOmics/issues/44). Le moteur, l'UI et les rapports ne doivent pas promettre un FDR universel contrôlé à 5 %. Revue humaine et justificatif des méthodes restent obligatoires.
 2. La qualification native **12 mzML réels Sacurine v3** est désormais exécutée : 12/12 sources MD5 vérifiées, 6 urines/3 pooled-QC/3 blancs, ordres source conservés, xcms natif, audit numérique indépendant et sensibilité préspécifiée aux paramètres (PR #48/#50). Les résultats défavorables sont conservés : 64,67 % des 2 850 features à RSD QC évaluable dépassent 30 %, 72,71 % des 535 ratios blanc/urine évaluables dépassent 20 %, et 2 600/3 135 ratios blanc restent non évaluables. **Le P0 résiduel** de l'[issue #47](https://github.com/rberrah/MultiOmics/issues/47) est une comparaison de prétraitement réellement indépendante/standards analytiques lorsque l'identification ou la précision métabolomique est revendiquée, ainsi qu'une politique de QC aval préspécifiée.
 3. Séparer expressément : validité d'exécution R, calibration fréquentiste, plausibilité biologique, validation externe et utilisation clinique. Pas de revendication de validation universelle ni médicale.
-   Les voies longitudinales et survie désormais projetées en R natif doivent conserver leurs workflows numériques indépendants actifs dans le dépôt autonome ; la parité de calcul ne remplace pas une validation sur cohorte externe réelle.
+   Les voies longitudinales et survie projetées en R natif conservent leurs workflows numériques indépendants et disposent désormais d'une qualification externe réelle sur NKI/DMFS et GSE191328. Cette qualification établit la parité d'exécution pour ces contrats précis, pas la calibration fréquentiste ni la validité biologique universelle.
 4. Faire relire au moins quelques analyses réelles par un statisticien/biologiste indépendant, y compris échecs et données manquantes, et effectuer une validation d'utilisabilité par des novices. L'utilisateur prend en charge les tests humains.
 
 **P1 — Reproductibilité d'une version citée**
 
-5. Figer une version avec tag GitHub Release, SHA exact et versions npm/R/Bioconductor, plus ZIP autonome, test de réexécution de bout en bout et empreintes des jeux publics. Ne pas publier un tag « scientifiquement validé » si le dossier de qualification du SHA n'est pas vert.
+5. **Réalisé pour le code Research v1** : version 1.0.0, manifeste, citation, versions npm/R/Bioconductor, conteneur immuable, inventaire complet de 171 packages R, ZIP autonome et gate de réexécution. Le SHA exact du merge final devient l'identité du gel. La création d'un GitHub Release/tag/DOI est une étape de diffusion ultérieure ; ne jamais le nommer « scientifiquement validé ».
 6. Séparer la version public navigateur, les options de déploiement du moteur R et le niveau de sécurité/infrastructure ; fournir une installation local R sans données patients envoyées à un serveur non autorisé.
 7. Fournir un exemple biologique complet documenté montrant le trajet **input original → QC → design → vraies sorties R → figures → ZIP/Rmd → reproduction indépendante**, avec toutes les lignes de résultats et comparaisons à l'appel package natif.
 
@@ -44,4 +44,4 @@
 
 La section Methods doit expliciter versions/SHA, origine et taille du jeu, contrôles indépendants des matrice et groupes, modèle statistique exactement exécuté, contraste, méthode de correction multiple, résultats QC, détails des exclusions/NA, métriques retenues et revue de sensibilité. Les figures/p-values « exploratoires browser-only » ne doivent pas être décrites comme une référence R ou comme certifiées.
 
-**Décision actuelle :** utilisable pour la recherche avec qualification au cas par cas. Pas encore légitime de vendre le site, son backend et tous ses scénarios comme un logiciel *universellement confirmatoire*. Le parcours vers Research v1 est limité principalement par la calibration inférentielle, la validation complète LC-MS, l'usage indépendant réel et la publication d'une version figée reproductible.
+**Décision au 19 octobre 2026 :** le **gel Research v1 / 1.0.0 du logiciel et de ses contrats de preuve est acceptable** si le SHA final passe toutes les CI de release. Cela ne rend pas MultiOmics universellement confirmatoire. Les issues #44 (calibration DESeq2), #47 (validation analytique LC-MS au-delà de l'exécution xcms réelle) et #20 (transférabilité biologique des scores vers Omics2PK) restent des limites scientifiques explicites et non des fonctionnalités cachées comme validées. Les revues humaines et tests utilisateurs restent externes au gel logiciel.
