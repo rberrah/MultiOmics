@@ -1,0 +1,55 @@
+name: Research v1 freeze gate
+
+on:
+  pull_request:
+    paths:
+      - 'package.json'
+      - 'package-lock.json'
+      - 'CITATION.cff'
+      - 'README.md'
+      - 'research-v1-manifest.json'
+      - 'docs/multiomics/RESEARCH_V1_FREEZE_20261019.md'
+      - 'scripts/verify_research_v1_freeze.py'
+      - '.github/workflows/research-v1-freeze.yml'
+      - 'src/**'
+      - 'multiomics-engine/**'
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release-contract:
+    name: Research v1 version, evidence and scientific-boundary contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.5.2'
+          use-public-rspm: true
+      - name: Verify freeze metadata and scientific boundaries
+        run: python scripts/verify_research_v1_freeze.py
+      - name: Reinstall exactly from the lock and reject known npm advisories
+        run: |
+          npm ci
+          npm audit --audit-level=low
+      - name: Typecheck, scientific JS contracts and production build
+        run: |
+          npm run check
+          npm run test:multiomics
+          npm run build
+      - name: Verify release evidence scripts still parse
+        run: |
+          python -m py_compile scripts/verify_research_v1_freeze.py
+          Rscript -e 'for(f in c("multiomics-engine/advanced_methods.R","multiomics-engine/validation/external_nki_survival_research_v1.R","multiomics-engine/validation/external_gse191328_longitudinal_research_v1.R")) parse(file=f); cat("Research v1 R evidence syntax PASS\n")'
