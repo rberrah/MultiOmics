@@ -3883,7 +3883,7 @@ Rscript multiomics-engine/run_backend.R</code></pre>
     <span class="help-tip" tabindex="0" data-tooltip={t('p-value brute du test pour cette variable, avant correction des tests multiples. Une petite p-value seule ne suffit pas lorsqu’on teste beaucoup de variables.', 'Raw p-value for this feature before multiple-testing correction. A small p-value alone is not sufficient when many features are tested.')}>?</span>
                     </b>
   <b>q BH
-    <span class="help-tip" tabindex="0" data-tooltip={t('p-value ajustée par Benjamini–Hochberg pour contrôler le taux de faux positifs parmi les résultats retenus. Ici q ≤ 0,10 est un seuil exploratoire.', 'Benjamini–Hochberg adjusted p-value controlling the false discovery rate among selected results. Here q ≤ 0.10 is an exploratory threshold.')}>?</span>
+    <span class="help-tip" tabindex="0" data-tooltip={t('p-value ajustée par la procédure Benjamini–Hochberg. Le contrôle nominal du FDR dépend de la validité des p-values et des hypothèses ; il n’est pas certifié automatiquement par MultiOmics. Ici q ≤ 0,10 sert uniquement au classement/affichage exploratoire.', 'P-value adjusted with the Benjamini–Hochberg procedure. Nominal FDR control depends on valid p-values and assumptions and is not automatically certified by MultiOmics. Here q ≤ 0.10 is used only for exploratory ranking/display.')}>?</span>
                     </b>
                   </div>
                   {#each (result.numericalProvenance === 'exact_native_r_reference_table' ? result.selected : result.rows).slice(0, 10) as row}
@@ -3914,10 +3914,36 @@ Rscript multiomics-engine/run_backend.R</code></pre>
                         </span>
                       {/if}
                       <span>{row.pValue == null ? '—' : row.pValue.toPrecision(3)}</span>
-                  <span data-scientific-q={row.qValue == null ? '' : String(row.qValue)}>{row.qValue == null ? '—' : row.qValue.toPrecision(3)}</span>
+                  <span data-scientific-q={row.qValue == null ? '' : String(row.qValue)}>
+                    {row.qValue == null ? '—' : row.qValue.toPrecision(3)}
+                    {#if result.nativeObjectiveFamily === 'survival'}
+                      <small>
+                        PH p={row.proportionalHazardsP == null ? '—' : row.proportionalHazardsP.toPrecision(3)}
+                        {row.status === 'ph_assumption_warning'
+                          ? t(' · avertissement PH', ' · PH warning')
+                          : row.status ? ' · ' + row.status : ''}
+                      </small>
+                    {:else if result.nativeObjectiveFamily === 'longitudinal'}
+                      <small>
+                        {row.randomEffectStructure || '—'}
+                        {row.status && row.status !== 'ok' ? ' · ' + row.status : ''}
+                      </small>
+                    {/if}
+                  </span>
                     </div>
                   {/each}
                 </div>
+                {#if result.nativeObjectiveFamily === 'survival'}
+                  <p class="selection-rule">
+                    {t('Survie : un avertissement PH signifie que le modèle à risques proportionnels doit être réexaminé pour la variable concernée. Une p-value cox.zph non significative ne prouve pas l’hypothèse PH.',
+                       'Survival: a PH warning means the proportional-hazards model must be reviewed for that feature. A non-significant cox.zph p-value does not prove the PH assumption.')}
+                  </p>
+                {:else if result.nativeObjectiveFamily === 'longitudinal'}
+                  <p class="selection-rule">
+                    {t('Longitudinal : la structure aléatoire réellement ajustée est affichée par variable. Un fallback de pente aléatoire vers intercept seul est une décision de modèle à revoir avant toute interprétation confirmatoire.',
+                       'Longitudinal: the random-effects structure actually fitted is shown per feature. A random-slope fallback to random intercept only is a model decision that must be reviewed before confirmatory interpretation.')}
+                  </p>
+                {/if}
               {/if}
             </article>
           {/if}
