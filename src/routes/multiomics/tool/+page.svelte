@@ -3407,14 +3407,14 @@ Rscript multiomics-engine/run_backend.R</code></pre>
           <article data-testid="multiomics-omics2pk-readiness">
             <span>{t('Réutilisation Omics2PK', 'Omics2PK reuse')}</span>
             {#if omics2pkReadiness}
-              <strong>{t('Échange structurel vérifié', 'Structural exchange verified')}</strong>
+              <strong>{t('Échange structurel vérifié · PK non prête', 'Structural exchange verified · not PK-ready')}</strong>
               <small>
                 {omics2pkReadiness.independent_subjects} {t('sujets', 'subjects')} ·
                 {omics2pkReadiness.unique_specimens} {t('prélèvements', 'specimens')} ·
                 {omics2pkReadiness.assays} assays.
                 {omics2pkReadiness.numeric_collection_time_complete && omics2pkReadiness.explicit_time_origin_complete
-                  ? t(' Temps moléculaires numériques et origine explicite présents.', ' Numeric molecular times and explicit time origin are present.')
-                  : t(' PK non prête : Omics2PK doit encore joindre la vraie chronologie PK/doses/concentrations et vérifier l’origine temporelle.', ' Not PK-ready: Omics2PK must still join genuine PK timing/dose/concentration records and verify the shared time origin.')}
+                  ? t(' Temps moléculaires numériques et origine explicite présents ; il faut encore joindre les vraies doses et concentrations des mêmes sujets avant toute analyse PK.', ' Numeric molecular times and an explicit time origin are present; genuine dose and concentration records for the same subjects are still required before any PK analysis.')
+                  : t(' Temps PK incomplets : Omics2PK doit joindre la vraie chronologie PK/doses/concentrations et vérifier une origine temporelle commune.', ' PK timing is incomplete: Omics2PK must join genuine PK timing/dose/concentration records and verify a shared time origin.')}
               </small>
             {:else if omics2pkReadinessError}
               <strong>{t('Échange bloqué', 'Exchange blocked')}</strong>
