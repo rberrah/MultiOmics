@@ -191,9 +191,21 @@ native_contract <- reference_complete_table(native_fixture, original_features=2L
 stopifnot(isTRUE(native_contract$referenceTableComplete))
 stopifnot(identical(native_contract$referenceTableRows,2L))
 stopifnot(identical(native_contract$referenceTableOriginalFeatures,2L))
-stopifnot(is.character(native_contract$referenceTableCsv),
-          grepl("feature,estimate,p_value,q_bh",native_contract$referenceTableCsv,fixed=TRUE))
-stopifnot(grepl("F1,0.25,0.004,0.008",native_contract$referenceTableCsv,fixed=TRUE))
+stopifnot(is.character(native_contract$referenceTableCsv))
+native_roundtrip <- utils::read.csv(
+  text=native_contract$referenceTableCsv,
+  check.names=FALSE,
+  stringsAsFactors=FALSE
+)
+stopifnot(identical(names(native_roundtrip),c("feature","estimate","p_value","q_bh")))
+stopifnot(nrow(native_roundtrip)==2L)
+stopifnot(identical(as.character(native_roundtrip$feature),c("F1","F2")))
+stopifnot(isTRUE(all.equal(as.numeric(native_roundtrip$estimate),c(0.25,-0.10),
+                           tolerance=0,check.attributes=FALSE)))
+stopifnot(isTRUE(all.equal(as.numeric(native_roundtrip$p_value),c(0.004,0.05),
+                           tolerance=0,check.attributes=FALSE)))
+stopifnot(isTRUE(all.equal(as.numeric(native_roundtrip$q_bh),c(0.008,0.05),
+                           tolerance=0,check.attributes=FALSE)))
 
 # -------------------------------------------------------------------------
 # 3) Browser-to-R payload routing, without requiring heavy packages in CI
