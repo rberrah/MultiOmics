@@ -132,6 +132,14 @@ assert.equal(negativeTime.summary.pk_temporal_numeric_compatible,false,
   'negative molecular times must not pass the PK consumer preflight');
 assert.equal(negativeTime.manifest.validation.downstream_pk_readiness.pk_temporal_numeric_compatible,false);
 
+const jsOnlyNumericProject=structuredClone(mappedProject);
+jsOnlyNumericProject.inputs.metadata.content=mappedMeta.replace('\t0\th\tfirst_dose','\t0x10\th\tfirst_dose');
+const jsOnlyNumeric=await buildDownstreamExchange(jsOnlyNumericProject);
+assert.equal(jsOnlyNumeric.summary.numeric_collection_time_complete,true,
+  'JS Number accepts hexadecimal syntax, exposing why the stricter consumer check is required');
+assert.equal(jsOnlyNumeric.summary.pk_temporal_numeric_compatible,false,
+  'hexadecimal JS-only number syntax must not be advertised as Python Omics2PK-compatible');
+
 
 const ambiguousProject={
   inputs:{
