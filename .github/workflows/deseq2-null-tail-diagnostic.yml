@@ -32,10 +32,24 @@ jobs:
         run: |
           Rscript -e 'for(f in c("multiomics-engine/rnaseq_deseq2_null_tail_metrics.R","multiomics-engine/tests/test_rnaseq_deseq2_null_tail_metrics.R","multiomics-engine/validation/rnaseq_deseq2_null_tail_diagnostic.R"))parse(file=f)'
           Rscript multiomics-engine/tests/test_rnaseq_deseq2_null_tail_metrics.R
-      - name: Install frozen native scientific stack
+      - name: Install and verify the frozen DESeq2 diagnostic stack
         run: |
-          Rscript -e 'stopifnot(identical(as.character(getRversion()),"4.5.2"),identical(as.character(BiocManager::version()),"3.22")); p<-c("DESeq2","edgeR","limma","airway"); m<-p[!vapply(p,requireNamespace,logical(1),quietly=TRUE)]; if(length(m))BiocManager::install(m,ask=FALSE,update=FALSE,quiet=TRUE)'
-          Rscript multiomics-engine/environment/check_reference_runtime.R verify
+          Rscript - <<'RS'
+          stopifnot(
+            identical(as.character(getRversion()), "4.5.2"),
+            identical(as.character(BiocManager::version()), "3.22")
+          )
+          if (!requireNamespace("DESeq2", quietly=TRUE)) {
+            BiocManager::install("DESeq2", ask=FALSE, update=FALSE, quiet=TRUE)
+          }
+          lock <- jsonlite::fromJSON("multiomics-engine/environment/reference-runtime.json")
+          stopifnot(
+            identical(as.character(utils::packageVersion("DESeq2")), as.character(lock$versionLock$DESeq2))
+          )
+          cat("Frozen diagnostic runtime: R", as.character(getRversion()),
+              "Bioconductor", as.character(BiocManager::version()),
+              "DESeq2", as.character(utils::packageVersion("DESeq2")), "\n")
+          RS
       - name: Run prespecified paired whole-study tail diagnostic
         run: Rscript multiomics-engine/validation/rnaseq_deseq2_null_tail_diagnostic.R tmp/deseq2-null-tail
       - name: Preserve all outcomes
