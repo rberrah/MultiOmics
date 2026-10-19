@@ -28,7 +28,7 @@
     { key:'design',href:'/multiomics/learn/',label:t('Plan d’étude et qualité','Study design and QC') },
     { key:'tool',href:'/multiomics/tool/',label:t('Lancer une analyse','Run an analysis') },
     { key:'workflow',href:'/multiomics/tool/',label:t('Découvrir en 1 clic','One-click demos') },
-    { key:'disciplines',href:'/multiomics/disciplines/',label:t('Vue d’ensemble de l’écosystème','Ecosystem overview') },
+    { key:'disciplines',href:'/multiomics/ecosystem/',label:t('Vue d’ensemble de l’écosystème','Ecosystem overview') },
     { key:'pmx',href:pmxExplain,label:'PMx Explain ↗',external:true },
     { key:'omics2pk',href:'https://rberrah.github.io/Omics2PK/',label:'Omics2PK ↗',external:true },
     { key:'resources',href:'/multiomics/resources/',label:t('Documentation','Documentation') },

@@ -69,6 +69,7 @@ jobs:
             build/multiomics/tool/index.html \
             build/multiomics/learn/index.html \
             build/multiomics/disciplines/index.html \
+            build/multiomics/ecosystem/index.html \
             build/multiomics/resources/index.html
           do
             if [[ ! -s "$required" ]]; then
