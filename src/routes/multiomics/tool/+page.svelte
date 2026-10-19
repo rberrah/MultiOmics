@@ -95,6 +95,25 @@
   let researchBundleError = '';
   let omics2pkExportMessage = '';
   let omics2pkExportError = '';
+  /** Exact preflight of the same source exchange later downloaded for Omics2PK. */
+  /** @type {any} */
+  let omics2pkReadiness = null;
+  let omics2pkReadinessError = '';
+
+  /** @param {any} result */
+  function evidenceTierLabel(result) {
+    const tier=primaryEvidenceTier(result);
+    if(tier==='native_r_all_layers') return t('R natif complet','Complete native R');
+    if(tier==='mixed_native_browser') return t('Mixte R / navigateur','Mixed R / browser');
+    return t('Exploratoire navigateur','Browser exploratory');
+  }
+  /** @param {any} result */
+  function assuranceLabel(result) {
+    const status=result?.scientificAssurance?.status;
+    if(status==='descriptive') return t('Descriptif','Descriptive');
+    if(status==='needs_reference_confirmation') return t('Revue scientifique requise','Scientific review required');
+    return t('Interprétation prudente','Interpret with caution');
+  }
   // Optional user-supplied scores, computed *outside* the default browser
   // workflow using frozen/out-of-fold models. No automatic signature fitting.
   /** @type {Array<Record<string,any>>} */
