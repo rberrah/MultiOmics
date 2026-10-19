@@ -100,7 +100,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Download exact genuine GPL1261 and 30-mouse source from preceding job
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           name: external-GSE22871-authentic-probe-level-GEO-metadata-no-PK-claims
           path: tmp/multiomics/real-external-GSE22871

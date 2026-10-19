@@ -132,11 +132,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v8
         with:
           name: sacurine-xcms-coordinate-baseline
           path: tmp/xcms
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v8
         with:
           name: sacurine-openms-independent-consensus
           path: tmp/openms
