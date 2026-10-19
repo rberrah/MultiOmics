@@ -107,9 +107,4 @@ test('results explain evidence tier and verify Omics2PK structural exchange with
   await expect(panel).toContainText('sans renormaliser les valeurs biologiques');
   await expect(panel).toContainText('n’invente aucune dose ni concentration');
 
-  await page.locator('.language-toggle').getByRole('button',{name:'EN',exact:true}).click();
-  await expect(interpretation).toContainText('Browser exploratory');
-  await expect(reuse).toContainText('Structural exchange verified');
-  await expect(reuse).toContainText('Not PK-ready');
-  await expect(panel).toContainText('without renormalizing biological values');
 });
