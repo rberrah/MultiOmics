@@ -66,9 +66,9 @@ public site must be performed by the PMx integration owner.
 - `scripts/test_multiomics_native_projection_designs.mjs` independently
   checks that native lmerTest/Cox CSV values replace browser numbers only for
   the supported objective and that incomplete tables fail closed.
-- `tests/e2e/multiomics-confirmatory-native-gate.spec.js` checks that an
-  unsupported longitudinal confirmatory workflow is blocked **before**
-  transferring matrices to the reference backend.
+- `tests/e2e/multiomics-confirmatory-native-gate.spec.js` checks that a
+  supported longitudinal confirmatory workflow is exposed only through the
+  required native-R path and is no longer mislabeled as unsupported.
 - Existing `tests/e2e/multiomics-r-health-preflight.spec.js` verifies
   that arbitrary services returning 200 OK cannot be mistaken for the
   MultiOmics R backend.
