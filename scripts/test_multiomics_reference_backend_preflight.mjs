@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { evaluateReferenceBackendHealth as evaluate } from '../src/lib/multiomics/reference-backend-preflight.js';
 
 const base = {
-  status:'ok',engine:'PMx Explain reference R backend',version:'1.4.0',
+  status:'ok',engine:'PMx Explain reference R backend',version:'1.5.0',
   capabilities:{reference_analysis:true,
     mofa2_orientation_contract:'mofa2-feature-rows-sample-columns-v2'},
   runtime:{RVersion:'4.5.2',RPlatform:'x86_64-pc-linux-gnu'},
@@ -53,10 +53,28 @@ reject(processed,{...confirm,transcriptomicsValues:'processed'},'missing_limma')
 const longitudinal=clone();
 longitudinal.packages.lmerTest=false;
 reject(longitudinal,{intent:'confirmatory',objective:'time'},'missing_lmerTest');
-const outcome=clone();
-outcome.packages.survival=false;
-outcome.packages.mixOmics=false;
-reject(outcome,{intent:'confirmatory',objective:'outcome'},'missing_outcome_methods');
+reject(clone(),{
+  intent:'confirmatory',objective:'time',hasTranscriptomics:true,
+  transcriptomicsValues:'raw_counts'
+},'unsupported_raw_count_longitudinal');
+assert.equal(evaluate(clone(),{
+  intent:'confirmatory',objective:'time',hasTranscriptomics:true,
+  transcriptomicsValues:'log_expression'
+}).ok,true);
+const survivalMissing=clone();
+survivalMissing.packages.survival=false;
+reject(survivalMissing,{intent:'confirmatory',objective:'outcome',outcomeType:'survival'},'missing_survival');
+reject(clone(),{
+  intent:'confirmatory',objective:'outcome',outcomeType:'survival',
+  hasTranscriptomics:true,transcriptomicsValues:'raw_counts'
+},'unsupported_raw_count_survival');
+assert.equal(evaluate(clone(),{
+  intent:'confirmatory',objective:'outcome',outcomeType:'survival',
+  hasTranscriptomics:true,transcriptomicsValues:'log_expression'
+}).ok,true);
+for (const outcomeType of ['binary','continuous','count','multiclass']) {
+  reject(clone(),{intent:'confirmatory',objective:'outcome',outcomeType},'unsupported_confirmatory_outcome');
+}
 reject(clone(),{intent:'confirmatory',objective:'explore'},'no_confirmatory_model');
 
 // A positive health check alone never reports validated scientific inference.

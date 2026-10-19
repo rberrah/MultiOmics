@@ -19,7 +19,7 @@ const installed = (packages, name) => packages[name] === true;
  * authentication of the service, or a claim that a fitted method succeeded.
  *
  * @param {unknown} health JSON returned by GET /health
- * @param {{intent?:string,objective?:string,designType?:string,
+ * @param {{intent?:string,objective?:string,outcomeType?:string,designType?:string,
  *          hasTranscriptomics?:boolean,transcriptomicsValues?:string,
  *          hasProteomics?:boolean,hasMetabolomics?:boolean}} context
  */
@@ -77,18 +77,31 @@ export function evaluateReferenceBackendHealth(health, context = {}) {
         'Group comparisons require R limma for non-raw-count layers, but it is unavailable.');
     }
   } else if (objective === 'time') {
+    if (context.hasTranscriptomics && context.transcriptomicsValues === 'raw_counts') {
+      return fail('unsupported_raw_count_longitudinal',
+        'RNA-seq longitudinal en comptages bruts : la transformation CPM-log2 du moteur n’est pas une inférence RNA-seq longitudinale de référence. Fournissez une matrice d’expression préparée selon un pipeline préspécifié et documenté, ou restez en exploration.',
+        'Longitudinal raw-count RNA-seq: the engine CPM-log2 transform is not a reference longitudinal RNA-seq inference model. Supply an expression matrix prepared with a prespecified documented pipeline, or remain exploratory.');
+    }
     if (!installed(packages,'lmerTest')) {
       return fail('missing_lmerTest',
         'Analyse longitudinale : le package lmerTest requis n’est pas disponible.',
         'Longitudinal analysis requires the R package lmerTest, which is unavailable.');
     }
   } else if (objective === 'outcome') {
-    // A specific survival or supervised design may require other methods;
-    // this is only a minimum availability check, not evidence of a valid fit.
-    if (!installed(packages,'survival') && !installed(packages,'mixOmics')) {
-      return fail('missing_outcome_methods',
-        'Aucun moteur R de survie ou de modélisation supervisée n’est installé.',
-        'No survival or supervised reference R method is installed.');
+    if (context.outcomeType !== 'survival') {
+      return fail('unsupported_confirmatory_outcome',
+        'Ce type d’outcome n’a pas encore de tableau R natif projeté et qualifié dans le mode confirmatoire. Utilisez le mode exploratoire jusqu’à l’ajout d’un contrat R spécifique.',
+        'This outcome type does not yet have a qualified native R table projection for confirmatory mode. Use exploratory mode until a dedicated R contract is implemented.');
+    }
+    if (context.hasTranscriptomics && context.transcriptomicsValues === 'raw_counts') {
+      return fail('unsupported_raw_count_survival',
+        'Survie RNA-seq en comptages bruts : un Cox sur CPM-log2 automatique n’est pas une analyse transcriptomique de survie de référence. Fournissez une matrice d’expression préparée selon un pipeline préspécifié et documenté, ou restez en exploration.',
+        'Raw-count RNA-seq survival: an automatically CPM-log2 transformed Cox model is not a reference transcriptomic survival analysis. Supply an expression matrix prepared with a prespecified documented pipeline, or remain exploratory.');
+    }
+    if (!installed(packages,'survival')) {
+      return fail('missing_survival',
+        'Survie : le package R survival requis pour le modèle de Cox de référence n’est pas disponible.',
+        'Survival analysis requires the R survival package for the reference Cox model, but it is unavailable.');
     }
   } else {
     return fail('no_confirmatory_model',

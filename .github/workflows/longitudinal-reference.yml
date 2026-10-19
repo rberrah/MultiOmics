@@ -1,0 +1,48 @@
+name: MultiOmics longitudinal native-R qualification
+
+on:
+  pull_request:
+    paths:
+      - 'multiomics-engine/advanced_methods.R'
+      - 'multiomics-engine/server.R'
+      - 'multiomics-engine/reference_full_results.R'
+      - 'multiomics-engine/tests/test_longitudinal_backend.R'
+      - 'src/lib/multiomics/r-primary-results.js'
+      - 'src/lib/multiomics/confirmatory-result-gate.js'
+      - '.github/workflows/longitudinal-reference.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'multiomics-engine/advanced_methods.R'
+      - 'multiomics-engine/server.R'
+      - 'multiomics-engine/reference_full_results.R'
+      - 'multiomics-engine/tests/test_longitudinal_backend.R'
+      - 'src/lib/multiomics/r-primary-results.js'
+      - 'src/lib/multiomics/confirmatory-result-gate.js'
+      - '.github/workflows/longitudinal-reference.yml'
+  schedule:
+    - cron: '07 5 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  longitudinal-reference:
+    name: lmerTest explicit group-by-time reference and refusal controls
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.5.2'
+          use-public-rspm: true
+      - name: Install native longitudinal reference
+        run: Rscript -e 'install.packages(c("jsonlite","digest","lme4","lmerTest"))'
+      - name: Parse backend sources
+        run: |
+          Rscript -e 'parse(file="multiomics-engine/advanced_methods.R")'
+          Rscript -e 'parse(file="multiomics-engine/server.R")'
+      - name: Verify explicit interaction, full BH family and design refusals
+        run: Rscript multiomics-engine/tests/test_longitudinal_backend.R

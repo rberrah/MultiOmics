@@ -1084,6 +1084,7 @@
       const preflight = evaluateReferenceBackendHealth(health, {
         intent: analysisIntent,
         objective,
+        outcomeType,
         designType,
         hasTranscriptomics: Boolean(files.transcriptomics),
         hasProteomics: Boolean(files.proteomics),
@@ -1363,12 +1364,15 @@
       analysisError = t('Pour une analyse confirmatoire, choisissez « R requis » et vérifiez sa connexion. Aucune conclusion confirmatoire automatique ne sera produite.', 'For a confirmatory workflow, choose Require R and verify its connection. No automatic confirmatory approval will be given.');
       return;
     }
-    // The reference renderer currently projects only complete native R
-    // differential tables. Other questions must remain explicitly exploratory
-    // until their own native output/figure projections are reproducible.
-    if (analysisIntent === 'confirmatory' && objective !== 'groups') {
+    // Confirmatory display is allowed only for objectives with a complete
+    // native-R projection contract. Group, longitudinal group-by-time and
+    // survival are supported; other outcome families remain exploratory.
+    const confirmatoryObjectiveSupported = objective === 'groups' ||
+      objective === 'time' ||
+      (objective === 'outcome' && outcomeType === 'survival');
+    if (analysisIntent === 'confirmatory' && !confirmatoryObjectiveSupported) {
       const gate = assessConfirmatoryResult({
-        protocol:{analysisIntent,objective}
+        protocol:{analysisIntent,objective,outcomeType}
       });
       analysisError = t(gate.message, gate.messageEn);
       return;
@@ -1885,6 +1889,21 @@
           text: predictionText
         });
       }
+    } else if (result.protocol?.objective === 'time') {
+      items.push({
+        title: pick('Interaction groupe × temps', 'Group × time interaction'),
+        text: pick(
+          'L’effet natif R est la différence de pente temporelle entre les deux groupes, par unité de temps déclarée. Ce coefficient n’est ni un fold ratio ni un changement moyen entre deux visites.',
+          'The native R effect is the difference in time slopes between the two groups per declared time unit. This coefficient is neither a fold ratio nor a mean change between two visits.'
+        )
+      });
+      items.push({
+        title: pick('Hypothèses longitudinales', 'Longitudinal assumptions'),
+        text: pick(
+          'Le modèle lmerTest suppose ici une évolution temporelle linéaire, une appartenance de groupe stable et le plan répété déclaré. Les fits singuliers, visites incomplètes et replis de pente aléatoire restent à examiner.',
+          'The lmerTest model assumes a linear time trend, stable group membership and the declared repeated-measures design. Singular fits, incomplete visits and random-slope fallbacks still require review.'
+        )
+      });
     } else {
       items.push({
         title: pick('Effet biologique', 'Biological effect'),
@@ -3054,10 +3073,14 @@
           ? t('Le moteur R local devient obligatoire. Les tests contrôlent l’éligibilité, mais ne certifient jamais automatiquement vos résultats. Les fichiers seront envoyés au backend R configuré après lancement de l’analyse.', 'The configured local R engine is required. Checks assess eligibility but never automatically certify findings. Files are sent to the configured R backend when you run the analysis.')
           : t('Le navigateur applique des méthodes exploratoires et parfois des approximations ou simplifications statistiques : ses p-values, q-values et effets peuvent différer des méthodes R de référence. Les analyses R natives (DESeq2, edgeR/limma selon les données) sont préférables pour une inférence appropriée au modèle, mais leur validité dépend du plan, des hypothèses et du contrôle qualité. Aucune installation R n’est nécessaire pour explorer.', 'The browser uses exploratory models and sometimes statistical approximations or simplifications: its p-values, q-values and effects can differ from native reference R methods. Native R methods (DESeq2, edgeR/limma where applicable) are preferable for model-appropriate inference, but validity still depends on design, assumptions and quality checks. No R installation is needed to explore.')}</small>
       </label>
-      {#if analysisIntent === 'confirmatory' && objective !== 'groups'}
+      {#if analysisIntent === 'confirmatory' && !(
+        objective === 'groups' ||
+        objective === 'time' ||
+        (objective === 'outcome' && outcomeType === 'survival')
+      )}
         <p role="alert" class="simple-hint" data-testid="multiomics-confirmatory-projection-unsupported">
-          {t('Les modèles R longitudinaux et de survie sont disponibles dans le moteur scientifique, mais leurs tableaux ne remplacent pas encore les chiffres du navigateur. Pour éviter une présentation trompeuse, le mode confirmatoire est actuellement limité aux comparaisons de groupes avec tableaux R complets pour chaque omique. Utilisez le mode exploratoire pour cette question.',
-             'Longitudinal and survival R methods exist, but their results do not yet replace browser figures and numbers. To prevent misleading confirmatory reporting, this mode currently supports group comparisons only when complete R tables exist for every layer. Select exploration for this question.')}
+          {t('Le mode confirmatoire affiche uniquement les questions disposant d’un tableau R natif complet : comparaison de groupes, interaction groupe × temps et survie. Les autres modèles d’outcome restent exploratoires tant que leur projection R complète n’est pas qualifiée.',
+             'Confirmatory display is limited to objectives with a complete native R table: group comparison, group-by-time interaction and survival. Other outcome models remain exploratory until their full R projection is qualified.')}
         </p>
       {/if}
       {#if analysisIntent !== 'confirmatory'}
@@ -3860,7 +3883,7 @@ Rscript multiomics-engine/run_backend.R</code></pre>
     <span class="help-tip" tabindex="0" data-tooltip={t('p-value brute du test pour cette variable, avant correction des tests multiples. Une petite p-value seule ne suffit pas lorsqu’on teste beaucoup de variables.', 'Raw p-value for this feature before multiple-testing correction. A small p-value alone is not sufficient when many features are tested.')}>?</span>
                     </b>
   <b>q BH
-    <span class="help-tip" tabindex="0" data-tooltip={t('p-value ajustée par Benjamini–Hochberg pour contrôler le taux de faux positifs parmi les résultats retenus. Ici q ≤ 0,10 est un seuil exploratoire.', 'Benjamini–Hochberg adjusted p-value controlling the false discovery rate among selected results. Here q ≤ 0.10 is an exploratory threshold.')}>?</span>
+    <span class="help-tip" tabindex="0" data-tooltip={t('p-value ajustée par la procédure Benjamini–Hochberg. Le contrôle nominal du FDR dépend de la validité des p-values et des hypothèses ; il n’est pas certifié automatiquement par MultiOmics. Ici q ≤ 0,10 sert uniquement au classement/affichage exploratoire.', 'P-value adjusted with the Benjamini–Hochberg procedure. Nominal FDR control depends on valid p-values and assumptions and is not automatically certified by MultiOmics. Here q ≤ 0.10 is used only for exploratory ranking/display.')}>?</span>
                     </b>
                   </div>
                   {#each (result.numericalProvenance === 'exact_native_r_reference_table' ? result.selected : result.rows).slice(0, 10) as row}
@@ -3891,17 +3914,43 @@ Rscript multiomics-engine/run_backend.R</code></pre>
                         </span>
                       {/if}
                       <span>{row.pValue == null ? '—' : row.pValue.toPrecision(3)}</span>
-                  <span data-scientific-q={row.qValue == null ? '' : String(row.qValue)}>{row.qValue == null ? '—' : row.qValue.toPrecision(3)}</span>
+                  <span data-scientific-q={row.qValue == null ? '' : String(row.qValue)}>
+                    {row.qValue == null ? '—' : row.qValue.toPrecision(3)}
+                    {#if result.nativeObjectiveFamily === 'survival'}
+                      <small>
+                        PH p={row.proportionalHazardsP == null ? '—' : row.proportionalHazardsP.toPrecision(3)}
+                        {row.status === 'ph_assumption_warning'
+                          ? t(' · avertissement PH', ' · PH warning')
+                          : row.status ? ' · ' + row.status : ''}
+                      </small>
+                    {:else if result.nativeObjectiveFamily === 'longitudinal'}
+                      <small>
+                        {row.randomEffectStructure || '—'}
+                        {row.status && row.status !== 'ok' ? ' · ' + row.status : ''}
+                      </small>
+                    {/if}
+                  </span>
                     </div>
                   {/each}
                 </div>
+                {#if result.nativeObjectiveFamily === 'survival'}
+                  <p class="selection-rule">
+                    {t('Survie : un avertissement PH signifie que le modèle à risques proportionnels doit être réexaminé pour la variable concernée. Une p-value cox.zph non significative ne prouve pas l’hypothèse PH.',
+                       'Survival: a PH warning means the proportional-hazards model must be reviewed for that feature. A non-significant cox.zph p-value does not prove the PH assumption.')}
+                  </p>
+                {:else if result.nativeObjectiveFamily === 'longitudinal'}
+                  <p class="selection-rule">
+                    {t('Longitudinal : la structure aléatoire réellement ajustée est affichée par variable. Un fallback de pente aléatoire vers intercept seul est une décision de modèle à revoir avant toute interprétation confirmatoire.',
+                       'Longitudinal: the random-effects structure actually fitted is shown per feature. A random-slope fallback to random intercept only is a model decision that must be reviewed before confirmatory interpretation.')}
+                  </p>
+                {/if}
               {/if}
             </article>
           {/if}
         {/each}
       </div>
 
-  {#if !['explore','outcome'].includes(analysisResult.protocol?.objective)}
+  {#if analysisResult.protocol?.analysisIntent !== 'confirmatory' && !['explore','outcome'].includes(analysisResult.protocol?.objective)}
         <div class="integration-result cross-result">
           <div class="integration-head">
             <div>

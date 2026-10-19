@@ -1274,7 +1274,7 @@ run_cox_survival_reference <- function(
   min_events <- max(12L,as.integer(min_events))
   min_events <- max(min_events,4L*(length(nuisance)+2L))
   if (sum(events) < min_events)stop(
-    sprintf("Too few observed survival events for the declared model: %d; require >= %d. This is a conservative software guard, not a power guarantee.",sum(events),min_events)
+    sprintf("Too few observed survival events for the declared model: %d; require >= %d. This is a minimum software guardrail, not evidence of adequate power or stable estimation.",sum(events),min_events)
   )
   m$survival_time <- times
   m$survival_event <- events

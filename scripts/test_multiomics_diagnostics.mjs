@@ -115,8 +115,63 @@ assert.equal(partialR.status,'blocked','a reference for only one omic must never
 assert.ok(partialR.checks.some(item=>item.code==='reference_proteomics' && item.status==='blocked'));
 assert.equal(evaluateConfirmatoryReadiness(candidate,{demo:true}).status,'blocked');
 assert.equal(evaluateConfirmatoryReadiness({
-  ...candidate,protocol:{...candidate.protocol,objective:'outcome'}
+  ...candidate,protocol:{...candidate.protocol,objective:'outcome',outcomeType:'binary'}
 }).status,'blocked');
+
+// Native longitudinal and survival contracts are eligible only for independent
+// review, never automatic certification. Assumption diagnostics stay visible.
+const longitudinalCandidate={
+  ...candidate,
+  protocol:{...candidate.protocol,objective:'time',designType:'repeated',longitudinal:true},
+  referenceBackend:{status:'ok',methods:{
+    transcriptomics_longitudinal:{status:'ok',summary:{randomSlopeFallbacks:1}},
+    proteomics_longitudinal:{status:'ok',summary:{randomSlopeFallbacks:0}}
+  }}
+};
+const longitudinalReady=evaluateConfirmatoryReadiness(longitudinalCandidate);
+assert.equal(longitudinalReady.status,'independent_review_required');
+assert.equal(longitudinalReady.certified,false);
+assert.ok(longitudinalReady.checks.some(x=>
+  x.code==='longitudinal_assumptions_transcriptomics'&&x.status==='review'));
+assert.ok(longitudinalReady.checks.some(x=>
+  x.code==='longitudinal_random_slope_fallback_transcriptomics'&&x.status==='review'));
+
+const survivalCandidate={
+  ...candidate,
+  protocol:{...candidate.protocol,objective:'outcome',outcomeType:'survival',
+    designType:'independent',longitudinal:false},
+  referenceBackend:{status:'ok',methods:{
+    transcriptomics_survival:{status:'ok',summary:{statusCounts:{ph_assumption_warning:1}}},
+    proteomics_survival:{status:'ok',summary:{statusCounts:{ph_assumption_warning:0}}}
+  }}
+};
+const survivalReady=evaluateConfirmatoryReadiness(survivalCandidate);
+assert.equal(survivalReady.status,'independent_review_required');
+assert.equal(survivalReady.certified,false);
+assert.ok(survivalReady.checks.some(x=>
+  x.code==='survival_assumptions_transcriptomics'&&x.status==='review'));
+assert.ok(survivalReady.checks.some(x=>
+  x.code==='survival_ph_warning_transcriptomics'&&x.status==='review'));
+
+const rawLongitudinal={
+  ...longitudinalCandidate,
+  layers:{
+    ...longitudinalCandidate.layers,
+    transcriptomics:{
+      ...longitudinalCandidate.layers.transcriptomics,
+      qc:{
+        ...longitudinalCandidate.layers.transcriptomics.qc,
+        preprocessingAudit:{
+          ...longitudinalCandidate.layers.transcriptomics.qc.preprocessingAudit,
+          declaredValueType:'raw_counts'
+        }
+      }
+    }
+  }
+};
+assert.equal(evaluateConfirmatoryReadiness(rawLongitudinal).status,'blocked');
+assert.ok(evaluateConfirmatoryReadiness(rawLongitudinal).checks.some(x=>
+  x.code==='raw_count_reference_transcriptomics'&&x.status==='blocked'));
 
 const missingnessBlocks = evaluateConfirmatoryReadiness({
   ...candidate,

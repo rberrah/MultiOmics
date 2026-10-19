@@ -32,7 +32,7 @@ Les scripts `scripts/qualify_sacurine_toy_zenodo.py` et `scripts/test_sacurine_z
 
 Le workflow `.github/workflows/sacurine-zenodo-source-preflight.yml` récupère en ligne **le vrai TSV**, et refuse de remplacer ce téléchargement par la fixture synthétique des tests unitaires. Une erreur réseau est un échec de la qualification de source, pas une erreur xcms.
 
-## Phase B à conduire après validation effective de la phase A
+## Phase B exécutée après validation de la phase A
 
 1. Télécharger les **12 fichiers mzML originaux** depuis la même version Zenodo, vérifier chacune des empreintes MD5 de l'éditeur avant tout calcul.
 2. Lire les spectres réellement acquis sous `xcms`, figer les paramètres CentWave, l'alignement chromatographique et le regroupement avant interprétation, exporter les aires de pics intégrées (ce ne sont pas des AUC PK).
@@ -41,6 +41,6 @@ Le workflow `.github/workflows/sacurine-zenodo-source-preflight.yml` récupère 
 5. Confronter le résultat à un pipeline scientifique de référence indépendant, avec contrôle de l'instrument, de l'échantillonnage et des métadonnées. Conserver les résultats négatifs.
 6. N'extrapoler à aucune analyse PK/PD sans **mesures de concentrations PK appariées individuellement**, absentes de cette preuve analytique.
 
-**Conclusion de phase A possible après workflow réussi :** « les métadonnées externes et les rôles, identifiants et ordres publiés sont vérifiés ». **Conclusion impossible :** « chaîne raw-MS xcms validée sur 12 injections », « dérive et carryover correctement corrigés », « biomarqueurs cliniquement validés » ou « passage Omics→PK démontré ».
+**État après phase B :** les métadonnées, rôles, identifiants, ordres publiés et les 12 chromatogrammes ont été authentifiés, puis la chaîne xcms a été exécutée et auditée sur cette source réelle. Cela permet de revendiquer une **qualification d'exécution raw-MS sur ces 12 injections**, avec les résultats QC négatifs conservés. Il reste impossible de conclure à une correction validée de dérive/carryover, à une identité métabolique confirmée, à des biomarqueurs cliniquement validés ou à un passage Omics→PK démontré.
 
 Cette qualification **n'affecte pas** les scripts de production du moteur MultiOmics ou l'interface débutant.

@@ -14,7 +14,7 @@
 
 - Analyse transcriptomique, protéomique, métabolomique et multi-omique, interface novice FR/EN et sombre/clair, import de matrices/metadata et démos clairement synthétiques.
 - Moteur R de méthodes statistiques de référence **local ou autorisé séparément**. La version statique du site GitHub Pages **n'exécute pas R**.
-- Modes exploratoires et *confirmatory intent* explicitement séparés. Les comparaisons de groupes ne sont étiquetées natives que lorsque **toutes les couches** disposant de données ont des tableaux R complets vérifiés. Longitudinal/survie restent exploratoires dans leur projection UI.
+- Modes exploratoires et *confirmatory intent* explicitement séparés. Comparaisons de groupes, interaction groupe × temps et survie ne sont étiquetées natives que lorsque **toutes les couches** disposant de données ont leurs tableaux R complets vérifiés. Les autres outcomes feature-wise, la prédiction et l'intégration multibloc restent exploratoires pour leurs conclusions d'inférence.
 - Export ZIP, sources, paramètres, provenance, méthodes, contrôles d'intégrité et rapport R Markdown quand le moteur compatible est disponible.
 - Cohortes publiques externes et validations numériques réelles Airway, Nutrimouse, GEO et QC LC-MS, avec preuves de source et limites détaillées.
 
@@ -23,8 +23,9 @@
 **P0 — Fiabilité scientifique**
 
 1. L'inflation **DESeq2 FDR** en nul global est significative dans trois générateurs indépendants (22/128, 23/128, 18/128 études faussement significatives) : [résultats persistants](RNASEQ_HIGH_REP_FDR_FINDINGS_20261018.md) et [issue #44](https://github.com/rberrah/MultiOmics/issues/44). Le moteur, l'UI et les rapports ne doivent pas promettre un FDR universel contrôlé à 5 %. Revue humaine et justificatif des méthodes restent obligatoires.
-2. Terminer et documenter la qualification **12 mzML réels Sacurine v3** (6 biologiques, 3 QC, 3 blancs, vrais ordres et empreintes source) : [issue #47](https://github.com/rberrah/MultiOmics/issues/47) et [protocole](SACURINE_ZENODO_V3_12RAW_XCMS_QA_20261018.md). La source seule ne prouve ni extraction correcte ni validité biologique.
+2. La qualification native **12 mzML réels Sacurine v3** est désormais exécutée : 12/12 sources MD5 vérifiées, 6 urines/3 pooled-QC/3 blancs, ordres source conservés, xcms natif, audit numérique indépendant et sensibilité préspécifiée aux paramètres (PR #48/#50). Les résultats défavorables sont conservés : 64,67 % des 2 850 features à RSD QC évaluable dépassent 30 %, 72,71 % des 535 ratios blanc/urine évaluables dépassent 20 %, et 2 600/3 135 ratios blanc restent non évaluables. **Le P0 résiduel** de l'[issue #47](https://github.com/rberrah/MultiOmics/issues/47) est une comparaison de prétraitement réellement indépendante/standards analytiques lorsque l'identification ou la précision métabolomique est revendiquée, ainsi qu'une politique de QC aval préspécifiée.
 3. Séparer expressément : validité d'exécution R, calibration fréquentiste, plausibilité biologique, validation externe et utilisation clinique. Pas de revendication de validation universelle ni médicale.
+   Les voies longitudinales et survie désormais projetées en R natif doivent conserver leurs workflows numériques indépendants actifs dans le dépôt autonome ; la parité de calcul ne remplace pas une validation sur cohorte externe réelle.
 4. Faire relire au moins quelques analyses réelles par un statisticien/biologiste indépendant, y compris échecs et données manquantes, et effectuer une validation d'utilisabilité par des novices. L'utilisateur prend en charge les tests humains.
 
 **P1 — Reproductibilité d'une version citée**

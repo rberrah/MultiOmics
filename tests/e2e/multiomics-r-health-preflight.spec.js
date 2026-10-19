@@ -21,18 +21,17 @@ test('confirmatory R check rejects an unrelated 200-OK service before uploading 
   await expect(page.getByLabel(/Mode backend R|R backend mode/)).toHaveValue('required');
   await page.getByTestId('multiomics-run-options').getByRole('button',{name:'Tester'}).click();
   await expect(page.getByTestId('multiomics-run-options')).toContainText('ne présente pas le contrat attendu');
-  // The loaded demo is longitudinal; the new fail-closed confirmatory gate
-  // must also prevent submitting an unsupported non-native projection.
+  // A failed /health contract must block the study upload even though
+  // longitudinal confirmatory projection itself is now supported.
   await page.getByTestId('multiomics-run').click();
-  await expect(page.getByTestId('multiomics-confirmatory-projection-unsupported')).toBeVisible();
-  await expect(page.locator('.error').filter({hasText:'mode confirmatoire'})).toBeVisible({timeout:25000});
+  await expect(page.locator('.error').filter({hasText:'contrat attendu'})).toBeVisible({timeout:25000});
   expect(uploaded).toBe(0);
 });
 
 test('recognized R health remains only method readiness, never scientific certification',async({page})=>{
   await page.route('http://127.0.0.1:8787/health',async route=>{
     await route.fulfill({status:200,headers:{'Access-Control-Allow-Origin':'*'},contentType:'application/json',body:JSON.stringify({
-      status:'ok',engine:'PMx Explain reference R backend',version:'1.4.0',
+      status:'ok',engine:'PMx Explain reference R backend',version:'1.5.0',
       runtime:{RVersion:'4.5.2',RPlatform:'x86_64'},
       capabilities:{reference_analysis:true,mofa2_orientation_contract:'mofa2-feature-rows-sample-columns-v2'},
       packages:{DESeq2:true,edgeR:true,limma:true,lmerTest:true,

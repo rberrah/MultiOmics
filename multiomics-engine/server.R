@@ -826,11 +826,13 @@ run_backend_analysis <- function(payload) {
           ties="efron"
         ),silent=TRUE)
         methods[[paste0(layer,"_survival")]] <- if (!inherits(fit,"try-error")) {
-          method_status("R survival::coxph Efron + cox.zph", "ok", list(
-            top=top_frame(fit$results),
-            referenceTable=reference_complete_table(fit$results,original_features=ncol(x)),
-            summary=fit$summary,
-            note="R reference fitted; cox.zph and censoring assumptions still require independent review. No automatic confirmatory certificate."
+          method_status("R survival::coxph Efron + cox.zph", "ok", c(
+            list(
+              top=top_frame(fit$results),
+              summary=fit$summary,
+              note="R reference fitted; cox.zph and censoring assumptions still require independent review. No automatic confirmatory certificate."
+            ),
+            reference_complete_table(fit$results,original_features=ncol(x))
           ))
         } else {
           method_status("R survival::coxph Efron + cox.zph", "blocked", list(
@@ -877,10 +879,14 @@ run_backend_analysis <- function(payload) {
           methods[[key]] <- method_status(
             "R lmerTest group-by-time slope difference",
             if(estimable>0L)"ok" else "blocked",
-            list(top=top_frame(fit),
-                 referenceTable=reference_complete_table(fit,original_features=ncol(x)),
-                 summary=c(attempt$summary,list(timeScale=attempt$timeScale)),
-                 note="Feature-level errors, singular fits and random-slope fallbacks are disclosed. BH includes all submitted features; independent scientific design review remains mandatory.")
+            c(
+              list(
+                top=top_frame(fit),
+                summary=c(attempt$summary,list(timeScale=attempt$timeScale)),
+                note="Feature-level errors, singular fits and random-slope fallbacks are disclosed. BH includes all submitted features; independent scientific design review remains mandatory."
+              ),
+              reference_complete_table(fit,original_features=ncol(x))
+            )
           )
           if(estimable>0L) {
             valid <- is.finite(fit$statistic)
@@ -1070,8 +1076,8 @@ run_backend_analysis <- function(payload) {
     status="ok",
     engine=list(
       name="PMx Explain reference R backend",
-      version="1.4.0",
-      policy="Reference methods are eligibility-gated; identifiable nuisance effects are adjusted before multiblock integration and complete technical confounding blocks MOFA2/DIABLO."
+      version="1.5.0",
+      policy="Reference methods are eligibility-gated; complete native tables are exportable for supported group, longitudinal group-by-time, and survival objectives; identifiable nuisance effects are adjusted before multiblock integration and complete technical confounding blocks MOFA2/DIABLO."
     ),
     analysisMode=if (length(layers) == 1L) "single_omic" else "multiomics",
     analysedLayers=layers,
@@ -1108,7 +1114,7 @@ function() {
   list(
     status="ok",
     engine="PMx Explain reference R backend",
-    version="1.4.0",
+    version="1.5.0",
     packages=as.list(packages),
     runtime=reference_runtime_manifest(),
     capabilities=list(
