@@ -123,6 +123,10 @@ async function digest(s){
   const b=await crypto.subtle.digest('SHA-256',utf8.encode(s));
   return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
 }
+/**
+ * @param {any} portableProject
+ * @param {{individualSignatures?:Array<Record<string,any>>|null}} [options]
+ */
 export async function buildDownstreamExchange(portableProject,{individualSignatures=null}={}){
   const input=portableProject?.inputs||{};
   const declared=portableProject?.settings||{};
