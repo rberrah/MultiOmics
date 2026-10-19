@@ -141,8 +141,19 @@ jobs:
       - name: Reject ambiguous matching and parse a native consensusXML fixture
         run: python3 scripts/compare_sacurine_xcms_openms.py --self-test
       - name: Compare all coordinates without a post-hoc success threshold
+        shell: bash
         run: |
-          python3 scripts/compare_sacurine_xcms_openms.py --xcms tmp/xcms/xcms_feature_centroids.csv --openms tmp/openms/sacurine.consensusXML --out tmp/comparison
+          set -euo pipefail
+          mapfile -t xcms_files < <(find tmp/xcms -type f -name 'xcms_feature_centroids.csv' -print)
+          mapfile -t openms_files < <(find tmp/openms -type f -name 'sacurine.consensusXML' -print)
+          test "${#xcms_files[@]}" -eq 1
+          test "${#openms_files[@]}" -eq 1
+          printf 'Resolved xcms artifact: %s\n' "${xcms_files[0]}"
+          printf 'Resolved OpenMS artifact: %s\n' "${openms_files[0]}"
+          python3 scripts/compare_sacurine_xcms_openms.py \
+            --xcms "${xcms_files[0]}" \
+            --openms "${openms_files[0]}" \
+            --out tmp/comparison
       - name: Preserve complete compact comparator evidence
         if: always()
         uses: actions/upload-artifact@v6
