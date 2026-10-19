@@ -1,0 +1,54 @@
+{
+  "schema": "multiomics.release-v1.1.v1",
+  "release": {
+    "name": "MultiOmics 1.1.0",
+    "softwareVersion": "1.1.0",
+    "releaseDate": "2026-10-19",
+    "intendedTag": "v1.1.0",
+    "sourceIdentity": "The immutable release identity is the final merged release commit recorded by the v1.1.0 Git tag/GitHub Release. This source manifest intentionally avoids a self-referential commit SHA.",
+    "researchV1BaselineSha": "54dc8f0f8284cf970ed1a5be0533a298ae27639d"
+  },
+  "releaseType": "post-Research-v1 scientific-output and interoperability hardening",
+  "scope": {
+    "researchSoftware": true,
+    "medicalDevice": false,
+    "clinicalDecisionSupportCertified": false,
+    "universalConfirmatoryValidity": false,
+    "researchV1ScientificBoundaryPreserved": true
+  },
+  "postV1Hardening": [
+    "researcher-visible numerical-source and evidence-tier interpretation",
+    "fail-closed structural exchange versus PK-readiness distinction",
+    "current Omics2PK independent consumer contract including mapped/transposed input and temporal metadata",
+    "DESeq2 whole-study global-null tail diagnostic without changing production inference",
+    "independent Sacurine xcms versus OpenMS feature-coordinate comparator with no post-hoc concordance threshold"
+  ],
+  "requiredReleaseChecks": [
+    "MultiOmics standalone software qualification",
+    "Independent R package-free reference contracts",
+    "Research v1 version, evidence and scientific-boundary contract",
+    "survival::coxph numerical reference, PH diagnostics and refusal controls",
+    "Omics2PK consumer contract - native MultiOmics synthetic ZIP",
+    "Independent Sacurine xcms versus OpenMS feature-coordinate comparator",
+    "MultiOmics 1.1 release integrity"
+  ],
+  "knownOpenScientificLimitations": [
+    {
+      "issue": 44,
+      "topic": "DESeq2 global-null false-discovery calibration",
+      "effect": "Native DESeq2 output is reproducible but no universal nominal 5% FDR guarantee is claimed for arbitrary study designs."
+    },
+    {
+      "issue": 47,
+      "topic": "LC-MS analytical validation beyond independent preprocessing execution",
+      "effect": "Independent xcms/OpenMS execution does not establish chemical identity, quantitative accuracy, universal feature-QC policy or interlaboratory validation."
+    },
+    {
+      "issue": 20,
+      "topic": "Transferable individual biological signatures for Omics2PK",
+      "effect": "Schema-valid individual scores are not automatically biologically validated PK/PD covariates."
+    }
+  ],
+  "deploymentBoundary": "The public PMx-hosted /multiomics/ route must pin the final immutable MultiOmics 1.1.0 commit; merging MultiOmics alone does not update the public site.",
+  "releaseBoundary": "MultiOmics 1.1.0 freezes qualified software/provenance/interoperability behavior and explicit scientific limitations. It does not certify a user study, biomarker, PK benefit, causal mechanism or clinical use."
+}
