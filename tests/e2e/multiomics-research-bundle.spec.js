@@ -47,6 +47,9 @@ for(const [demo,expected] of [
     const audit=JSON.parse(contents['methods/methods_audit.json']);
     expect(manifest.confirmatory_certification).toBe(false);
     expect(manifest.sensitive_research_data).toBe(true);
+    expect(manifest.downstream_exchange.status).toBe('included');
+    expect(manifest.downstream_exchange.omics2pk_readiness.pk_dose_concentration_data_included).toBe(false);
+    expect(manifest.downstream_exchange.omics2pk_readiness.status).toBe('source_exchange_ready_not_pk_ready');
     expect(audit.scientific_certification).toBe(false);
     expect(audit.clinical_validation).toBe(false);
     expect(project.archivedResult).toBeNull();
@@ -172,4 +175,36 @@ test('Researcher-provided long LC-MS AUC keeps original vendor rows and uncertai
   expect(manifest.confirmatory_certification).toBe(false);
   expect(manifest.clinical_validation).toBe(false);
   expect(errors).toEqual([]);
+});
+
+
+test('Direct Omics2PK download contains only strict source exchange, never invented PK outcomes',async({page})=>{
+  test.setTimeout(70_000);
+  await page.goto('/multiomics/tool?lang=en');
+  await expect.poll(()=>page.evaluate(()=>
+    document.documentElement.dataset.pmxMultiomicsHydrated),{timeout:12000}).toBe('true');
+  await page.getByTestId('multiomics-load-demo').click();
+  await expect(page.getByTestId('multiomics-results')).toBeVisible({timeout:30000});
+  await expect(page.getByTestId('multiomics-omics2pk-export-panel')).toContainText('does not export group logFC/q-values');
+  const [download]=await Promise.all([
+    page.waitForEvent('download',{timeout:25000}),
+    page.getByTestId('multiomics-omics2pk-export').click()
+  ]);
+  expect(download.suggestedFilename()).toBe('multiomics_omics2pk_exchange_v1.zip');
+  const zip=unzipStore(await fs.readFile(await download.path()));
+  const manifest=JSON.parse(zip['manifest.json']);
+  expect(manifest.schema_version).toBe('1.0.0');
+  expect(manifest.validation.status).toBe('exploratory');
+  expect(manifest.files.samples.sha256).toMatch(/^[a-f0-9]{64}$/);
+  expect(manifest.files.features.sha256).toMatch(/^[a-f0-9]{64}$/);
+  expect(manifest.files.individual_signatures).toBeUndefined();
+  expect(manifest.matrices.map(x=>x.omic).sort()).toEqual(
+    ['metabolomics','proteomics','transcriptomics']
+  );
+  expect(zip['samples.csv']).toContain('timepoint');
+  expect(zip['samples.csv']).toContain('T12');
+  expect(zip['individual_signatures.csv']).toBeUndefined();
+  await expect(page.getByTestId('multiomics-omics2pk-export-status')).toContainText(
+    'PK dose/concentration data are not included'
+  );
 });
