@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { File } from 'node:buffer';
 import { runDeterministicAnalysis } from '../src/lib/multiomics/deterministic.js';
-import { evaluateConfirmatoryReadiness } from '../src/lib/multiomics/scientific-assurance.js';
+import { evaluateConfirmatoryReadiness, assessScientificAssurance } from '../src/lib/multiomics/scientific-assurance.js';
 
 function matrixFile(name, assayIds, shift = 0) {
   const header = ['feature_id', ...assayIds].join(',');
