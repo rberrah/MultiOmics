@@ -24,6 +24,10 @@ const root={
 };
 const exchange=await buildDownstreamExchange(root);
 assert.equal(exchange.manifest.schema_version,'1.0.0','V1 remains readable');
+assert.equal(exchange.summary.status,'source_exchange_ready_not_pk_ready');
+assert.equal(exchange.summary.structural_exchange_valid,true);
+assert.equal(exchange.summary.pk_ready,false);
+assert.match(exchange.summary.interpretation,/canonicalized, not biologically renormalized/i);
 assert.equal(exchange.manifest.matrices.length,2);
 const sampleFile=exchange.entries.find(e=>e.name==='exchange/samples.csv');
 const [headerLine,...body]=sampleFile.data.trim().split(/\r?\n/);
