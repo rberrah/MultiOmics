@@ -3503,6 +3503,38 @@ Rscript multiomics-engine/run_backend.R</code></pre>
       <span class:qc-alert={layerResult.qc?.warnings?.length}>{omicLabel(layer)} : {layerResult.qc?.warnings?.length ? t('points à vérifier', 'needs review') : layerResult.qc?.inferenceTier?.level === 'screening' ? t('exploration uniquement', 'exploratory only') : t('aucune alerte détectée', 'no warning detected')}</span>
       {/each}
     </div>
+  {#if analysisResult.layers?.metabolomics?.qc?.msQc}
+    {@const ms = analysisResult.layers.metabolomics.qc.msQc}
+    <div class="simple-qc-status" data-testid="multiomics-ms-qc-summary">
+      <strong>{t('QC analytique métabolomique réellement appliqué', 'Metabolomics analytical QC actually applied')}</strong>
+      <span>{t('Injections biologiques', 'Biological injections')}: <b>{ms.biologicalAssays ?? 0}</b> · pooled-QC: <b>{ms.qcAssays ?? 0}</b> · {t('blancs', 'blanks')}: <b>{ms.blankAssays ?? 0}</b></span>
+      <span>
+        {t('Signal de blanc', 'Blank signal')}: <b>{ms.blankFlaggedFeatures ?? 0}</b> {t('feature(s) signalée(s)', 'feature(s) flagged')}
+        {#if (ms.blankRemovedFeatures ?? 0) > 0} · <b>{ms.blankRemovedFeatures}</b> {t('retirée(s)', 'removed')}{/if}
+        · {t('mode', 'mode')}: <code>{ms.blankMode ?? '—'}</code>
+      </span>
+      <span>
+        {t('Précision pooled-QC', 'Pooled-QC precision')}: <b>{ms.qcRsdFilteredFeatures ?? 0}</b>
+        {t('feature(s) au-dessus du seuil RSD et retirée(s) lorsque le filtre est actif', 'feature(s) above the RSD threshold and removed when filtering is active')}
+        · {t('seuil', 'threshold')}: {Number.isFinite(ms.qcRsdThreshold) ? (100*ms.qcRsdThreshold).toFixed(0)+' %' : '—'}
+      </span>
+      <span>
+        {t('Dérive', 'Drift')}: {ms.driftCorrection?.applied
+          ? t('correction interpolée appliquée', 'interpolated correction applied')
+          : t('non appliquée', 'not applied')}
+        · pooled-QC {t('avec ordre utilisable', 'with usable order')}: <b>{ms.driftCorrection?.orderedQcCount ?? 0}</b>
+        {#if (ms.driftCorrection?.outsideQcSupport ?? 0) > 0}
+          · <b>{ms.driftCorrection.outsideQcSupport}</b> {t('injection(s) biologique(s) hors support QC, non extrapolée(s)', 'biological injection(s) outside QC support, not extrapolated')}
+        {/if}
+      </span>
+      <span>{t('Imputation MNAR', 'MNAR imputation')}: <b>{ms.mnar?.imputedValues ?? 0}</b> {t('valeur(s)', 'value(s)')} · <code>{ms.mnar?.strategy ?? 'none'}</code></span>
+      <small>{t(
+        'Ces indicateurs décrivent la qualité analytique observée et les transformations effectuées. Ils ne prouvent ni l’identité chimique d’une feature m/z–RT, ni l’absence de contamination, ni la validité biologique d’un biomarqueur. Les résultats défavorables et les NA doivent rester visibles.',
+        'These indicators describe observed analytical quality and the transformations performed. They do not prove chemical identity of an m/z–RT feature, absence of contamination, or biological biomarker validity. Unfavourable results and NAs must remain visible.'
+      )}</small>
+    </div>
+  {/if}
+
   <details class="advanced-results" data-testid="multiomics-quality-details">
       <summary>{t('Voir les vérifications détaillées', 'View detailed quality checks')}</summary>
 
