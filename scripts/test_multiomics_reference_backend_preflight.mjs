@@ -53,10 +53,25 @@ reject(processed,{...confirm,transcriptomicsValues:'processed'},'missing_limma')
 const longitudinal=clone();
 longitudinal.packages.lmerTest=false;
 reject(longitudinal,{intent:'confirmatory',objective:'time'},'missing_lmerTest');
+reject(clone(),{
+  intent:'confirmatory',objective:'time',hasTranscriptomics:true,
+  transcriptomicsValues:'raw_counts'
+},'unsupported_raw_count_longitudinal');
+assert.equal(evaluate(clone(),{
+  intent:'confirmatory',objective:'time',hasTranscriptomics:true,
+  transcriptomicsValues:'log_expression'
+}).ok,true);
 const survivalMissing=clone();
 survivalMissing.packages.survival=false;
 reject(survivalMissing,{intent:'confirmatory',objective:'outcome',outcomeType:'survival'},'missing_survival');
-assert.equal(evaluate(clone(),{intent:'confirmatory',objective:'outcome',outcomeType:'survival'}).ok,true);
+reject(clone(),{
+  intent:'confirmatory',objective:'outcome',outcomeType:'survival',
+  hasTranscriptomics:true,transcriptomicsValues:'raw_counts'
+},'unsupported_raw_count_survival');
+assert.equal(evaluate(clone(),{
+  intent:'confirmatory',objective:'outcome',outcomeType:'survival',
+  hasTranscriptomics:true,transcriptomicsValues:'log_expression'
+}).ok,true);
 for (const outcomeType of ['binary','continuous','count','multiclass']) {
   reject(clone(),{intent:'confirmatory',objective:'outcome',outcomeType},'unsupported_confirmatory_outcome');
 }
