@@ -29,22 +29,23 @@ jobs:
           lock=json.loads(Path("package-lock.json").read_text())
           manifest=json.loads(Path("release-v1.1-manifest.json").read_text())
 
-          assert package["version"]=="1.1.0"
-          assert lock["version"]=="1.1.0"
-          assert lock["packages"][""]["version"]=="1.1.0"
-          assert manifest["release"]["softwareVersion"]=="1.1.0"
+          assert package["version"]=="1.1.1"
+          assert lock["version"]=="1.1.1"
+          assert lock["packages"][""]["version"]=="1.1.1"
+          assert manifest["release"]["softwareVersion"]=="1.1.1"
           assert manifest["release"]["researchV1BaselineSha"]=="54dc8f0f8284cf970ed1a5be0533a298ae27639d"
           assert manifest["scope"]["researchV1ScientificBoundaryPreserved"] is True
           assert manifest["scope"]["medicalDevice"] is False
           assert manifest["scope"]["universalConfirmatoryValidity"] is False
 
           cff=Path("CITATION.cff").read_text()
-          assert 'version: "1.1.0"' in cff
+          assert 'version: "1.1.1"' in cff
 
           required=[
             "research-v1-manifest.json",
             "docs/multiomics/RESEARCH_V1_FREEZE_20261019.md",
             "docs/multiomics/RELEASE_V1_1_0_20261019.md",
+            "docs/multiomics/RELEASE_V1_1_1_20261019.md",
             "docs/multiomics/SACURINE_OPENMS_INDEPENDENT_COMPARATOR_20261019.md",
             "scripts/compare_sacurine_xcms_openms.py",
             ".github/workflows/sacurine-openms-independent-comparator.yml",
@@ -64,4 +65,4 @@ jobs:
         run: python3 scripts/compare_sacurine_xcms_openms.py --self-test
       - name: Refuse accidental post-v1 development version
         run: |
-          ! grep -R --line-number --fixed-string '1.1.0-dev.0' package.json package-lock.json CITATION.cff release-v1.1-manifest.json docs/multiomics/RELEASE_V1_1_0_20261019.md
+          ! grep -R --line-number --fixed-string '1.1.1-dev.0' package.json package-lock.json CITATION.cff release-v1.1-manifest.json docs/multiomics/RELEASE_V1_1_0_20261019.md docs/multiomics/RELEASE_V1_1_1_20261019.md

@@ -1,11 +1,11 @@
 {
   "schema": "multiomics.release-v1.1.v1",
   "release": {
-    "name": "MultiOmics 1.1.0",
-    "softwareVersion": "1.1.0",
+    "name": "MultiOmics 1.1.1",
+    "softwareVersion": "1.1.1",
     "releaseDate": "2026-10-19",
-    "intendedTag": "v1.1.0",
-    "sourceIdentity": "The immutable release identity is the final merged release commit recorded by the v1.1.0 Git tag/GitHub Release. This source manifest intentionally avoids a self-referential commit SHA.",
+    "intendedTag": "v1.1.1",
+    "sourceIdentity": "The immutable patch-release identity is the final merged 1.1.1 commit recorded by the v1.1.1 Git tag/GitHub Release; release/v1.1.0 remains the frozen 1.1.0 source line.",
     "researchV1BaselineSha": "54dc8f0f8284cf970ed1a5be0533a298ae27639d"
   },
   "releaseType": "post-Research-v1 scientific-output and interoperability hardening",
@@ -21,7 +21,8 @@
     "fail-closed structural exchange versus PK-readiness distinction",
     "current Omics2PK independent consumer contract including mapped/transposed input and temporal metadata",
     "DESeq2 whole-study global-null tail diagnostic without changing production inference",
-    "independent Sacurine xcms versus OpenMS feature-coordinate comparator with no post-hoc concordance threshold"
+    "independent Sacurine xcms versus OpenMS feature-coordinate comparator with no post-hoc concordance threshold",
+    "shared Ecosystem navigation and graphical abstract across PMx Explain, MultiOmics and Omics2PK"
   ],
   "requiredReleaseChecks": [
     "MultiOmics standalone software qualification",
@@ -49,6 +50,6 @@
       "effect": "Schema-valid individual scores are not automatically biologically validated PK/PD covariates."
     }
   ],
-  "deploymentBoundary": "The public PMx-hosted /multiomics/ route must pin the final immutable MultiOmics 1.1.0 commit; merging MultiOmics alone does not update the public site.",
-  "releaseBoundary": "MultiOmics 1.1.0 freezes qualified software/provenance/interoperability behavior and explicit scientific limitations. It does not certify a user study, biomarker, PK benefit, causal mechanism or clinical use."
+  "deploymentBoundary": "The public PMx-hosted /multiomics/ route must pin the exact qualified MultiOmics 1.1.1 commit; merging MultiOmics alone does not update the public site.",
+  "releaseBoundary": "MultiOmics 1.1.1 is a UI/navigation patch over the qualified 1.1.0 scientific line. It preserves software/provenance/interoperability behavior and explicit scientific limitations, and does not certify a user study, biomarker, PK benefit, causal mechanism or clinical use."
 }
