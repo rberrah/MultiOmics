@@ -48,9 +48,20 @@ Validate DESeq2, edgeR QL, edgeR/limma-voom, limma, fgsea, MOFA2, DIABLO individ
 
 The v1 subject/specimen/assay/time/tissue/biological-namespace contract is intended for future exposure-response modeling and longitudinal cohort joins. Keep it model-agnostic now. All network extensions are opt-in and separated from the validated primary analysis.
 
-## Current release gate
+## Current scope decision
 
-**BLOCKED for the claim "identical R replay of numerical and visual site results".** The source-exact R replay addresses the R subset, but JS-browser results and Svelte figures remain different code paths, and public biological/figure validation and full dependency freeze have not yet passed.
+**The stronger claim "identical R replay of numerical and visual site results"
+remains BLOCKED and is explicitly outside Research v1.** Research v1 does not
+claim that independent browser/Svelte graphics have byte-identical or
+geometry-identical R renderings. It freezes exact provenance of browser
+artifacts and complete native-R numerical tables where native inference is
+actually supported, while keeping the producing engine visible.
+
+This distinction is deliberate: a reproducible research release can preserve
+the exact producing code and numbers without falsely asserting that two
+different rendering engines produce the same SVG geometry. If a future release
+wants the stronger identical-cross-engine figure claim, it must satisfy the
+additional gates below under a new qualification scope.
 
 ## R-generated figure equivalents added in PR #110
 
@@ -70,7 +81,7 @@ and a central carbon schematic. This is scientifically similar visualization,
 **not** a claim of identical SVG geometry, font metrics, all interactive tabs,
 pathway enrichment, or a new inference.
 
-### Remaining release blockers
+### Remaining blockers for the stronger identical cross-engine replay claim
 
 - Compare real public cohort outputs from the website and from a clean R
   re-execution (native DESeq2/edgeR/limma/fgsea/MOFA2/DIABLO separately).
