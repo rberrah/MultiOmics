@@ -1,0 +1,80 @@
+{
+  "schema": "multiomics.research-v1-freeze.v1",
+  "release": {
+    "name": "MultiOmics Research v1",
+    "softwareVersion": "1.0.0",
+    "freezeDate": "2026-10-19",
+    "intendedTag": "research-v1.0.0",
+    "sourceIdentity": "The immutable release identity is the final merged main commit SHA recorded in the Research v1 release note and/or Git tag; this manifest intentionally avoids a self-referential commit SHA."
+  },
+  "scope": {
+    "researchSoftware": true,
+    "medicalDevice": false,
+    "clinicalDecisionSupportCertified": false,
+    "universalConfirmatoryValidity": false,
+    "browserExploration": [
+      "transcriptomics",
+      "proteomics",
+      "metabolomics",
+      "single-omics",
+      "multi-omics integration"
+    ],
+    "nativeRConfirmatoryEligibility": [
+      "supported two-group differential designs with complete native R tables",
+      "supported repeated group-by-time longitudinal designs with complete lmerTest tables",
+      "supported independent survival designs with complete survival::coxph tables"
+    ],
+    "notConfirmatoryInResearchV1": [
+      "continuous outcome feature-wise association",
+      "binary outcome feature-wise association",
+      "count outcome feature-wise association",
+      "multiclass outcome feature-wise association",
+      "predictive biomarker validation",
+      "MOFA2 or DIABLO latent/supervised integration as confirmatory causal inference",
+      "Reactome enrichment as independent confirmation"
+    ]
+  },
+  "frozenRuntime": {
+    "node": ">=22.17.0; Node 24 recommended",
+    "r": "4.5.2",
+    "bioconductor": "3.22",
+    "container": "bioconductor/bioconductor_docker:RELEASE_3_22-r-4.5.2@sha256:e34177896c1579f66d48b756e4229b58237499183a089da084af72d7aba1d40a",
+    "referenceRuntimeContract": "multiomics-engine/environment/reference-runtime.json"
+  },
+  "requiredEvidence": [
+    "standalone software qualification",
+    "public Airway native-R replay and reproducible R Markdown",
+    "real Nutrimouse MOFA2 audit",
+    "real Nutrimouse DIABLO biological-method audit",
+    "real Sacurine v3 twelve-mzML xcms/QC/blank qualification",
+    "native longitudinal lmerTest numerical qualification",
+    "native survival Cox numerical qualification",
+    "external real-data NKI DMFS Cox wrapper-vs-direct qualification",
+    "external real-data GSE191328 longitudinal wrapper-vs-direct qualification",
+    "Omics2PK downstream exchange consumer contract",
+    "fixed-URL integration artifact"
+  ],
+  "knownOpenScientificLimitations": [
+    {
+      "issue": 44,
+      "topic": "DESeq2 global-null false-discovery calibration",
+      "releaseEffect": "Does not block Research v1 software freeze because the UI and reports explicitly refuse universal FDR certification; does block any claim that DESeq2 q-values guarantee nominal 5% FDR for arbitrary studies."
+    },
+    {
+      "issue": 47,
+      "topic": "LC-MS analytical validation beyond successful real raw-data execution",
+      "releaseEffect": "Does not block raw-MS software execution qualification; does block claims of chemical identity, validated drift/carryover correction, interlaboratory analytical accuracy, or universally valid downstream QC filtering."
+    },
+    {
+      "issue": 20,
+      "topic": "Externally transferable individual biological signatures for Omics2PK",
+      "releaseEffect": "Does not block MultiOmics Research v1; does block claims that exported individual signatures are biologically validated PK/PD covariates."
+    }
+  ],
+  "externalHumanTasks": [
+    "independent statistician/biologist review of study-specific analyses",
+    "novice usability testing",
+    "institutional privacy/authorization review for confidential datasets"
+  ],
+  "releaseBoundary": "A green Research v1 release proves the tested software, provenance and fail-closed contracts at the frozen source revision. It does not certify a study design, statistical calibration, biological truth, causal interpretation, biomarker performance, PK/PD benefit or clinical use."
+}
