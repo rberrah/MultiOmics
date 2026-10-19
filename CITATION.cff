@@ -2,6 +2,8 @@ cff-version: 1.2.0
 message: "Merci de citer MultiOmics par Racym Berrah et de conserver les avis de copyright lors de la redistribution."
 type: software
 title: "MultiOmics"
+version: "1.0.0"
+date-released: "2026-10-19"
 authors:
   - family-names: Berrah
     given-names: Racym
