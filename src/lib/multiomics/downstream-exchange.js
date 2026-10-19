@@ -69,6 +69,8 @@ function canonicalMatrix(parsed,expected,omic){
     headerAssays.every(id=>expectedSet.has(id))&&new Set(headerAssays).size===headerAssays.length;
   const rowExact=rowAssays.length===expected.length&&
     rowAssays.every(id=>expectedSet.has(id))&&new Set(rowAssays).size===rowAssays.length;
+  if(columnExact&&rowExact)
+    throw Error('Ambiguous '+omic+' matrix orientation: assay IDs match both rows and columns');
   if(columnExact){
     const index=new Map(headerAssays.map((id,i)=>[id,i+1]));
     return {
