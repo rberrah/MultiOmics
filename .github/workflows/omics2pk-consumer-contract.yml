@@ -73,13 +73,20 @@ jobs:
           node multiomics/scripts/build_mapped_exchange_fixture.mjs "$RUNNER_TEMP/mapped-exchange"
           python3 multiomics/scripts/validate_multiomics_exchange.py "$RUNNER_TEMP/mapped-exchange"
           python3 - <<'PY'
-          import csv, os
+          import csv, json, os
           from pathlib import Path
           from omics2pk.exchange import inspect_exchange
           from omics2pk.multiomics_pk_readiness import inspect_pk_readiness
           p=Path(os.environ['RUNNER_TEMP'])/'mapped-exchange'
           report=inspect_exchange(p)
           pk=inspect_pk_readiness(p)
+          manifest=json.loads((p/'manifest.json').read_text())
+          declared=manifest['validation']['downstream_pk_readiness']
+          assert declared['status']=='source_exchange_only_not_pk_ready'
+          assert declared['structural_exchange_valid'] is True
+          assert declared['pk_temporal_numeric_compatible'] is True
+          assert declared['shared_molecular_pk_time_origin_verified'] is False
+          assert declared['clinical_or_pk_effect_validated'] is False
           assert report['subjects']==2 and report['assays']==2, report
           assert report['matrices']==['transcriptomics'], report
           with (p/'samples.csv').open(newline='',encoding='utf-8') as f:
