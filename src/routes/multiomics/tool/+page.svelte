@@ -234,7 +234,13 @@
     assay_id: ['Nom de la mesure dans le fichier', 'Measurement name in the file'],
     omic: ['Type de mesure', 'Measurement type'],
     condition: ['Groupe (ex. traité / témoin)', 'Group (e.g. treated / control)'],
-    timepoint: ['Moment du prélèvement', 'Sampling time'],
+    timepoint: ['Moment / visite source', 'Source time point / visit'],
+    tissue: ['Tissu / matrice biologique', 'Tissue / biological matrix'],
+    collection_time: ['Temps numérique du prélèvement', 'Numeric collection time'],
+    collection_time_unit: ['Unité du temps numérique', 'Numeric time unit'],
+    timepoint_unit: ['Unité du libellé temporel', 'Time-point unit'],
+    time_origin: ['Origine temporelle / événement de référence', 'Time origin / reference event'],
+    source_dataset_id: ['Identifiant du jeu source', 'Source dataset ID'],
     batch: ['Lot de mesures', 'Measurement batch'],
     technical_replicate: ['Mesure répétée au laboratoire', 'Repeated laboratory measurement'],
     outcome: ['Résultat étudié', 'Outcome of interest'],
@@ -285,6 +291,42 @@
       label: 'Time point',
       required: false,
       aliases: ['timepoint', 'time_point', 'time', 'visit', 'visit_id', 'visit_name', 'day', 'week', 'temps', 'temps_j', 'jour', 'semaine', 'visite', 'id_visite']
+    },
+    {
+      key: 'tissue',
+      label: 'Tissue / biological matrix',
+      required: false,
+      aliases: ['tissue','organ','tissue_type','specimen_tissue','biological_matrix','matrix_type','tissu','organe','matrice_biologique']
+    },
+    {
+      key: 'collection_time',
+      label: 'Numeric collection time',
+      required: false,
+      aliases: ['collection_time','sampling_time','sample_time','relative_time','elapsed_time','time_numeric','temps_prelevement','temps_relatif','heure_prelevement']
+    },
+    {
+      key: 'collection_time_unit',
+      label: 'Collection time unit',
+      required: false,
+      aliases: ['collection_time_unit','sampling_time_unit','time_unit','relative_time_unit','unite_temps','unite_temps_prelevement']
+    },
+    {
+      key: 'timepoint_unit',
+      label: 'Time-point unit',
+      required: false,
+      aliases: ['timepoint_unit','visit_unit','timepoint_units','unite_visite','unite_timepoint']
+    },
+    {
+      key: 'time_origin',
+      label: 'Time origin / reference event',
+      required: false,
+      aliases: ['time_origin','reference_event','time_anchor','origin_event','landmark','origine_temps','evenement_reference']
+    },
+    {
+      key: 'source_dataset_id',
+      label: 'Source dataset identifier',
+      required: false,
+      aliases: ['source_dataset_id','dataset_id','study_id','cohort_id','source_study','id_jeu','id_etude','id_cohorte']
     },
     {
       key: 'batch',
