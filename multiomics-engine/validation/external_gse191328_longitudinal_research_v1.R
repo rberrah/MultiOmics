@@ -33,7 +33,7 @@ pd <- Biobase::pData(gse)
 if (nrow(pd)!=201L)
   stop("GSE191328 source sample count changed; review before qualification.")
 
-normal <- function(x) tolower(gsub("[^a-z0-9]+","",as.character(x)))
+normal <- function(x) gsub("[^a-z0-9]+","",tolower(as.character(x)))
 # GEO pData also contains treatment_protocol_ch1. Prefer the semantic
 # characteristic columns explicitly so a protocol paragraph can never be
 # mistaken for the prespecified treatment label.
