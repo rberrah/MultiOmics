@@ -3385,6 +3385,50 @@ Rscript multiomics-engine/run_backend.R</code></pre>
           href={resolve('multiomics/learn/')}
           class="simple-hint"
         >{t('Comprendre ces méthodes et figures', 'Learn how to interpret methods and figures')}</a>
+
+        <div class="result-interpretation-summary" data-testid="multiomics-result-interpretation">
+          <article>
+            <span>{t('Source numérique', 'Numerical source')}</span>
+            <strong>{evidenceTierLabel(analysisResult)}</strong>
+            <small>{primaryEvidenceTier(analysisResult)==='native_r_all_layers'
+              ? t('Les statistiques principales affichées proviennent des tableaux R natifs complets.', 'Displayed primary statistics come from complete native-R tables.')
+              : t('Ne pas présenter ces nombres comme une inférence R confirmatoire.', 'Do not present these numbers as confirmatory R inference.')}</small>
+          </article>
+          <article>
+            <span>{t('Portée scientifique', 'Scientific scope')}</span>
+            <strong>{assuranceLabel(analysisResult)}</strong>
+            <small>{t('Un calcul reproductible ne certifie ni le design, ni le FDR, ni la causalité, ni la validité clinique.', 'A reproducible calculation does not certify study design, FDR calibration, causality or clinical validity.')}</small>
+          </article>
+          <article data-testid="multiomics-omics2pk-readiness">
+            <span>{t('Réutilisation Omics2PK', 'Omics2PK reuse')}</span>
+            {#if omics2pkReadiness}
+              <strong>{t('Échange structurel vérifié', 'Structural exchange verified')}</strong>
+              <small>
+                {omics2pkReadiness.independent_subjects} {t('sujets', 'subjects')} ·
+                {omics2pkReadiness.unique_specimens} {t('prélèvements', 'specimens')} ·
+                {omics2pkReadiness.assays} assays.
+                {omics2pkReadiness.numeric_collection_time_complete && omics2pkReadiness.explicit_time_origin_complete
+                  ? t(' Temps moléculaires numériques et origine explicite présents.', ' Numeric molecular times and explicit time origin are present.')
+                  : t(' PK non prête : Omics2PK doit encore joindre la vraie chronologie PK/doses/concentrations et vérifier l’origine temporelle.', ' Not PK-ready: Omics2PK must still join genuine PK timing/dose/concentration records and verify the shared time origin.')}
+              </small>
+            {:else if omics2pkReadinessError}
+              <strong>{t('Échange bloqué', 'Exchange blocked')}</strong>
+              <small>{omics2pkReadinessError}</small>
+            {:else}
+              <strong>{t('Préflight non disponible', 'Preflight unavailable')}</strong>
+            {/if}
+          </article>
+        </div>
+        {#if analysisResult.scientificAssurance?.notes?.length}
+          <details class="simple-disclosure interpretation-limits" data-testid="multiomics-key-limitations">
+            <summary>{t('Limites principales à vérifier avant publication', 'Key limitations to review before publication')}</summary>
+            <ul>
+              {#each analysisResult.scientificAssurance.notes.slice(0,6) as note}
+                <li>{($language === 'en' ? note.en : note.fr)}</li>
+              {/each}
+            </ul>
+          </details>
+        {/if}
       </div>
       <div class="result-actions">
       <button class="btn btn-primary" type="button" data-testid="multiomics-research-bundle-download" disabled={portableProjectBusy} onclick={downloadResearchBundle}>{portableProjectBusy ? t('Préparation du dossier…', 'Preparing dossier…') : t('Télécharger résultats + figures + code R (ZIP)', 'Download results + figures + R code (ZIP)')}</button>
@@ -3422,8 +3466,8 @@ Rscript multiomics-engine/run_backend.R</code></pre>
           </button>
         </div>
         <p>{t(
-          'Cet export contient les matrices individuelles originales normalisées en format d’échange, les identités sujet/prélèvement/assay, les échelles déclarées et les SHA-256. Il n’exporte pas les logFC/q-values de groupe comme covariables PK et n’invente aucune dose ni concentration.',
-          'This export contains original individual matrices normalized to the exchange format, subject/specimen/assay identities, declared scales and SHA-256 hashes. It does not export group logFC/q-values as PK covariates and invents no dose or concentration.'
+          'Cet export canonicalise les matrices individuelles originales vers le format d’échange (orientation, identifiants, NA et métadonnées) sans renormaliser les valeurs biologiques. Il conserve les échelles déclarées et SHA-256, n’exporte pas les logFC/q-values de groupe comme covariables PK et n’invente aucune dose ni concentration.',
+          'This export canonicalizes the original individual matrices into the exchange format (orientation, identifiers, NA and metadata) without renormalizing biological values. It preserves declared scales and SHA-256 hashes, does not export group logFC/q-values as PK covariates, and invents no dose or concentration.'
         )}</p>
         <p class="note">{t(
           'Pour tester un effet sur la PK, Omics2PK doit joindre séparément les vraies doses, temps et concentrations des mêmes sujets. Les scores individuels optionnels ne sont acceptés qu’avec modèle figé ou prédiction hors-fold et provenance explicite.',
@@ -4216,7 +4260,7 @@ Rscript multiomics-engine/run_backend.R</code></pre>
   <b>r reference <span class="help-tip" tabindex="0" data-tooltip={t('Corrélation de Spearman entre les deux variables dans le groupe de référence.', 'Spearman correlation between the two features in the reference group.')}>?</span></b>
   <b>r comparison <span class="help-tip" tabindex="0" data-tooltip={t('Même corrélation de Spearman dans le groupe comparé.', 'The same Spearman correlation in the comparison group.')}>?</span></b>
   <b>Δr <span class="help-tip" tabindex="0" data-tooltip={t('Différence r_comparison − r_reference. Une grande valeur absolue indique un changement important de couplage entre les deux conditions.', 'Difference r_comparison − r_reference. A large absolute value indicates a strong change in coupling between conditions.')}>?</span></b>
-  <b>q BH <span class="help-tip" tabindex="0" data-tooltip={t('FDR Benjamini–Hochberg appliqué à toutes les paires inter-omiques testées. Il indique si le changement de corrélation reste crédible après correction multiple.', 'Benjamini–Hochberg FDR across all tested cross-omics pairs. It indicates whether the correlation change remains credible after multiple-testing correction.')}>?</span></b>
+  <b>q BH <span class="help-tip" tabindex="0" data-tooltip={t('q-value Benjamini–Hochberg calculée sur toutes les paires inter-omiques testées. Une petite valeur réduit le risque de faux appel dans cette famille sous les hypothèses du test, mais ne confirme ni causalité, ni mécanisme, ni réplication biologique.', 'Benjamini–Hochberg q-value across all tested cross-omics pairs. A small value reduces false-call risk within this tested family under the model assumptions, but does not establish causality, mechanism or biological replication.')}>?</span></b>
               </div>
               {#each analysisResult.crossOmics.pairs.slice(0, 15) as pair}
                 <div>
@@ -5605,6 +5649,45 @@ Rscript multiomics-engine/run_backend.R</code></pre>
 
   .mapping-result-head {
     color: var(--text-muted);
+  }
+
+  .result-interpretation-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+  }
+
+  .result-interpretation-summary article {
+    padding: var(--space-3);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius);
+    background: var(--bg-secondary);
+    min-width: 0;
+  }
+
+  .result-interpretation-summary span,
+  .result-interpretation-summary strong,
+  .result-interpretation-summary small {
+    display: block;
+  }
+
+  .result-interpretation-summary span,
+  .result-interpretation-summary small {
+    color: var(--text-muted);
+  }
+
+  .result-interpretation-summary strong {
+    margin: 4px 0;
+  }
+
+  .interpretation-limits {
+    margin-top: var(--space-3);
+  }
+
+  .interpretation-limits li {
+    margin-bottom: 6px;
+    color: var(--text-secondary);
   }
 
   .computed-summary article {
