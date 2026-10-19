@@ -1856,6 +1856,11 @@
       return '<section><h2>' + escapeHtml(omicLabel(layer)) + '</h2>' +
         '<p>Preview only: first ' + Math.min(layerRows.length, 50) + ' of ' + layerRows.length + ' features. Complete CSV tables are available in the research ZIP dossier.</p>' +
         '<p><strong>Model:</strong> ' + escapeHtml(layerResult.inferenceMethod || layerResult.mode || '') + '</p>' +
+        '<p><strong>Primary numerical source:</strong> ' + escapeHtml(
+          layerResult.numericalProvenance==='exact_native_r_reference_table'
+            ? 'complete native R reference table ('+(layerResult.primaryReferenceMethodKey||'unknown method')+')'
+            : 'browser exploratory calculation'
+        ) + '</p>' +
         '<p><strong>QC:</strong> ' + escapeHtml(qc.featuresAfter ?? '—') + '/' + escapeHtml(qc.featuresBefore ?? '—') +
         ' features retained; median missing ' + escapeHtml(Number.isFinite(qc.medianMissingFraction) ? (100 * qc.medianMissingFraction).toFixed(1) + '%' : '—') + '.</p>' +
         (qc.inferenceTier?.note ? '<p><strong>Inference tier:</strong> ' + escapeHtml(qc.inferenceTier.label || qc.inferenceTier.level) + ' — ' + escapeHtml(qc.inferenceTier.note) + '</p>' : '') +
@@ -1904,8 +1909,13 @@
     if (!rows?.length) return;
     const methodKey = analysisResult.layers[layer]?.primaryReferenceMethodKey;
     const method = methodKey ? analysisResult.referenceBackend?.methods?.[methodKey] : null;
-    const nativeCsv = method?.status === 'ok' && method?.referenceTableComplete === true &&
-      typeof method?.referenceTableCsv === 'string' ? method.referenceTableCsv : null;
+    const referenceTable = method?.referenceTable && typeof method.referenceTable === 'object'
+      ? method.referenceTable : method;
+    const nativeCsv = method?.status === 'ok' &&
+      referenceTable?.referenceTableComplete === true &&
+      referenceTable?.referenceTableStatus === 'complete' &&
+      typeof referenceTable?.referenceTableCsv === 'string'
+        ? referenceTable.referenceTableCsv : null;
     const blob = new Blob([nativeCsv ?? fullLayerCsv(rows)], { type: 'text/csv;charset=utf-8' });
     const href = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
@@ -1995,19 +2005,30 @@
         });
       }
     } else if (result.protocol?.objective === 'time') {
+      const nativeLongitudinal=primaryEvidenceTier(result)==='native_r_all_layers';
       items.push({
         title: pick('Interaction groupe × temps', 'Group × time interaction'),
-        text: pick(
-          'L’effet natif R est la différence de pente temporelle entre les deux groupes, par unité de temps déclarée. Ce coefficient n’est ni un fold ratio ni un changement moyen entre deux visites.',
-          'The native R effect is the difference in time slopes between the two groups per declared time unit. This coefficient is neither a fold ratio nor a mean change between two visits.'
-        )
+        text: nativeLongitudinal
+          ? pick(
+              'L’effet affiché provient de lmerTest natif R : différence de pente temporelle entre les deux groupes, par unité de temps déclarée. Ce coefficient n’est ni un fold ratio ni un changement moyen entre deux visites.',
+              'The displayed effect comes from native R lmerTest: the difference in time slopes between the groups per declared time unit. It is neither a fold ratio nor a mean change between two visits.'
+            )
+          : pick(
+              'L’effet navigateur est une estimation descriptive de différence de pente. Il ne fournit pas l’inférence longitudinale de référence ; exécutez lmerTest R avant d’interpréter p-values/q-values ou incertitude.',
+              'The browser effect is a descriptive slope-difference estimate. It is not the reference longitudinal inference; run R lmerTest before interpreting p/q-values or uncertainty.'
+            )
       });
       items.push({
         title: pick('Hypothèses longitudinales', 'Longitudinal assumptions'),
-        text: pick(
-          'Le modèle lmerTest suppose ici une évolution temporelle linéaire, une appartenance de groupe stable et le plan répété déclaré. Les fits singuliers, visites incomplètes et replis de pente aléatoire restent à examiner.',
-          'The lmerTest model assumes a linear time trend, stable group membership and the declared repeated-measures design. Singular fits, incomplete visits and random-slope fallbacks still require review.'
-        )
+        text: nativeLongitudinal
+          ? pick(
+              'Le modèle lmerTest suppose ici une évolution temporelle linéaire, une appartenance de groupe stable et le plan répété déclaré. Les fits singuliers, visites incomplètes et replis de pente aléatoire restent à examiner.',
+              'The lmerTest model assumes a linear time trend, stable group membership and the declared repeated-measures design. Singular fits, incomplete visits and random-slope fallbacks still require review.'
+            )
+          : pick(
+              'Le calcul navigateur reste exploratoire. La structure aléatoire, les visites manquantes, les résidus et la forme temporelle doivent être évalués dans le modèle R adapté.',
+              'The browser calculation remains exploratory. Random effects, missing visits, residuals and the time functional form must be assessed in the appropriate R model.'
+            )
       });
     } else {
       items.push({
@@ -3483,7 +3504,7 @@ Rscript multiomics-engine/run_backend.R</code></pre>
 
   <div class="simple-qc-status" data-testid="multiomics-quality-summary">
       <strong>{t('Méthodes réellement exécutées', 'Methods actually run')}</strong>
-      <span>{t('Navigateur : ', 'Browser: ')}{Object.entries(analysisResult.layers || {}).map(([key, value]) => omicLabel(key) + ' — ' + (value.inferenceMethod || value.mode || 'QC')).join(' ; ')}</span>
+      <span>{t('Analyse locale / QC : ', 'Local analysis / QC: ')}{Object.entries(analysisResult.layers || {}).map(([key, value]) => omicLabel(key) + ' — ' + (value.inferenceMethod || value.mode || 'QC')).join(' ; ')}</span>
     <small data-testid="multiomics-numeric-source">{analysisResult.displayedReferenceMethodCount > 0
       ? t('Les tableaux des couches portant « Native R » proviennent des résultats R exhaustifs ; les figures JS utilisent ces mêmes effets, sans refaire les tests. Les contrôles QC et les autres méthodes exploratoires restent distincts.',
           'Layers labeled Native R show full R reference values; JavaScript figures use these same effects without refitting. QC and other exploratory calculations remain distinct.')
@@ -3576,7 +3597,7 @@ Rscript multiomics-engine/run_backend.R</code></pre>
               <p class="eyebrow">{t('Moteur R de référence', 'Reference R engine')}</p>
           <h3>{analysisResult.referenceBackend.status === 'ok'
                   ? analysisResult.referenceBackend.referenceMethodExecuted
-                    ? t('Méthodes R exécutées (résultats distincts des figures du navigateur)', 'R methods executed (results separate from browser figures)')
+                    ? t('Méthodes R exécutées (tableaux complets projetés lorsque éligibles ; figures rendues dans le navigateur)', 'R methods executed (complete tables projected when eligible; figures rendered in the browser)')
                     : t('Moteur R connecté — aucune méthode statistique de référence exécutée', 'R backend connected — no reference statistical method executed')
             : t('Backend R non utilisé', 'R backend not used')}</h3>
             </div>
