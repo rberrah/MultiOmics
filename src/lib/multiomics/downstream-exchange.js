@@ -253,6 +253,8 @@ export async function buildDownstreamExchange(portableProject,{individualSignatu
     nonBlank(row.collection_time_unit));
   const summary={
     status:'source_exchange_ready_not_pk_ready',
+    structural_exchange_valid:true,
+    pk_ready:false,
     analysis_id:manifest.analysis_id,
     independent_subjects:new Set(sampleRows.map(r=>r.subject_id)).size,
     unique_specimens:new Set(sampleRows.map(r=>r.sample_id)).size,
@@ -266,7 +268,7 @@ export async function buildDownstreamExchange(portableProject,{individualSignatu
     individual_signature_rows:0,
     individual_signature_fit_scopes:[],
     pk_dose_concentration_data_included:false,
-    interpretation:'Source matrices are structurally usable by Omics2PK after extraction. PK readiness still requires subject-matched dose/concentration events, time origin and study-specific preprocessing.'
+    interpretation:'Source matrices are structurally usable by Omics2PK after extraction. Values are canonicalized, not biologically renormalized. PK readiness still requires subject-matched dose/concentration events, a verified shared time origin and study-specific fit-ready preprocessing.'
   };
   // Optional *individual* biological scores from an explicit, traceable
   // upstream scoring result. Never synthesize such scores from differential
