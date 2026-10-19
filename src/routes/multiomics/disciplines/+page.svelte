@@ -24,7 +24,7 @@
   </header>
 
   <figure class="ecosystem-figure">
-    <img src={asset('/multiomics/ecosystem-graphical-abstract.svg')} alt={t(
+    <img src={asset('multiomics/ecosystem-graphical-abstract.svg')} alt={t(
       'Écosystème : PMx Explain pour apprendre, MultiOmics pour analyser, Omics2PK pour intégrer les signaux moléculaires à la recherche PK.',
       'Ecosystem: PMx Explain for learning, MultiOmics for analysis, Omics2PK for integrating molecular signals into PK research.'
     )} />
