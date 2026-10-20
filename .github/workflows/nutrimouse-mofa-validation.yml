@@ -63,6 +63,8 @@ jobs:
           Rscript -e 'if(!requireNamespace("BiocManager",quietly=TRUE)) install.packages("BiocManager",repos="https://cloud.r-project.org"); BiocManager::install(c("MOFA2","basilisk"),version="3.22",ask=FALSE,update=FALSE); stopifnot(requireNamespace("MOFA2",quietly=TRUE),requireNamespace("basilisk",quietly=TRUE))'
       - name: Require exact MOFA2 and basilisk versions before authentic fitting
         run: Rscript multiomics-engine/environment/verify_nutrimouse_runtime.R mofa verify
+      - name: Normalize Basilisk bootstrap tooling to the recorded lock
+        run: Rscript multiomics-engine/environment/normalize_mofa_python_bootstrap.R
       - name: Fit genuine MOFA2 on real Nutrimouse and audit genotype/diet separately
         run: |
           Rscript multiomics-engine/tests/test_mofa_real_nutrimouse.R \
