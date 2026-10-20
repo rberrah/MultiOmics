@@ -64,6 +64,8 @@ jobs:
           print("PASS: MultiOmics 1.1 metadata, scientific boundaries and comparator evidence are release-consistent")
           PY
           test "$(git ls-remote origin refs/heads/release/research-v1.0.0 | awk '{print $1}')" = "54dc8f0f8284cf970ed1a5be0533a298ae27639d"
+      - name: Verify npm lockfile metadata matches resolved tarballs
+        run: node scripts/test_package_lock_metadata.mjs
       - name: Verify independent comparator parser negative controls
         run: python3 scripts/compare_sacurine_xcms_openms.py --self-test
       - name: Refuse accidental post-v1 development version
