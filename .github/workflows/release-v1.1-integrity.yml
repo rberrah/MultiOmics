@@ -40,6 +40,8 @@ jobs:
 
           cff=Path("CITATION.cff").read_text()
           assert 'version: "1.1.2"' in cff
+          assert 'date-released: "2026-10-20"' in cff
+          assert manifest["release"]["releaseDate"]=="2026-10-20"
 
           required=[
             "research-v1-manifest.json",
