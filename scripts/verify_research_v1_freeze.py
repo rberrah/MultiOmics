@@ -7,7 +7,7 @@ import re
 
 ROOT = Path(__file__).resolve().parents[1]
 RELEASE_VERSION = "1.0.0"
-POST_V1_PATTERN = r"^1\.1\.[01](?:-dev\.\d+)?$"
+POST_V1_PATTERN = r"^1\.1\.[0-2](?:-dev\.\d+)?$"
 DATE = "2026-10-19"
 
 def load_json(path: str):
