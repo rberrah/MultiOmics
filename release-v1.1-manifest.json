@@ -3,7 +3,7 @@
   "release": {
     "name": "MultiOmics 1.1.2",
     "softwareVersion": "1.1.2",
-    "releaseDate": "2026-10-19",
+    "releaseDate": "2026-10-20",
     "intendedTag": "v1.1.2",
     "sourceIdentity": "The immutable patch-release identity is the final merged 1.1.2 commit recorded by the v1.1.2 Git tag/GitHub Release; release/v1.1.0 and release/v1.1.1 remain unchanged historical source lines.",
     "researchV1BaselineSha": "54dc8f0f8284cf970ed1a5be0533a298ae27639d"
