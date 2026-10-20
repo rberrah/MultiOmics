@@ -1,14 +1,14 @@
 {
   "schema": "multiomics.release-v1.1.v1",
   "release": {
-    "name": "MultiOmics 1.1.2",
-    "softwareVersion": "1.1.2",
+    "name": "MultiOmics 1.1.3",
+    "softwareVersion": "1.1.3",
     "releaseDate": "2026-10-20",
-    "intendedTag": "v1.1.2",
-    "sourceIdentity": "The immutable patch-release identity is the final merged 1.1.2 commit recorded by the v1.1.2 Git tag/GitHub Release; release/v1.1.0 and release/v1.1.1 remain unchanged historical source lines.",
+    "intendedTag": "v1.1.3",
+    "sourceIdentity": "The immutable patch-release identity is the final merged 1.1.3 commit recorded by the v1.1.3 Git tag/GitHub Release; release/v1.1.0, release/v1.1.1 and release/v1.1.2 remain unchanged historical source lines.",
     "researchV1BaselineSha": "54dc8f0f8284cf970ed1a5be0533a298ae27639d"
   },
-  "releaseType": "post-Research-v1 ecosystem-coherence and reproducibility hardening patch",
+  "releaseType": "post-Research-v1 ecosystem, reproducibility and release-provenance hardening patch",
   "scope": {
     "researchSoftware": true,
     "medicalDevice": false,
@@ -24,7 +24,8 @@
     "independent Sacurine xcms versus OpenMS feature-coordinate comparator with no post-hoc concordance threshold",
     "shared Ecosystem navigation and graphical abstract across PMx Explain, MultiOmics and Omics2PK",
     "deterministic normalization of MOFA2 Basilisk bootstrap tooling before the existing full Python-environment audit",
-    "explicit normalization of MOFA2 Basilisk bootstrap tooling to the recorded Python lock before qualification"
+    "explicit normalization of MOFA2 Basilisk bootstrap tooling to the recorded Python lock before qualification",
+    "release-version changes modify only root package metadata and are guarded against transitive npm lockfile corruption"
   ],
   "requiredReleaseChecks": [
     "MultiOmics standalone software qualification",
@@ -52,6 +53,6 @@
       "effect": "Schema-valid individual scores are not automatically biologically validated PK/PD covariates."
     }
   ],
-  "deploymentBoundary": "The public PMx-hosted /multiomics/ route must pin the exact qualified MultiOmics 1.1.2 commit; merging MultiOmics alone does not update the public site.",
-  "releaseBoundary": "MultiOmics 1.1.2 is a reproducibility patch over the qualified 1.1.1 ecosystem line. It preserves scientific methods and claims while normalizing the MOFA2 Basilisk bootstrap layer to the existing recorded Python lock before qualification."
+  "deploymentBoundary": "The public PMx-hosted /multiomics/ route must pin the exact qualified MultiOmics 1.1.3 commit; merging MultiOmics alone does not update the public site.",
+  "releaseBoundary": "MultiOmics 1.1.3 is a release-provenance patch over the qualified 1.1.2 scientific and ecosystem line. It corrects npm lockfile metadata and adds a fail-closed guard against future release-version corruption without changing dependencies, scientific methods, results or claims."
 }
