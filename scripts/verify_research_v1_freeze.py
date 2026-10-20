@@ -31,7 +31,8 @@ def main():
     assert manifest["release"]["freezeDate"] == DATE
     assert manifest["release"]["intendedTag"] == "research-v1.0.0"
     assert re.search(rf"(?m)^version:\s*[\"']?{re.escape(current_version)}[\"']?\s*$", citation)
-    assert re.search(r"(?m)^date-released:\s*[\"']?2026-10-19[\"']?\s*$", citation)
+    expected_citation_date = DATE if current_version == RELEASE_VERSION else load_json("release-v1.1-manifest.json")["release"]["releaseDate"]
+    assert re.search(rf"(?m)^date-released:\s*[\"']?{re.escape(expected_citation_date)}[\"']?\s*$", citation)
 
     assert runtime["rVersion"] == "4.5.2"
     assert runtime["bioconductorVersion"] == "3.22"
