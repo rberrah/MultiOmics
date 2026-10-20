@@ -1,11 +1,11 @@
 {
   "schema": "multiomics.release-v1.1.v1",
   "release": {
-    "name": "MultiOmics 1.1.1",
-    "softwareVersion": "1.1.1",
+    "name": "MultiOmics 1.1.2",
+    "softwareVersion": "1.1.2",
     "releaseDate": "2026-10-19",
-    "intendedTag": "v1.1.1",
-    "sourceIdentity": "The immutable patch-release identity is the final merged 1.1.1 commit recorded by the v1.1.1 Git tag/GitHub Release; release/v1.1.0 remains the frozen 1.1.0 source line.",
+    "intendedTag": "v1.1.2",
+    "sourceIdentity": "The immutable patch-release identity is the final merged 1.1.2 commit recorded by the v1.1.2 Git tag/GitHub Release; release/v1.1.0 and release/v1.1.1 remain unchanged historical source lines.",
     "researchV1BaselineSha": "54dc8f0f8284cf970ed1a5be0533a298ae27639d"
   },
   "releaseType": "post-Research-v1 ecosystem-coherence and reproducibility hardening patch",
@@ -23,7 +23,8 @@
     "DESeq2 whole-study global-null tail diagnostic without changing production inference",
     "independent Sacurine xcms versus OpenMS feature-coordinate comparator with no post-hoc concordance threshold",
     "shared Ecosystem navigation and graphical abstract across PMx Explain, MultiOmics and Omics2PK",
-    "deterministic normalization of MOFA2 Basilisk bootstrap tooling before the existing full Python-environment audit"
+    "deterministic normalization of MOFA2 Basilisk bootstrap tooling before the existing full Python-environment audit",
+    "explicit normalization of MOFA2 Basilisk bootstrap tooling to the recorded Python lock before qualification"
   ],
   "requiredReleaseChecks": [
     "MultiOmics standalone software qualification",
@@ -51,6 +52,6 @@
       "effect": "Schema-valid individual scores are not automatically biologically validated PK/PD covariates."
     }
   ],
-  "deploymentBoundary": "The public PMx-hosted /multiomics/ route must pin the exact qualified MultiOmics 1.1.1 commit; merging MultiOmics alone does not update the public site.",
-  "releaseBoundary": "MultiOmics 1.1.1 is an ecosystem-coherence and reproducibility-hardening patch over the qualified 1.1.0 scientific line. It preserves analysis methods, software/provenance/interoperability behavior and explicit scientific limitations, and does not certify a user study, biomarker, PK benefit, causal mechanism or clinical use."
+  "deploymentBoundary": "The public PMx-hosted /multiomics/ route must pin the exact qualified MultiOmics 1.1.2 commit; merging MultiOmics alone does not update the public site.",
+  "releaseBoundary": "MultiOmics 1.1.2 is a reproducibility patch over the qualified 1.1.1 ecosystem line. It preserves scientific methods and claims while normalizing the MOFA2 Basilisk bootstrap layer to the existing recorded Python lock before qualification."
 }
