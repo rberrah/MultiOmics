@@ -278,8 +278,8 @@
 <section data-testid="guided-demo-exact-results">
   <h2>{t('4 · Sorties numériques exactes de Tool','4 · Exact numerical outputs from Tool')}</h2>
   <p>{t(
-    'Les tableaux ci-dessous lisent directement result.layers du moteur. Pour ce cas longitudinal, les colonnes p et q affichent « — » parce que Tool les supprime intentionnellement dans le navigateur. L’effet, lui, est exactement l’estimation exploratoire utilisée par Tool ; sur l’échelle log2, 2^effet donne le ratio des variations multiplicatives T0→T12 entre traitement et contrôle.',
-    'The tables below read result.layers directly from the engine. For this longitudinal case, p and q display “—” because Tool intentionally suppresses them in the browser. The effect is the exact exploratory estimate used by Tool; on the log2 scale, 2^effect is the ratio of multiplicative T0→T12 changes between treatment and control.'
+    'Les p/q de référence sont affichées « non calculé » lorsqu’elles ne sont pas validées dans le navigateur. Les colonnes p*/q* montrent séparément l’approximation navigateur, avec correction BH appliquée aux p*. Ces valeurs exploratoires sont affichées en notation scientifique lorsqu’elles sont petites et doivent être rejouées sous R pour l’inférence de référence.',
+    'Reference p/q are shown as “not computed” when they are not validated in the browser. Separate p*/q* columns show the browser approximation, with BH applied to p*. Small exploratory values use scientific notation and must be rerun in R for reference inference.'
   )}</p>
   {#if status==='done'}
     {#each layerOrder as layer}
@@ -289,7 +289,7 @@
         <div class="table-wrap">
           <table>
             <thead>
-              <tr><th>{t('Variable','Feature')}</th><th>{t('Effet','Effect')}</th><th>{t('Échelle','Scale')}</th><th>2^effect</th><th>p</th><th>q BH</th><th>n ref</th><th>n comp</th></tr>
+              <tr><th>{t('Variable','Feature')}</th><th>{t('Effet','Effect')}</th><th>{t('Échelle','Scale')}</th><th>2^effect</th><th>{t('p référence','reference p')}</th><th>{t('q BH référence','reference BH q')}</th><th>p* {t('approx.','approx.')}</th><th>q* BH {t('approx.','approx.')}</th><th>n ref</th><th>n comp</th></tr>
             </thead>
             <tbody>
               {#each r.rows as row}
