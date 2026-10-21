@@ -76,17 +76,70 @@ test('Mobile 390px: three single-omic shortcuts and a full-width multi-omics but
   await expect(page.getByTestId('multiomics-visualizations')).toBeVisible();
 });
 
-test('Guided demo explains the existing synthetic longitudinal case and can launch it directly',async({page})=>{
+test('Guided demo is a PMx-style worked example driven by the exact Tool output',async({page})=>{
+  const snapshot=()=>page.evaluate(()=>{
+    const r=window.__PMX_MULTIOMICS_ANALYSIS__;
+    if(!r)throw new Error('No published MultiOmics result');
+    return {
+      protocol:r.protocol,
+      metadata:{
+        subjects:r.metadataSummary?.subjects,
+        samples:r.metadataSummary?.samples,
+        assays:r.metadataSummary?.assays,
+        conditions:r.metadataSummary?.conditions,
+        timepoints:r.metadataSummary?.timepoints
+      },
+      layers:Object.fromEntries(Object.entries(r.layers||{}).map(([name,layer])=>[name,{
+        contrast:layer.contrast,
+        mode:layer.mode,
+        inferenceMethod:layer.inferenceMethod,
+        inferencePolicy:layer.inferencePolicy,
+        effectScale:layer.effectScale,
+        groupSizes:layer.groupSizes,
+        selectionRule:layer.selectionRule,
+        steps:layer.steps,
+        rows:(layer.rows||[]).map(row=>({
+          feature:row.feature,effect:row.effect,foldRatio:row.foldRatio,
+          pValue:row.pValue,qValue:row.qValue,nReference:row.nReference,nComparison:row.nComparison
+        }))
+      }])),
+      crossOmics:{
+        method:r.crossOmics?.method,
+        testedPairs:r.crossOmics?.testedPairs,
+        significantPairs:r.crossOmics?.significantPairs,
+        pairs:(r.crossOmics?.pairs||[]).map(pair=>({
+          layerA:pair.layerA,featureA:pair.featureA,layerB:pair.layerB,featureB:pair.featureB,
+          rReference:pair.rReference,rComparison:pair.rComparison,deltaR:pair.deltaR,
+          pValue:pair.pValue,qValue:pair.qValue,pattern:pair.pattern
+        }))
+      },
+      visualizations:r.visualizations
+    };
+  });
+
   await page.goto('/multiomics/demo?lang=fr');
-  await expect(page.getByRole('heading',{name:/Cas pratique.*traitement/i})).toBeVisible();
-  await expect(page.getByTestId('guided-demo-design')).toContainText(/8\s*sujets/);
-  await expect(page.getByTestId('guided-demo-design')).toContainText('T0');
-  await expect(page.getByTestId('guided-demo-interpretation')).toContainText('tryptophane');
-  await expect(page.getByTestId('guided-demo-limit')).toContainText(/synthétique/i);
-  const launch=page.getByTestId('guided-demo-launch');
-  await expect(launch).toHaveAttribute('href',/\/multiomics\/tool\/\?demo=multi$/);
-  await launch.click();
-  await expect(page).toHaveURL(/\/multiomics\/tool\/\?demo=multi$/);
+  await expect(page.getByRole('heading',{name:/MultiOmics.*questionnaire.*sorties exactes/i})).toBeVisible();
+  await expect(page.getByTestId('guided-demo-exact-results')).toContainText('STAT1',{timeout:30000});
+  await expect(page.getByTestId('guided-demo-questionnaire')).toContainText('Mesures répétées');
+  await expect(page.getByTestId('guided-demo-methods')).toContainText('deterministic permutation');
+  await expect(page.getByTestId('guided-demo-methods')).toContainText('difference-in-differences');
+  await expect(page.getByTestId('guided-demo-live-visualizations')).toBeVisible();
+  await expect(page.getByTestId('guided-demo-limit')).toContainText(/synthétiques/i);
+  const guided=await snapshot();
+
+  await page.goto('/multiomics/tool/?demo=multi&lang=fr');
   await expect(page.getByTestId('multiomics-results')).toBeVisible({timeout:30000});
-  await expect(page.getByTestId('multiomics-analysis-mode')).toContainText(/Multi-omique/);
+  await expect(page.getByTestId('multiomics-visualizations')).toBeVisible();
+  const tool=await snapshot();
+
+  expect(guided).toEqual(tool);
+  expect(guided.metadata).toEqual({
+    subjects:8,samples:16,assays:49,
+    conditions:['control','treatment'],timepoints:['T0','T12']
+  });
+  for(const layer of Object.values(guided.layers)){
+    expect(layer.mode).toBe('difference-in-differences');
+    expect(layer.inferenceMethod).toBe('deterministic permutation');
+    expect(layer.groupSizes).toEqual([4,4]);
+  }
 });
