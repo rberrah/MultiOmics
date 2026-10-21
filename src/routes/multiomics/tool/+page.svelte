@@ -4366,21 +4366,34 @@ Rscript multiomics-engine/run_backend.R</code></pre>
               <p class="eyebrow">{t('Intégration inter-omique directe', 'Direct cross-omics integration')}</p>
               <h3>{t('Quelles relations moléculaires changent entre les conditions biologiques ?', 'Which molecular relationships change between the biological conditions?')}</h3>
             </div>
-            <span>Spearman + Fisher z + BH-FDR</span>
+            <span>{analysisResult.crossOmics?.inferenceStatus === 'descriptive_only_small_n'
+              ? t('Spearman descriptif · petit n','Descriptive Spearman · small n')
+              : 'Spearman + Fisher z + BH-FDR'}</span>
           </div>
           <div class="api-summary">
-      <span><strong>{analysisResult.crossOmics?.testedPairs ?? 0}</strong> {t('paires inter-omiques testées','matched cross-omic pairs tested')}</span>
+      <span><strong>{analysisResult.crossOmics?.testedPairs ?? 0}</strong> {t('paires inter-omiques calculées','cross-omics pairs calculated')}</span>
       <span><strong>{analysisResult.crossOmics?.significantPairs ?? 0}</strong> {t('paires avec q de référence ≤ 0,10','pairs with reference q ≤ 0.10')}</span>
       {#if analysisResult.crossOmics?.approximateSignificantPairs != null}<span><strong>{analysisResult.crossOmics.approximateSignificantPairs}</strong> {t('paires avec q* approx. ≤ 0,10','pairs with approx. q* ≤ 0.10')}</span>{/if}
+      {#if analysisResult.crossOmics?.extremeCorrelationPairs != null}<span><strong>{analysisResult.crossOmics.extremeCorrelationPairs}</strong> {t('paires avec au moins un r = ±1','pairs with at least one r = ±1')}</span>{/if}
           </div>
+          {#if analysisResult.crossOmics?.inferenceStatus === 'descriptive_only_small_n'}
+            <p class="api-error" data-testid="multiomics-crossomics-small-n">
+              {t(
+                'Intégration descriptive uniquement : le plus petit effectif apparié est '+analysisResult.crossOmics.minReferenceN+' sujet(s) de référence et '+analysisResult.crossOmics.minComparisonN+' sujet(s) comparé(s). Avec si peu de rangs, Spearman atteint facilement ±1. Les p*/q* Fisher-z sont volontairement supprimées tant qu’au moins '+analysisResult.crossOmics.minGroupNForApproxInference+' sujets appariés par condition ne sont pas disponibles. Ce seuil est un garde-fou opérationnel, pas une validation statistique.',
+                'Descriptive integration only: the smallest matched sample is '+analysisResult.crossOmics.minReferenceN+' reference subject(s) and '+analysisResult.crossOmics.minComparisonN+' comparison subject(s). With so few ranks, Spearman easily reaches ±1. Fisher-z p*/q* are intentionally withheld until at least '+analysisResult.crossOmics.minGroupNForApproxInference+' matched subjects per condition are available. This threshold is an operational guardrail, not statistical validation.'
+              )}
+            </p>
+          {/if}
           {#if analysisResult.crossOmics?.pairs?.length}
             {@const showCrossApprox = hasApproximateInference(analysisResult.crossOmics.pairs)}
             <div class="cross-table" class:with-approx={showCrossApprox}>
               <div class="cross-head">
                 <b>{t('Paire', 'Pair')}</b>
   <b>Pattern <span class="help-tip" tabindex="0" data-tooltip={t('Résumé déterministe du changement de corrélation : gain, perte, renforcement, affaiblissement ou inversion de signe.', 'Deterministic summary of the correlation change: gained, lost, strengthened, weakened or sign reversal.')}>?</span></b>
-  <b>r reference <span class="help-tip" tabindex="0" data-tooltip={t('Corrélation de Spearman entre les deux variables dans le groupe de référence.', 'Spearman correlation between the two features in the reference group.')}>?</span></b>
-  <b>r comparison <span class="help-tip" tabindex="0" data-tooltip={t('Même corrélation de Spearman dans le groupe comparé.', 'The same Spearman correlation in the comparison group.')}>?</span></b>
+  <b>n ref</b>
+  <b>n comp</b>
+  <b>r reference <span class="help-tip" tabindex="0" data-tooltip={t(analysisResult.protocol?.longitudinal ? 'Corrélation de Spearman entre les variations individuelles longitudinales des deux variables dans le groupe de référence.' : 'Corrélation de Spearman entre les deux variables dans le groupe de référence.', analysisResult.protocol?.longitudinal ? 'Spearman correlation between individual longitudinal changes of the two features in the reference group.' : 'Spearman correlation between the two features in the reference group.')}>?</span></b>
+  <b>r comparison <span class="help-tip" tabindex="0" data-tooltip={t(analysisResult.protocol?.longitudinal ? 'Même corrélation sur les variations individuelles dans le groupe comparé.' : 'Même corrélation de Spearman dans le groupe comparé.', analysisResult.protocol?.longitudinal ? 'The same correlation on individual changes in the comparison group.' : 'The same Spearman correlation in the comparison group.')}>?</span></b>
   <b>Δr <span class="help-tip" tabindex="0" data-tooltip={t('Différence r_comparison − r_reference. Une grande valeur absolue indique un changement important de couplage entre les deux conditions.', 'Difference r_comparison − r_reference. A large absolute value indicates a strong change in coupling between conditions.')}>?</span></b>
   <b>{t('p référence','reference p')}</b>
   <b>{t('q BH référence','reference BH q')} <span class="help-tip" tabindex="0" data-tooltip={t('p/q de référence. Pour le longitudinal navigateur elles restent non calculées tant que la calibration n’est pas validée.', 'Reference p/q. For browser longitudinal analysis they remain not computed until calibration is validated.')}>?</span></b>
@@ -4393,6 +4406,8 @@ Rscript multiomics-engine/run_backend.R</code></pre>
                 <div>
             <span><code>{pair.featureA}</code> <small>{pair.layerA}</small> ↔ <code>{pair.featureB}</code> <small>{pair.layerB}</small></span>
                   <span class="pattern-tag">{pair.pattern.replaceAll('_', ' ')}</span>
+                  <span>{pair.nReference ?? '—'}</span>
+                  <span>{pair.nComparison ?? '—'}</span>
                   <span>{Number.isFinite(pair.rReference) ? pair.rReference.toFixed(2) : '—'}</span>
                   <span>{Number.isFinite(pair.rComparison) ? pair.rComparison.toFixed(2) : '—'}</span>
                   <strong>{Number.isFinite(pair.deltaR) ? pair.deltaR.toFixed(2) : '—'}</strong>
@@ -4405,7 +4420,10 @@ Rscript multiomics-engine/run_backend.R</code></pre>
                 </div>
               {/each}
             </div>
-            <p class="note">{analysisResult.crossOmics.method}. {t('Seuls les sujets présents dans les deux couches contribuent à une paire ; aucune imputation n’est utilisée. Les p*/q* sont des approximations exploratoires, pas des preuves confirmatoires.', 'Only subjects represented in both layers contribute to a pair; no imputation is used. p*/q* are exploratory approximations, not confirmatory evidence.')}</p>
+            <p class="note">{analysisResult.crossOmics.method}. {t(
+              'Seuls les sujets présents dans les deux couches contribuent à une paire ; aucune imputation n’est utilisée. Les variables candidates sont présélectionnées sur les mêmes données : même lorsqu’elles sont disponibles, p*/q* restent exploratoires et ne corrigent pas ce biais de sélection.',
+              'Only subjects represented in both layers contribute to a pair; no imputation is used. Candidate features are preselected on the same data: even when available, p*/q* remain exploratory and do not correct this selection bias.'
+            )}</p>
           {:else}
             <p class="muted">{t('Aucun test de changement de corrélation inter-omique n’était estimable avec les tailles de groupes et sujets appariés actuels.', 'No cross-omic correlation test was estimable with the current group sizes and matched subjects.')}</p>
           {/if}
@@ -5953,17 +5971,17 @@ Rscript multiomics-engine/run_backend.R</code></pre>
 
   .cross-table > div {
     display: grid;
-    grid-template-columns: minmax(280px,2.2fr) 1fr repeat(5,.65fr);
+    grid-template-columns: minmax(280px,2.2fr) 1fr repeat(7,.65fr);
     gap: 8px;
     padding: 8px 0;
     border-bottom: 1px solid var(--border-subtle);
     align-items: center;
-    min-width: 860px;
+    min-width: 980px;
   }
 
   .cross-table.with-approx > div {
-    grid-template-columns: minmax(280px,2.2fr) 1fr repeat(7,.72fr);
-    min-width: 1080px;
+    grid-template-columns: minmax(280px,2.2fr) 1fr repeat(9,.72fr);
+    min-width: 1220px;
   }
 
   .cross-head {
