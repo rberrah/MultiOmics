@@ -17,6 +17,7 @@
   /** @param {string} fr @param {string} en */
   const t=(fr,en)=>$language==='en'?en:fr;
   const launchHref = resolve('multiomics/tool/') + '?demo=multi';
+  /** @type {Record<string,string>} */
   const demoAssets = {
     metadata: asset('multiomics/demo_metadata.csv'),
     transcriptomics: asset('multiomics/demo_transcriptomics.csv'),
@@ -99,6 +100,7 @@
         if(layer==='metadata') metadataRows=parsed.rows;
         else inputSummary={...inputSummary,[layer]:{features:parsed.rows.length,assays:Math.max(0,parsed.headers.length-1)}};
       }
+      /** @type {any} */
       const result=await runDeterministicAnalysis({
         files,
         metadataRows,
