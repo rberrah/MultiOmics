@@ -60,23 +60,29 @@
   function effect(value){
     return Number.isFinite(Number(value)) ? Number(value).toPrecision(4) : '—';
   }
+  /** @type {Record<string,Record<string,string>>} */
   const demoNames = {
     transcriptomics: { STAT1:'STAT1', IDO1:'IDO1', KYNU:'KYNU', CYP3A5:'CYP3A5', GAPDH:'GAPDH' },
-    proteomics: { P42224:'STAT1', P14902:'IDO1', Q16719:'KYNU', P04406:'GAPDH' },
-    metabolomics: {
-      'CHEBI:16828':t('L-tryptophane','L-tryptophan'),
-      'CHEBI:16946':t('L-kynurénine','L-kynurenine'),
-      'CHEBI:24996':t('Lactate','Lactate'),
-      'CHEBI:30031':t('Succinate','Succinate')
-    }
+    proteomics: { P42224:'STAT1', P14902:'IDO1', Q16719:'KYNU', P04406:'GAPDH' }
+  };
+  /** @type {Record<string,{fr:string,en:string}>} */
+  const demoMetabolites = {
+    'CHEBI:16828':{fr:'L-tryptophane',en:'L-tryptophan'},
+    'CHEBI:16946':{fr:'L-kynurénine',en:'L-kynurenine'},
+    'CHEBI:24996':{fr:'Lactate',en:'Lactate'},
+    'CHEBI:30031':{fr:'Succinate',en:'Succinate'}
   };
   /** @param {string} layer @param {string} feature */
   function featureRow(layer,feature){
-    return analysisResult?.layers?.[layer]?.rows?.find((row)=>row.feature===feature) || null;
+    return analysisResult?.layers?.[layer]?.rows?.find((/** @type {any} */ row)=>row.feature===feature) || null;
   }
   /** @param {string} layer @param {string} feature */
   function featureName(layer,feature){
-    return demoNames?.[layer]?.[feature] || feature;
+    if(layer==='metabolomics' && demoMetabolites[feature]){
+      const item=demoMetabolites[feature];
+      return t(item.fr,item.en);
+    }
+    return demoNames[layer]?.[feature] || feature;
   }
   /** @param {string} layer @param {string} feature */
   function featureValue(layer,feature){
