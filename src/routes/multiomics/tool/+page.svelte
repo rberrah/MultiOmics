@@ -4089,8 +4089,8 @@ Rscript multiomics-engine/run_backend.R</code></pre>
         </div>
 
         <div>
-          <code>Δr</code>
-          <span>{t('Différence de corrélation inter-omique entre deux conditions.', 'Difference in cross-omics correlation between two conditions.')}</span>
+          <code>Δρ</code>
+          <span>{t('Différence de corrélation de rang de Spearman entre deux conditions.', 'Difference in Spearman rank correlation between two conditions.')}</span>
           <span>{t('Peut révéler un couplage gagné, perdu ou inversé.', 'Can reveal gained, lost or reversed coupling.')}</span>
           <span>{t('Une corrélation condition-dépendante ne prouve pas une interaction causale.', 'Condition-dependent correlation does not prove a causal interaction.')}</span>
         </div>
