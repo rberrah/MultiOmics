@@ -61,12 +61,12 @@
     <article class="card">
       <h2>{t('PMx Explain','PMx Explain')}</h2>
       <p>{t('Cours et outils de pharmacométrie reliés à cet environnement omique.', 'Pharmacometrics courses and tools connected to this omics environment.')}</p>
-      <a href="https://rberrah.github.io/pharmacometrie/">{t('Ouvrir PMx Explain','Open PMx Explain')} ↗</a>
+      <a href="https://rberrah.github.io/pharmacometrie/" data-sveltekit-reload>{t('Ouvrir PMx Explain','Open PMx Explain')} ↗</a>
     </article>
     <article class="card">
       <h2>{t('Site principal','Main site')}</h2>
       <p>{t('Publications, communications et autres outils de recherche.', 'Publications, communications and other research tools.')}</p>
-      <a href="https://rberrah.github.io/">{t('Retour au site','Back to main site')} ↗</a>
+      <a href="https://rberrah.github.io/" data-sveltekit-reload data-testid="resource-main-site">{t('Retour au site','Back to main site')} ↗</a>
     </article>
   </div>
 </section>
