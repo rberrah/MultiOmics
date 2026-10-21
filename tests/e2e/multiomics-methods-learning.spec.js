@@ -75,3 +75,18 @@ test('Mobile 390px: three single-omic shortcuts and a full-width multi-omics but
   await expect(page.getByTestId('multiomics-results')).toBeVisible({timeout:30000});
   await expect(page.getByTestId('multiomics-visualizations')).toBeVisible();
 });
+
+test('Guided demo explains the existing synthetic longitudinal case and can launch it directly',async({page})=>{
+  await page.goto('/multiomics/demo?lang=fr');
+  await expect(page.getByRole('heading',{name:/Cas pratique.*traitement/i})).toBeVisible();
+  await expect(page.getByTestId('guided-demo-design')).toContainText('8 sujets');
+  await expect(page.getByTestId('guided-demo-design')).toContainText('T0');
+  await expect(page.getByTestId('guided-demo-interpretation')).toContainText('tryptophane');
+  await expect(page.getByTestId('guided-demo-limit')).toContainText(/synthétique/i);
+  const launch=page.getByTestId('guided-demo-launch');
+  await expect(launch).toHaveAttribute('href',/\/multiomics\/tool\/\?demo=multi$/);
+  await launch.click();
+  await expect(page).toHaveURL(/\/multiomics\/tool\/\?demo=multi$/);
+  await expect(page.getByTestId('multiomics-results')).toBeVisible({timeout:30000});
+  await expect(page.getByTestId('multiomics-analysis-mode')).toContainText(/Multi-omique/);
+});
