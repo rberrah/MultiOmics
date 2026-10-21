@@ -140,6 +140,15 @@
     if(nativeCount>0)return 'mixed_native_browser';
     return 'browser_exploratory';
   }
+  /** @param {unknown} value @param {string} [missing] */
+  function probabilityText(value, missing = '—') {
+    if (value == null || value === '') return missing;
+    const x=Number(value);
+    if (!Number.isFinite(x)) return missing;
+    if (x === 0) return '<1e−15';
+    if (Math.abs(x) < 0.001) return x.toExponential(2).replace('e-','e−');
+    return x.toPrecision(3);
+  }
   let helpTooltip = { visible: false, text: '', left: 0, top: 0, placement: 'above' };
   // External API requests and reference R data forwarding are opt-in.
   let useReactome = false;
@@ -4256,7 +4265,9 @@ Rscript multiomics-engine/run_backend.R</code></pre>
                 </div>
                 <p class="selection-rule">{result.selectionRule}</p>
             {#if result.inferencePolicy}<p class="selection-rule"><strong>Inference:</strong> {result.inferencePolicy}</p>{/if}
-            <div class="feature-table" data-testid="multiomics-feature-inference">
+            {@const displayedRows = (result.numericalProvenance === 'exact_native_r_reference_table' ? result.selected : result.rows).slice(0, 10)}
+            {@const showApproxInference = displayedRows.some((row) => Number.isFinite(row?.approxPValue) || Number.isFinite(row?.approxQValue))}
+            <div class="feature-table" class:with-approx={showApproxInference} data-testid="multiomics-feature-inference">
                   <div class="feature-head">
                     <b>{t('Variable', 'Feature')}</b>
   <b>{result.effectScale === 'log2' ? 'Fold ratio' : t('Effet', 'Effect')}
@@ -4264,14 +4275,18 @@ Rscript multiomics-engine/run_backend.R</code></pre>
                           ? t('Rapport comparaison/référence calculé comme 2^effect sur une échelle log2. 2 = deux fois plus, 0,5 = deux fois moins.', 'Comparison/reference ratio computed as 2^effect on a log2 scale. 2 = twice as high; 0.5 = half as high.')
       : t('Direction et amplitude du contraste ou du coefficient estimé. Toujours lire le contraste affiché et son échelle.', 'Direction and magnitude of the estimated contrast or coefficient. Always read the displayed contrast and its scale.')}>?</span>
                     </b>
-  <b>p
-    <span class="help-tip" tabindex="0" data-tooltip={t('p-value brute du test pour cette variable, avant correction des tests multiples. Une petite p-value seule ne suffit pas lorsqu’on teste beaucoup de variables.', 'Raw p-value for this feature before multiple-testing correction. A small p-value alone is not sufficient when many features are tested.')}>?</span>
+  <b>{t('p référence','reference p')}
+    <span class="help-tip" tabindex="0" data-tooltip={t('p-value de référence. Si le navigateur ne possède pas une inférence suffisamment calibrée pour ce modèle, elle est indiquée « non calculé » et doit venir du replay R.', 'Reference p-value. If browser inference is not sufficiently calibrated for this model, it is labelled “not computed” and must come from the R replay.')}>?</span>
                     </b>
-  <b>q BH
-    <span class="help-tip" tabindex="0" data-tooltip={t('p-value ajustée par la procédure Benjamini–Hochberg. Le contrôle nominal du FDR dépend de la validité des p-values et des hypothèses ; il n’est pas certifié automatiquement par MultiOmics. Ici q ≤ 0,10 sert uniquement au classement/affichage exploratoire.', 'P-value adjusted with the Benjamini–Hochberg procedure. Nominal FDR control depends on valid p-values and assumptions and is not automatically certified by MultiOmics. Here q ≤ 0.10 is used only for exploratory ranking/display.')}>?</span>
+  <b>{t('q BH référence','reference BH q')}
+    <span class="help-tip" tabindex="0" data-tooltip={t('q-value de référence après Benjamini–Hochberg. Elle reste non calculée lorsque les p-values navigateur ne satisfont pas le gate de calibration.', 'Reference Benjamini–Hochberg q-value. It remains not computed when browser p-values do not pass the calibration gate.')}>?</span>
                     </b>
+  {#if showApproxInference}
+    <b>p* {t('approx.','approx.')}<span class="help-tip" tabindex="0" data-tooltip={t('Approximation navigateur non calibrée. Utile pour l’orientation, mais à ne pas citer comme inférence confirmatoire ; rejouez le modèle sous R.', 'Uncalibrated browser approximation. Useful for orientation, but do not cite it as confirmatory inference; rerun the model in R.')}>?</span></b>
+    <b>q* BH {t('approx.','approx.')}<span class="help-tip" tabindex="0" data-tooltip={t('Benjamini–Hochberg appliqué aux p* approximatives. Même statut exploratoire que p*.', 'Benjamini–Hochberg applied to approximate p*. It has the same exploratory status as p*.')}>?</span></b>
+  {/if}
                   </div>
-                  {#each (result.numericalProvenance === 'exact_native_r_reference_table' ? result.selected : result.rows).slice(0, 10) as row}
+                  {#each displayedRows as row}
                     <div>
                       <code>{row.feature}</code>
                       {#if row.foldRatio != null}
@@ -4298,9 +4313,9 @@ Rscript multiomics-engine/run_backend.R</code></pre>
                           {/if}
                         </span>
                       {/if}
-                      <span>{row.pValue == null ? '—' : row.pValue.toPrecision(3)}</span>
+                      <span>{probabilityText(row.pValue, t('non calculé','not computed'))}</span>
                   <span data-scientific-q={row.qValue == null ? '' : String(row.qValue)}>
-                    {row.qValue == null ? '—' : row.qValue.toPrecision(3)}
+                    {probabilityText(row.qValue, t('non calculé','not computed'))}
                     {#if result.nativeObjectiveFamily === 'survival'}
                       <small>
                         PH p={row.proportionalHazardsP == null ? '—' : row.proportionalHazardsP.toPrecision(3)}
@@ -4315,6 +4330,10 @@ Rscript multiomics-engine/run_backend.R</code></pre>
                       </small>
                     {/if}
                   </span>
+                  {#if showApproxInference}
+                    <span>{probabilityText(row.approxPValue)}</span>
+                    <span data-approximate-q={row.approxQValue == null ? '' : String(row.approxQValue)}>{probabilityText(row.approxQValue)}</span>
+                  {/if}
                     </div>
                   {/each}
                 </div>
@@ -4345,18 +4364,25 @@ Rscript multiomics-engine/run_backend.R</code></pre>
             <span>Spearman + Fisher z + BH-FDR</span>
           </div>
           <div class="api-summary">
-      <span><strong>{analysisResult.crossOmics?.testedPairs ?? 0}</strong> matched cross-omic pairs tested</span>
-      <span><strong>{analysisResult.crossOmics?.significantPairs ?? 0}</strong> pairs with q ≤ 0.10</span>
+      <span><strong>{analysisResult.crossOmics?.testedPairs ?? 0}</strong> {t('paires inter-omiques testées','matched cross-omic pairs tested')}</span>
+      <span><strong>{analysisResult.crossOmics?.significantPairs ?? 0}</strong> {t('paires avec q de référence ≤ 0,10','pairs with reference q ≤ 0.10')}</span>
+      {#if analysisResult.crossOmics?.approximateSignificantPairs != null}<span><strong>{analysisResult.crossOmics.approximateSignificantPairs}</strong> {t('paires avec q* approx. ≤ 0,10','pairs with approx. q* ≤ 0.10')}</span>{/if}
           </div>
           {#if analysisResult.crossOmics?.pairs?.length}
-            <div class="cross-table">
+            {@const showCrossApprox = analysisResult.crossOmics.pairs.some((pair) => Number.isFinite(pair?.approxPValue) || Number.isFinite(pair?.approxQValue))}
+            <div class="cross-table" class:with-approx={showCrossApprox}>
               <div class="cross-head">
                 <b>{t('Paire', 'Pair')}</b>
   <b>Pattern <span class="help-tip" tabindex="0" data-tooltip={t('Résumé déterministe du changement de corrélation : gain, perte, renforcement, affaiblissement ou inversion de signe.', 'Deterministic summary of the correlation change: gained, lost, strengthened, weakened or sign reversal.')}>?</span></b>
   <b>r reference <span class="help-tip" tabindex="0" data-tooltip={t('Corrélation de Spearman entre les deux variables dans le groupe de référence.', 'Spearman correlation between the two features in the reference group.')}>?</span></b>
   <b>r comparison <span class="help-tip" tabindex="0" data-tooltip={t('Même corrélation de Spearman dans le groupe comparé.', 'The same Spearman correlation in the comparison group.')}>?</span></b>
   <b>Δr <span class="help-tip" tabindex="0" data-tooltip={t('Différence r_comparison − r_reference. Une grande valeur absolue indique un changement important de couplage entre les deux conditions.', 'Difference r_comparison − r_reference. A large absolute value indicates a strong change in coupling between conditions.')}>?</span></b>
-  <b>q BH <span class="help-tip" tabindex="0" data-tooltip={t('q-value Benjamini–Hochberg calculée sur toutes les paires inter-omiques testées. Une petite valeur réduit le risque de faux appel dans cette famille sous les hypothèses du test, mais ne confirme ni causalité, ni mécanisme, ni réplication biologique.', 'Benjamini–Hochberg q-value across all tested cross-omics pairs. A small value reduces false-call risk within this tested family under the model assumptions, but does not establish causality, mechanism or biological replication.')}>?</span></b>
+  <b>{t('p référence','reference p')}</b>
+  <b>{t('q BH référence','reference BH q')} <span class="help-tip" tabindex="0" data-tooltip={t('p/q de référence. Pour le longitudinal navigateur elles restent non calculées tant que la calibration n’est pas validée.', 'Reference p/q. For browser longitudinal analysis they remain not computed until calibration is validated.')}>?</span></b>
+  {#if showCrossApprox}
+    <b>p* {t('approx.','approx.')}</b>
+    <b>q* BH {t('approx.','approx.')} <span class="help-tip" tabindex="0" data-tooltip={t('Approximation Fisher-z navigateur + BH, affichée pour orientation uniquement. Replay R requis avant publication.', 'Browser Fisher-z approximation + BH, shown for orientation only. R replay required before publication.')}>?</span></b>
+  {/if}
               </div>
               {#each analysisResult.crossOmics.pairs.slice(0, 15) as pair}
                 <div>
@@ -4365,11 +4391,16 @@ Rscript multiomics-engine/run_backend.R</code></pre>
                   <span>{Number.isFinite(pair.rReference) ? pair.rReference.toFixed(2) : '—'}</span>
                   <span>{Number.isFinite(pair.rComparison) ? pair.rComparison.toFixed(2) : '—'}</span>
                   <strong>{Number.isFinite(pair.deltaR) ? pair.deltaR.toFixed(2) : '—'}</strong>
-                  <span>{pair.qValue == null ? '—' : pair.qValue.toPrecision(3)}</span>
+                  <span>{probabilityText(pair.pValue, t('non calculé','not computed'))}</span>
+                  <span>{probabilityText(pair.qValue, t('non calculé','not computed'))}</span>
+                  {#if showCrossApprox}
+                    <span>{probabilityText(pair.approxPValue)}</span>
+                    <span>{probabilityText(pair.approxQValue)}</span>
+                  {/if}
                 </div>
               {/each}
             </div>
-            <p class="note">{analysisResult.crossOmics.method}. Only subjects represented in both layers contribute to a pair; no imputation is used here.</p>
+            <p class="note">{analysisResult.crossOmics.method}. {t('Seuls les sujets présents dans les deux couches contribuent à une paire ; aucune imputation n’est utilisée. Les p*/q* sont des approximations exploratoires, pas des preuves confirmatoires.', 'Only subjects represented in both layers contribute to a pair; no imputation is used. p*/q* are exploratory approximations, not confirmatory evidence.')}</p>
           {:else}
             <p class="muted">{t('Aucun test de changement de corrélation inter-omique n’était estimable avec les tailles de groupes et sujets appariés actuels.', 'No cross-omic correlation test was estimable with the current group sizes and matched subjects.')}</p>
           {/if}
@@ -5869,11 +5900,16 @@ Rscript multiomics-engine/run_backend.R</code></pre>
 
   .feature-table > div {
     display: grid;
-    grid-template-columns: 1.4fr .7fr .7fr .7fr;
+    grid-template-columns: 1.4fr .7fr .9fr .9fr;
     gap: 8px;
     padding: 7px 0;
     border-bottom: 1px solid var(--border-subtle);
     align-items: center;
+  }
+
+  .feature-table.with-approx > div {
+    grid-template-columns: minmax(180px,1.4fr) .7fr .9fr .9fr .9fr .9fr;
+    min-width: 760px;
   }
 
   .feature-head {
@@ -5912,12 +5948,17 @@ Rscript multiomics-engine/run_backend.R</code></pre>
 
   .cross-table > div {
     display: grid;
-    grid-template-columns: minmax(280px,2.2fr) 1fr repeat(4,.65fr);
+    grid-template-columns: minmax(280px,2.2fr) 1fr repeat(5,.65fr);
     gap: 8px;
     padding: 8px 0;
     border-bottom: 1px solid var(--border-subtle);
     align-items: center;
-    min-width: 760px;
+    min-width: 860px;
+  }
+
+  .cross-table.with-approx > div {
+    grid-template-columns: minmax(280px,2.2fr) 1fr repeat(7,.72fr);
+    min-width: 1080px;
   }
 
   .cross-head {
