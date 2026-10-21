@@ -110,7 +110,8 @@ assert.ok(example.focusedMetabolicNetwork.coverage.links >= 90);
 assert.equal(example.focusedMetabolicNetwork.coverage.inputMetaboliteFeatures,4);
 assert.equal(example.focusedMetabolicNetwork.coverage.mappedMetaboliteFeatures,4);
 assert.equal(example.focusedMetabolicNetwork.coverage.inputTranscriptFeatures,5);
-assert.equal(example.focusedMetabolicNetwork.coverage.mappedTranscriptFeatures,4);
+assert.equal(example.focusedMetabolicNetwork.coverage.mappedTranscriptFeatures,3,
+  'Only GAPDH, IDO1 and KYNU map to the curated metabolic-gene catalog; STAT1/CYP3A5 remain outside rather than being forced onto the map.');
 assert.ok(example.focusedMetabolicNetwork.coverage.measuredRegions >= 3);
 assert.equal(example.focusedMetabolicNetwork.coverage.proteomicsProjected,false);
 const graph=example.focusedMetabolicNetwork;
