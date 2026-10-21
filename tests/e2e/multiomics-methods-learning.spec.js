@@ -79,7 +79,7 @@ test('Mobile 390px: three single-omic shortcuts and a full-width multi-omics but
 test('Guided demo explains the existing synthetic longitudinal case and can launch it directly',async({page})=>{
   await page.goto('/multiomics/demo?lang=fr');
   await expect(page.getByRole('heading',{name:/Cas pratique.*traitement/i})).toBeVisible();
-  await expect(page.getByTestId('guided-demo-design')).toContainText('8 sujets');
+  await expect(page.getByTestId('guided-demo-design')).toContainText(/8\s*sujets/);
   await expect(page.getByTestId('guided-demo-design')).toContainText('T0');
   await expect(page.getByTestId('guided-demo-interpretation')).toContainText('tryptophane');
   await expect(page.getByTestId('guided-demo-limit')).toContainText(/synthétique/i);
