@@ -100,17 +100,22 @@ test('Guided demo is a PMx-style worked example driven by the exact Tool output'
         steps:layer.steps,
         rows:(layer.rows||[]).map((/** @type {any} */ row)=>({
           feature:row.feature,effect:row.effect,foldRatio:row.foldRatio,
-          pValue:row.pValue,qValue:row.qValue,nReference:row.nReference,nComparison:row.nComparison
+          pValue:row.pValue,qValue:row.qValue,
+          approxPValue:row.approxPValue,approxQValue:row.approxQValue,
+          nReference:row.nReference,nComparison:row.nComparison
         }))
       }])),
       crossOmics:{
         method:r.crossOmics?.method,
         testedPairs:r.crossOmics?.testedPairs,
         significantPairs:r.crossOmics?.significantPairs,
+        approximateSignificantPairs:r.crossOmics?.approximateSignificantPairs,
         pairs:(r.crossOmics?.pairs||[]).map((/** @type {any} */ pair)=>({
           layerA:pair.layerA,featureA:pair.featureA,layerB:pair.layerB,featureB:pair.featureB,
           rReference:pair.rReference,rComparison:pair.rComparison,deltaR:pair.deltaR,
-          pValue:pair.pValue,qValue:pair.qValue,pattern:pair.pattern
+          pValue:pair.pValue,qValue:pair.qValue,
+          approxPValue:pair.approxPValue,approxQValue:pair.approxQValue,
+          pattern:pair.pattern
         }))
       },
       visualizations:r.visualizations
@@ -125,6 +130,14 @@ test('Guided demo is a PMx-style worked example driven by the exact Tool output'
   await expect(page.getByTestId('guided-demo-methods')).toContainText('reference_required_for_p_q_and_ci');
   await expect(page.getByTestId('guided-demo-methods')).toContainText('lmerTest');
   await expect(page.getByTestId('guided-demo-live-visualizations')).toBeVisible();
+  await expect(page.getByTestId('guided-demo-figure-guide')).toContainText(/Heatmap/i);
+  await expect(page.getByTestId('guided-demo-figure-guide')).toContainText(/Metabologramme/i);
+  await expect(page.getByTestId('guided-demo-figure-guide')).toContainText(/Réseau ciblé/i);
+  await expect(page.getByTestId('multiomics-figure-reading')).toContainText(/Comment lire la heatmap/i);
+  const exactResults=page.getByTestId('guided-demo-exact-results');
+  await expect(exactResults).toContainText(/non calculé/i);
+  await expect(exactResults).toContainText(/p\* approx\./i);
+  await expect(exactResults.locator('.not-computed').first()).toHaveText(/non calculé/i);
   await expect(page.getByTestId('guided-demo-limit')).toContainText(/synthétiques/i);
   const guided=await snapshot();
 
@@ -143,5 +156,11 @@ test('Guided demo is a PMx-style worked example driven by the exact Tool output'
     expect(layer.inferenceMethod).toContain('random-intercept GLS effect ONLY');
     expect(layer.groupSizes).toEqual([4,4]);
     expect(layer.rows.every((/** @type {any} */ row)=>row.pValue===null && row.qValue===null)).toBe(true);
+    expect(layer.rows.some((/** @type {any} */ row)=>Number.isFinite(row.approxPValue))).toBe(true);
+    expect(layer.rows.some((/** @type {any} */ row)=>Number.isFinite(row.approxQValue))).toBe(true);
   }
+  expect(guided.crossOmics.pairs.length).toBeGreaterThan(0);
+  expect(guided.crossOmics.pairs.every((/** @type {any} */ pair)=>pair.pValue===null && pair.qValue===null)).toBe(true);
+  expect(guided.crossOmics.pairs.some((/** @type {any} */ pair)=>Number.isFinite(pair.approxPValue))).toBe(true);
+  expect(guided.crossOmics.pairs.some((/** @type {any} */ pair)=>Number.isFinite(pair.approxQValue))).toBe(true);
 });

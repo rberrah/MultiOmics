@@ -75,6 +75,10 @@
     return Number.isFinite(value) ? Number(value).toFixed(digits) : '—';
   }
 
+  function qLabel(value) {
+    return Number.isFinite(value) ? fmt(value, 3) : tr('non calculé', 'not computed');
+  }
+
   function itemLabel(item) {
     return language === 'en' ? (item.labelEn || item.feature) : (item.labelFr || item.feature);
   }
@@ -132,7 +136,7 @@
   function measurementTitle(label, measurement) {
     if (!measurement) return label + ' · ' + tr('non mesuré / non reconnu', 'not measured / not matched');
     if (measurement.status !== 'measured') return label + ' · ' + measurement.feature + ' · ' + measurement.status;
-    return label + ' · ' + measurement.feature + ' · ' + scaleLabel([measurement]) + '=' + fmt(measurement.effect) + ' · q=' + fmt(measurement.qValue, 3);
+    return label + ' · ' + measurement.feature + ' · ' + scaleLabel([measurement]) + '=' + fmt(measurement.effect) + ' · q=' + qLabel(measurement.qValue);
   }
 
   function downloadSvg(id, filename) {
@@ -158,8 +162,8 @@
       <p class="eyebrow">{tr('Visualisation intégrée', 'Integrated visualization')}</p>
       <h2>{tr('Voir le signal biologique sous plusieurs angles', 'View the biological signal from several angles')}</h2>
       <p>{tr(
-        'Ces figures réutilisent les résultats calculés. Elles n’ajoutent aucun test statistique et ne changent pas les q-values.',
-        'These figures reuse the computed results. They add no statistical test and do not change q-values.'
+        'Ces figures réutilisent les résultats calculés. Elles n’ajoutent aucun test statistique. Les codes de significativité reposent uniquement sur les q-values de référence ; les p*/q* approximatives du navigateur ne renforcent jamais graphiquement un signal.',
+        'These figures reuse the computed results. They add no statistical test. Significance styling uses reference q-values only; approximate browser p*/q* never strengthen a signal graphically.'
       )}</p>
     </div>
   </div>
@@ -175,6 +179,28 @@
       {tr('3. Réseau ciblé', '3. Focused network')}
     </button>
   </nav>
+
+  <aside class="figure-reading" data-testid="multiomics-figure-reading">
+    {#if activeFigure === 'heatmap'}
+      <strong>{tr('Comment lire la heatmap', 'How to read the heatmap')}</strong>
+      <span>{tr(
+        'Colonnes = prélèvements ; lignes = variables retenues. Chaque ligne est transformée en z-score séparément : la couleur montre une position relative pour cette variable, pas un fold change ni une p-value. Cherchez des motifs cohérents avec groupe/temps et vérifiez les réplicats techniques.',
+        'Columns = specimens; rows = retained features. Each row is independently converted to a z-score: color is relative within that feature, not a fold change or p-value. Look for patterns coherent with group/time and check technical replicates.'
+      )}</span>
+    {:else if activeFigure === 'pathways'}
+      <strong>{tr('Comment lire le metabologramme', 'How to read the metabologram')}</strong>
+      <span>{tr(
+        'Gauche = métabolites, droite = transcrits. La couleur code direction/amplitude de l’effet et est normalisée séparément par couche. Un contour renforcé exige une q-value de référence. Une présence sur la carte n’est ni un enrichissement significatif ni une preuve de flux.',
+        'Left = metabolites, right = transcripts. Color encodes effect direction/magnitude and is scaled separately by layer. A stronger outline requires a reference q-value. Presence on the map is neither significant enrichment nor evidence of flux.'
+      )}</span>
+    {:else}
+      <strong>{tr('Comment lire le réseau ciblé', 'How to read the focused network')}</strong>
+      <span>{tr(
+        'Les nœuds colorés sont des mesures reconnues ; les éléments gris sont absents ou non appariés. Les flèches décrivent la carte biologique utilisée, pas une causalité démontrée. La cohérence multi-couches génère une hypothèse, pas une preuve mécanistique.',
+        'Colored nodes are matched measurements; gray elements are absent or unmatched. Arrows describe the biological map used, not demonstrated causality. Cross-layer coherence generates a hypothesis, not mechanistic proof.'
+      )}</span>
+    {/if}
+  </aside>
 
   {#if activeFigure === 'heatmap' && heatmapLayers.length}
     <article class="figure-card" data-testid="multiomics-heatmap">
@@ -235,7 +261,7 @@
                   height={rowH - 1}
                   fill={diverging(value, 2.5)}
                 >
-                  <title>{row.feature} · {heatmap.samples[column].sampleId} · z={fmt(value)} · {tr('effet', 'effect')}={fmt(row.effect)} · q={fmt(row.qValue, 3)}</title>
+                  <title>{row.feature} · {heatmap.samples[column].sampleId} · z={fmt(value)} · {tr('effet', 'effect')}={fmt(row.effect)} · q={qLabel(row.qValue)}</title>
                 </rect>
               {/each}
             {/each}
@@ -293,13 +319,13 @@
           {#each metaboliteSegments as segment}
             {@const stroke = qStroke(segment.qValue)}
             <path d={segment.path} fill={diverging(segment.effect, metLimit)} stroke="#263238" stroke-width={stroke.width} stroke-dasharray={stroke.dash}>
-              <title>{itemLabel(segment)} · {segment.feature} · {scaleLabel([segment])}={fmt(segment.effect)} · q={fmt(segment.qValue, 3)}</title>
+              <title>{itemLabel(segment)} · {segment.feature} · {scaleLabel([segment])}={fmt(segment.effect)} · q={qLabel(segment.qValue)}</title>
             </path>
           {/each}
           {#each transcriptSegments as segment}
             {@const stroke = qStroke(segment.qValue)}
             <path d={segment.path} fill={diverging(segment.effect, rnaLimit)} stroke="#263238" stroke-width={stroke.width} stroke-dasharray={stroke.dash}>
-              <title>{itemLabel(segment)} · {segment.feature} · {scaleLabel([segment])}={fmt(segment.effect)} · q={fmt(segment.qValue, 3)}</title>
+              <title>{itemLabel(segment)} · {segment.feature} · {scaleLabel([segment])}={fmt(segment.effect)} · q={qLabel(segment.qValue)}</title>
             </path>
           {/each}
 
@@ -528,6 +554,8 @@
   .figure-switcher button { padding:10px 16px; border:0; border-radius:9px; background:#fff; color:#304755; font-size:.88rem; font-weight:650; }
   .figure-switcher button.active { background:#12627b; color:#fff; }
   .figure-switcher button:focus-visible { outline:3px solid #e5b75b; outline-offset:2px; }
+  .figure-reading { display:grid; gap:4px; padding:11px 13px; border-left:4px solid #176c83; background:#f3f8f9; color:#203845; font-size:.86rem; line-height:1.5; }
+  .figure-reading strong { color:#182a34; }
   .pathway-select { display:flex; align-items:center; flex-wrap:wrap; gap:7px; font-size:.82rem; }
   .pathway-select span { color:#304755; }
   .coverage-note { color:#243947; font-size:.83rem; margin:8px 0; font-weight:700; }

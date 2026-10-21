@@ -43,7 +43,18 @@
   }
   /** @param {unknown} value */
   function sig(value){
-    return Number.isFinite(Number(value)) ? Number(value).toPrecision(3) : '—';
+    if(value == null || value === '') return '—';
+    const x=Number(value);
+    return Number.isFinite(x) ? x.toPrecision(3) : '—';
+  }
+  /** @param {unknown} value */
+  function probability(value){
+    if(value == null || value === '') return t('non calculé','not computed');
+    const x=Number(value);
+    if(!Number.isFinite(x)) return t('non calculé','not computed');
+    if(x===0) return '<1e−15';
+    if(Math.abs(x)<0.001) return x.toExponential(2).replace('e-','e−');
+    return x.toPrecision(3);
   }
   /** @param {unknown} value */
   function effect(value){
@@ -58,8 +69,8 @@
         : t('aucune différence de trajectoire n’est estimée','no trajectory difference is estimated');
     const inference = layer?.inferenceStatus === 'reference_required_for_p_q_and_ci'
       ? t(
-          `Effet descriptif uniquement : Tool supprime volontairement p, q et IC dans le navigateur pour ce modèle longitudinal. L’inférence doit être rejouée avec ${layer?.referenceMethodRequired || 'lmerTest'} sous R.`,
-          `Descriptive effect only: Tool deliberately suppresses browser p, q and CIs for this longitudinal model. Inference must be rerun with ${layer?.referenceMethodRequired || 'lmerTest'} in R.`
+          `p/q de référence : non calculé dans le navigateur. Approximation exploratoire : p*=${probability(row?.approxPValue)}, q*=${probability(row?.approxQValue)}. Rejouez ${layer?.referenceMethodRequired || 'lmerTest'} sous R pour l’inférence de référence.`,
+          `Reference p/q: not computed in the browser. Exploratory approximation: p*=${probability(row?.approxPValue)}, q*=${probability(row?.approxQValue)}. Rerun ${layer?.referenceMethodRequired || 'lmerTest'} in R for reference inference.`
         )
       : Number.isFinite(row?.qValue)
         ? (row.qValue<=0.10
@@ -233,8 +244,8 @@
   <h2>{t('3 · Quel test l’outil choisit-il ?','3 · Which test does the tool choose?')}</h2>
   {#if status==='done'}
     <p>{t(
-      'Le questionnaire décrit un plan longitudinal à mesures répétées. Tool sélectionne donc un modèle exploratoire à intercept aléatoire par sujet : feature ~ condition × temps + batch + (1|sujet). Le coefficient présenté est l’interaction condition × temps ramenée sur l’intervalle T0→T12. Cette branche navigateur conserve l’effet estimé mais supprime volontairement les p-values, q-values et intervalles de confiance : les simulations de calibration n’autorisaient pas une inférence navigateur suffisamment fiable. Pour l’inférence longitudinale, le moteur demande lmerTest dans le backend R de référence.',
-      'The questionnaire describes a repeated-measures longitudinal design. Tool therefore selects an exploratory subject random-intercept model: feature ~ condition × time + batch + (1|subject). The displayed coefficient is the condition × time interaction scaled over T0→T12. This browser branch retains the estimated effect but deliberately suppresses p-values, q-values and confidence intervals because calibration simulations did not support sufficiently reliable browser inference. For longitudinal inference, the engine requires lmerTest in the reference R backend.'
+      'Le questionnaire décrit un plan longitudinal à mesures répétées. Tool sélectionne donc un modèle exploratoire à intercept aléatoire par sujet : feature ~ condition × temps + batch + (1|sujet). Le coefficient présenté est l’interaction condition × temps ramenée sur T0→T12. Les p/q de référence restent volontairement non calculées dans le navigateur car la calibration sous le nul était insuffisante ; l’outil expose désormais séparément p*/q* comme approximation exploratoire. Pour l’inférence de référence, le moteur demande lmerTest sous R.',
+      'The questionnaire describes a repeated-measures longitudinal design. Tool therefore selects an exploratory subject random-intercept model: feature ~ condition × time + batch + (1|subject). The displayed coefficient is the condition × time interaction over T0→T12. Reference p/q remain intentionally not computed in the browser because null calibration was insufficient; the tool now exposes separate p*/q* as exploratory approximations. For reference inference, the engine requires lmerTest in R.'
     )}</p>
     <div class="method-grid" data-testid="guided-demo-methods">
       {#each layerOrder as layer}
@@ -267,8 +278,8 @@
 <section data-testid="guided-demo-exact-results">
   <h2>{t('4 · Sorties numériques exactes de Tool','4 · Exact numerical outputs from Tool')}</h2>
   <p>{t(
-    'Les tableaux ci-dessous lisent directement result.layers du moteur. Pour ce cas longitudinal, les colonnes p et q affichent « — » parce que Tool les supprime intentionnellement dans le navigateur. L’effet, lui, est exactement l’estimation exploratoire utilisée par Tool ; sur l’échelle log2, 2^effet donne le ratio des variations multiplicatives T0→T12 entre traitement et contrôle.',
-    'The tables below read result.layers directly from the engine. For this longitudinal case, p and q display “—” because Tool intentionally suppresses them in the browser. The effect is the exact exploratory estimate used by Tool; on the log2 scale, 2^effect is the ratio of multiplicative T0→T12 changes between treatment and control.'
+    'Les p/q de référence sont affichées « non calculé » lorsqu’elles ne sont pas validées dans le navigateur. Les colonnes p*/q* montrent séparément l’approximation navigateur, avec correction BH appliquée aux p*. Ces valeurs exploratoires sont affichées en notation scientifique lorsqu’elles sont petites et doivent être rejouées sous R pour l’inférence de référence.',
+    'Reference p/q are shown as “not computed” when they are not validated in the browser. Separate p*/q* columns show the browser approximation, with BH applied to p*. Small exploratory values use scientific notation and must be rerun in R for reference inference.'
   )}</p>
   {#if status==='done'}
     {#each layerOrder as layer}
@@ -278,7 +289,7 @@
         <div class="table-wrap">
           <table>
             <thead>
-              <tr><th>{t('Variable','Feature')}</th><th>{t('Effet','Effect')}</th><th>{t('Échelle','Scale')}</th><th>2^effect</th><th>p</th><th>q BH</th><th>n ref</th><th>n comp</th></tr>
+              <tr><th>{t('Variable','Feature')}</th><th>{t('Effet','Effect')}</th><th>{t('Échelle','Scale')}</th><th>2^effect</th><th>{t('p référence','reference p')}</th><th>{t('q BH référence','reference BH q')}</th><th>p* {t('approx.','approx.')}</th><th>q* BH {t('approx.','approx.')}</th><th>n ref</th><th>n comp</th></tr>
             </thead>
             <tbody>
               {#each r.rows as row}
@@ -287,8 +298,10 @@
                   <td>{effect(row.effect)}</td>
                   <td><code>{row.effectScale}</code></td>
                   <td>{row.foldRatio==null?'—':row.foldRatio.toFixed(2)+'×'}</td>
-                  <td>{sig(row.pValue)}</td>
-                  <td class:qualified={Number.isFinite(row.qValue)&&row.qValue<=0.10}>{sig(row.qValue)}</td>
+                  <td class="not-computed">{probability(row.pValue)}</td>
+                  <td class="not-computed">{probability(row.qValue)}</td>
+                  <td>{probability(row.approxPValue)}</td>
+                  <td class:qualified={Number.isFinite(row.approxQValue)&&row.approxQValue<=0.10}>{probability(row.approxQValue)}</td>
                   <td>{row.nReference ?? '—'}</td>
                   <td>{row.nComparison ?? '—'}</td>
                 </tr>
@@ -316,15 +329,15 @@
           {#each r.rows.slice(0,Math.min(4,r.rows.length)) as row}
             <div class="reading-row">
               <code>{row.feature}</code>
-              <p><strong>{row.foldRatio==null?effect(row.effect):row.foldRatio.toFixed(2)+'×'}</strong> · p={sig(row.pValue)} · q={sig(row.qValue)}<br>{rowReading(row,r)}</p>
+              <p><strong>{row.foldRatio==null?effect(row.effect):row.foldRatio.toFixed(2)+'×'}</strong> · p={probability(row.pValue)} · q={probability(row.qValue)} · p*={probability(row.approxPValue)} · q*={probability(row.approxQValue)}<br>{rowReading(row,r)}</p>
             </div>
           {/each}
         </article>
       {/each}
     </div>
     <p class="cap">{t(
-      'Pourquoi p = q = « — » ici ? Le moteur a explicitement désactivé l’inférence Wald/t du modèle longitudinal navigateur après un problème de calibration sous le nul. Il conserve les effets pour l’exploration et le classement, mais exige lmerTest sous R pour p-values, correction multiplicité et intervalles de confiance utilisables dans une analyse de référence.',
-      'Why are p = q = “—” here? The engine explicitly disabled browser Wald/t inference for the longitudinal model after a null-calibration problem. It retains effects for exploration and ranking, but requires lmerTest in R for p-values, multiplicity correction and confidence intervals suitable for a reference analysis.'
+      'Pourquoi séparer p/q et p*/q* ? Les simulations sous le nul ont montré que l’approximation Wald/t du navigateur n’était pas assez bien calibrée pour être présentée comme inférence de référence. Elle reste néanmoins calculable et informative : MultiOmics l’affiche donc avec un astérisque. p*/q* ne doivent pas être citées comme résultat confirmatoire ; utilisez le replay R lmerTest pour les p-values, q-values et IC de référence.',
+      'Why separate p/q from p*/q*? Null simulations showed that the browser Wald/t approximation was not sufficiently calibrated to serve as reference inference. It is still computable and informative, so MultiOmics exposes it with an asterisk. p*/q* should not be cited as confirmatory results; use the R lmerTest replay for reference p-values, q-values and confidence intervals.'
     )}</p>
   {/if}
 </section>
@@ -335,6 +348,30 @@
     'Ce composant est le même MultiomicsVisualizations que celui utilisé par Tool ; les valeurs ne sont donc pas reconstituées dans une seconde implémentation pédagogique.',
     'This is the same MultiomicsVisualizations component used by Tool, so values are not reconstructed in a second educational implementation.'
   )}</p>
+  <div class="figure-guide" data-testid="guided-demo-figure-guide">
+    <article>
+      <h3>{t('Heatmap : structure des échantillons','Heatmap: sample structure')}</h3>
+      <p>{t(
+        'Les colonnes sont les prélèvements et les lignes les variables retenues. Chaque ligne est centrée-réduite séparément : rouge/bleu indique une valeur haute/basse relativement à cette variable, pas un fold change ni une significativité. Cherchez surtout un motif cohérent contrôle/traitement et T0/T12, ainsi que la proximité du réplicat technique.',
+        'Columns are specimens and rows are retained features. Each row is standardized separately: red/blue means high/low relative to that feature, not fold change or significance. Look for coherent control/treatment and T0/T12 patterns and for agreement of the technical replicate.'
+      )}</p>
+    </article>
+    <article>
+      <h3>{t('Metabologramme : cohérence RNA–métabolites','Metabologram: RNA–metabolite coherence')}</h3>
+      <p>{t(
+        'La couleur représente la direction et l’amplitude de l’effet estimé, normalisée séparément dans chaque couche. Le contour n’est renforcé que par une q de référence ; dans cette démo longitudinale il reste donc descriptif. La présence sur une voie ne prouve ni enrichissement significatif ni flux métabolique.',
+        'Color represents the direction and magnitude of the estimated effect, scaled separately within each layer. The outline is strengthened only by a reference q-value, so it remains descriptive in this longitudinal demo. Presence on a pathway proves neither significant enrichment nor metabolic flux.'
+      )}</p>
+    </article>
+    <article>
+      <h3>{t('Réseau ciblé : localisation du signal','Focused network: locating the signal')}</h3>
+      <p>{t(
+        'Les nœuds colorés correspondent aux mesures reconnues ; les éléments gris sont non mesurés/non appariés. Les flèches représentent des relations de carte, pas une causalité démontrée. Une concordance entre plusieurs couches soutient une hypothèse à tester, mais ne démontre pas un mécanisme.',
+        'Colored nodes are matched measurements; gray elements are unmeasured/unmatched. Arrows are map relationships, not demonstrated causality. Agreement across layers supports a hypothesis to test but does not establish a mechanism.'
+      )}</p>
+    </article>
+  </div>
+
   {#if status==='done' && analysisResult.visualizations}
     <div class="viz" data-testid="guided-demo-live-visualizations">
       <MultiomicsVisualizations result={analysisResult} language={$language ?? 'fr'} />
@@ -351,19 +388,20 @@
   {#if status==='done'}
     <div class="facts small">
       <article><strong>{analysisResult.crossOmics?.testedPairs ?? 0}</strong><span>{t('paires testées','pairs tested')}</span></article>
-      <article><strong>{analysisResult.crossOmics?.significantPairs ?? 0}</strong><span>{t('paires avec q publiée ≤ 0,10','pairs with published q ≤ 0.10')}</span></article>
+      <article><strong>{analysisResult.crossOmics?.significantPairs ?? 0}</strong><span>{t('paires avec q référence ≤ 0,10','pairs with reference q ≤ 0.10')}</span></article>
+      <article><strong>{analysisResult.crossOmics?.approximateSignificantPairs ?? 0}</strong><span>{t('paires avec q* approx. ≤ 0,10','pairs with approx. q* ≤ 0.10')}</span></article>
     </div>
     <p class="note"><strong>{t('Méthode publiée par le moteur :','Method reported by the engine:')}</strong> {analysisResult.crossOmics?.method || '—'}</p>
     {#if analysisResult.crossOmics?.pairs?.length}
       <div class="table-wrap">
         <table>
-          <thead><tr><th>{t('Paire','Pair')}</th><th>Pattern</th><th>r ref</th><th>r comp</th><th>Δr</th><th>q BH</th></tr></thead>
+          <thead><tr><th>{t('Paire','Pair')}</th><th>Pattern</th><th>r ref</th><th>r comp</th><th>Δr</th><th>{t('p référence','reference p')}</th><th>{t('q référence','reference q')}</th><th>p* {t('approx.','approx.')}</th><th>q* BH {t('approx.','approx.')}</th></tr></thead>
           <tbody>
             {#each analysisResult.crossOmics.pairs.slice(0,15) as pair}
               <tr>
                 <td><code>{pair.featureA}</code> ↔ <code>{pair.featureB}</code></td>
                 <td>{pair.pattern?.replaceAll('_',' ')}</td>
-                <td>{sig(pair.rReference)}</td><td>{sig(pair.rComparison)}</td><td>{sig(pair.deltaR)}</td><td>{sig(pair.qValue)}</td>
+                <td>{sig(pair.rReference)}</td><td>{sig(pair.rComparison)}</td><td>{sig(pair.deltaR)}</td><td>{probability(pair.pValue)}</td><td>{probability(pair.qValue)}</td><td>{probability(pair.approxPValue)}</td><td>{probability(pair.approxQValue)}</td>
               </tr>
             {/each}
           </tbody>
@@ -373,8 +411,8 @@
       <p class="cap">{t('Aucune paire inter-omique n’est estimable dans cette configuration avec le critère du moteur.','No cross-omics pair is estimable under the engine criterion for this configuration.')}</p>
     {/if}
     <p class="cap">{t(
-      'Dans ce plan longitudinal, Tool publie Δr de manière descriptive mais pas de p/q pour les différences de corrélation : l’approximation Fisher-z sur ces trajectoires répétées n’est pas considérée comme calibrée. Un Δr décrit un changement de couplage statistique ; il ne prouve ni causalité, ni chaîne enzymatique, ni mécanisme.',
-      'In this longitudinal design, Tool reports Δr descriptively but no p/q for correlation differences because Fisher-z calibration is not considered valid for these repeated trajectories. Δr describes a change in statistical coupling; it proves neither causality, an enzymatic chain, nor mechanism.'
+      'Dans ce plan longitudinal, p/q de référence restent non calculées pour les différences de corrélation. Tool affiche néanmoins p*/q* issues de l’approximation Fisher-z comme repères exploratoires, avec le même avertissement : calibration longitudinale non validée, donc replay R requis avant publication. Δr décrit un changement de couplage statistique ; il ne prouve ni causalité, ni chaîne enzymatique, ni mécanisme.',
+      'In this longitudinal design, reference p/q remain not computed for correlation differences. Tool still exposes Fisher-z p*/q* as exploratory guides, with the same warning: longitudinal calibration is not validated, so an R replay is required before publication. Δr describes a change in statistical coupling; it proves neither causality, an enzymatic chain, nor mechanism.'
     )}</p>
   {/if}
 </section>
@@ -418,7 +456,7 @@
   .primary{background:var(--accent-pk);color:var(--bg-primary)}
   .secondary{border:1px solid var(--border-strong);color:var(--text-primary)}
   .facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.7rem;margin:1.2rem 0}
-  .facts.small{grid-template-columns:repeat(2,minmax(0,220px))}
+  .facts.small{grid-template-columns:repeat(3,minmax(0,220px))}
   .facts article{padding:1rem;border:1px solid var(--border-subtle);border-radius:8px;background:var(--bg-secondary)}
   .facts strong,.facts span{display:block}.facts strong{font-size:1.45rem}.facts span{font-size:.84rem;color:var(--text-secondary)}
   .table-wrap{overflow-x:auto;margin:1rem 0}
@@ -429,8 +467,10 @@
   .compact{max-height:340px;overflow:auto}
   details{margin-top:1rem;border:1px solid var(--border-subtle);border-radius:8px;padding:.75rem 1rem}
   summary{cursor:pointer;font-weight:700}
-  .method-grid,.interpret-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;margin-top:1rem}
-  .method-grid article,.interpret-grid article{border:1px solid var(--border-subtle);border-radius:9px;padding:1rem;background:var(--bg-secondary);min-width:0}
+  .method-grid,.interpret-grid,.figure-guide{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;margin-top:1rem}
+  .method-grid article,.interpret-grid article,.figure-guide article{border:1px solid var(--border-subtle);border-radius:9px;padding:1rem;background:var(--bg-secondary);min-width:0}
+  .figure-guide article p{color:var(--text-secondary);font-size:.9rem;line-height:1.55}
+  .not-computed{color:var(--text-muted);font-style:italic}
   dl{margin:.8rem 0}dl div{display:grid;grid-template-columns:90px 1fr;gap:.5rem;padding:.35rem 0;border-bottom:1px solid var(--border-subtle)}dt{color:var(--text-muted)}dd{margin:0;overflow-wrap:anywhere}
   .note,.cap{font-size:.88rem;color:var(--text-secondary);line-height:1.55}
   .cap{padding:.8rem 1rem;border-left:3px solid var(--accent-pk);background:var(--bg-secondary)}
@@ -442,6 +482,6 @@
   .limit{margin:0 0 4rem;padding:1rem 1.2rem;border-left:4px solid var(--accent-ai);background:var(--bg-secondary)}
   .limit p{margin-bottom:0;color:var(--text-secondary)}
   .error{color:var(--danger,#b91c1c);font-weight:650}
-  @media(max-width:820px){.method-grid,.interpret-grid{grid-template-columns:1fr}.facts{grid-template-columns:1fr 1fr}}
+  @media(max-width:820px){.method-grid,.interpret-grid,.figure-guide{grid-template-columns:1fr}.facts{grid-template-columns:1fr 1fr}}
   @media(max-width:520px){.facts,.facts.small{grid-template-columns:1fr}.actions{align-items:stretch}.actions a{width:100%;text-align:center}}
 </style>

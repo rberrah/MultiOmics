@@ -13,7 +13,7 @@ if(!globalThis.File)globalThis.File=File;
 if(!globalThis.crypto)globalThis.crypto=crypto.webcrypto;
 const subject='PRIVATE_SUBJECT_NEVER_LOG';
 const rows=[
- {feature:'GENE,1',effect:-0.21,effectScale:'log2',pValue:0.02,qValue:0.07,n:8,nReference:4,nComparison:4,model:'Welch, robust'},
+ {feature:'GENE,1',effect:-0.21,effectScale:'log2',pValue:0.02,qValue:0.07,approxPValue:0.021,approxQValue:0.071,n:8,nReference:4,nComparison:4,model:'Welch, robust'},
  {feature:'=HYPERLINK("http://malicious.test")',effect:1.25,pValue:null,qValue:null,n:8,model:'reference'},
  {feature:'G"ene\nLine',effect:0,qValue:1,pValue:0,model:'normal'},
  ...Array.from({length:53},(_,i)=>({feature:'GENE_'+i,effect:i-5,
@@ -21,6 +21,7 @@ const rows=[
 ];
 const csv=fullLayerCsv(rows);
 assert.ok(csv.startsWith('\uFEFFfeature,effect,effect_scale'));
+assert.match(csv,/approx_p_value_browser_uncalibrated,approx_q_value_browser_uncalibrated/);
 assert.equal(csv.split('\r\n').filter(Boolean).length,57); // header + 56 rows (quoted LF does not split CRLF)
 assert.ok(csv.includes('"GENE,1"'));
 assert.ok(csv.includes('G""ene'+String.fromCharCode(10)+'Line')); // doubled quote in feature
@@ -29,6 +30,7 @@ assert.ok(csv.includes(',-0.21,'));
 assert.ok(csv.includes(',0,'));
 assert.ok(!csv.includes('undefined'));
 assert.throws(()=>fullLayerCsv([{feature:'G1',pValue:1.2}]),/Invalid pValue/);
+assert.throws(()=>fullLayerCsv([{feature:'G1',approxQValue:-0.1}]),/Invalid approxQValue/);
 assert.throws(()=>fullLayerCsv([{feature:'',pValue:0.1}]),/Missing measured feature/);
 
 const result={

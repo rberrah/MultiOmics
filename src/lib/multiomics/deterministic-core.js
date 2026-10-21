@@ -1,6 +1,6 @@
 // @ts-nocheck
 const LAYERS = ['transcriptomics', 'proteomics', 'metabolomics'];
-const MULTIOMICS_ENGINE_VERSION = '1.3.0';
+const MULTIOMICS_ENGINE_VERSION = '1.3.1';
 const CHEBI_SEARCH_URL = 'https://www.ebi.ac.uk/chebi/backend/api/public/es_search/';
 const metaboliteResolutionCache = new Map();
 
@@ -796,16 +796,23 @@ function pairedPermutationPValue(differences, seedKey) {
   return (extreme + 1)/(total + 1);
 }
 
-function bhAdjust(rows) {
-  const valid = rows.map((row,index) => ({ index, p: row.pValue })).filter((x) => Number.isFinite(x.p)).sort((a,b) => a.p-b.p);
+function bhAdjustField(rows, pField = 'pValue', qField = 'qValue') {
+  const valid = rows
+    .map((row,index) => ({ index, p: row[pField] }))
+    .filter((x) => Number.isFinite(x.p))
+    .sort((a,b) => a.p-b.p);
   const m = valid.length;
   let previous = 1;
   for (let i = m-1; i >= 0; i -= 1) {
     const q = Math.min(previous, valid[i].p * m / (i+1), 1);
-    rows[valid[i].index].qValue = q;
+    rows[valid[i].index][qField] = q;
     previous = q;
   }
   return rows;
+}
+
+function bhAdjust(rows) {
+  return bhAdjustField(rows, 'pValue', 'qValue');
 }
 
 function naturalOrder(values) {
@@ -2302,6 +2309,16 @@ function analyseLongitudinalMixedLayer(aggregated, layer, { covariateColumns = [
         standardError: null,
         ciLow: null,
         ciHigh: null,
+        // Keep the browser approximation separate from the official inferential
+        // fields. It is useful for orientation, but failed the predeclared
+        // null-calibration gate and must never be mistaken for reference R.
+        approxPValue: fit.pValue,
+        approxQValue: null,
+        approxStatistic: fit.statistic,
+        approxStandardError: effectSe,
+        approxCiLow: Number.isFinite(effectSe) ? effect - tCritical95(fit.df) * effectSe : null,
+        approxCiHigh: Number.isFinite(effectSe) ? effect + tCritical95(fit.df) * effectSe : null,
+        approxInferenceMethod: 'uncalibrated browser random-intercept GLS Wald/t approximation',
         inferentialStatus: 'uncalibrated_reference_R_required',
         intraclassCorrelation: fit.intraclassCorrelation,
         sigmaWithin: fit.sigmaWithin,
@@ -2345,6 +2362,10 @@ function analyseLongitudinalMixedLayer(aggregated, layer, { covariateColumns = [
       pValue: null,
       qValue: null,
       statistic: null,
+      approxPValue: pValue,
+      approxQValue: null,
+      approxStatistic: fStatistic,
+      approxInferenceMethod: 'uncalibrated browser random-intercept GLS omnibus F approximation',
       testDf: { numerator: df1, denominator: df2 },
       inferentialStatus: 'uncalibrated_reference_R_required',
       groupSlopes: Object.fromEntries(conditions.map((condition, index) => [condition, slopes[index]])),
@@ -2364,9 +2385,11 @@ function analyseLongitudinalMixedLayer(aggregated, layer, { covariateColumns = [
     });
   }
 
-  // Deliberately no BH correction for unsupported browser Wald p-values.
-  // The reference R backend must supply inferential statistics separately.
-  bhAdjust(rows);
+  // Official browser p/q remain absent because calibration failed. Compute a
+  // separate BH correction over the explicitly-labelled approximation only.
+  // Downstream consumers can therefore distinguish orientation from reference
+  // inference without overloading pValue/qValue.
+  bhAdjustField(rows, 'approxPValue', 'approxQValue');
   rows.sort((a,b) => {
     const aq = Number.isFinite(a.qValue) ? a.qValue : 1;
     const bq = Number.isFinite(b.qValue) ? b.qValue : 1;
@@ -2393,8 +2416,12 @@ function analyseLongitudinalMixedLayer(aggregated, layer, { covariateColumns = [
       ? 'omnibus condition × time interaction across ' + conditions.length + ' groups over ' + minTime + '→' + maxTime
       : 'condition × time interaction: ' + comparisons[0] + ' vs ' + reference + ' over ' + minTime + '→' + maxTime,
     mode: multiGroup ? 'random-intercept-longitudinal-omnibus' : 'random-intercept-longitudinal-model',
-    inferenceMethod: 'Exploratory iterative random-intercept GLS effect ONLY; browser Wald/t p-values and q-values suppressed after null-calibration concern. Use lmerTest in reference R backend for confirmatory longitudinal inference.',
+    inferenceMethod: 'Exploratory iterative random-intercept GLS effect ONLY; reference browser p/q remain suppressed after null-calibration concern. Approximate browser p*/q* are exposed separately for orientation only. Use lmerTest in the reference R backend for longitudinal inference.',
     inferenceStatus: 'reference_required_for_p_q_and_ci',
+    approximateInferenceStatus: 'available_uncalibrated_not_for_confirmation',
+    approximateInferenceMethod: multiGroup
+      ? 'browser random-intercept GLS omnibus F approximation + BH'
+      : 'browser random-intercept GLS Wald/t approximation + BH',
     referenceMethodRequired: 'lmerTest',
     groupSizes,
     steps: aggregated.steps
@@ -3971,10 +3998,15 @@ function analyseCrossOmics(aggregatedByLayer, layers, loadedLayers, options) {
           nReference: ref.length,
           nComparison: cmp.length,
           ...stat,
-          // A Fisher-z approximation to Spearman's rho is not calibrated
-          // for paired longitudinal slopes/repeated observations. Only
-          // descriptive delta-r is published for such experiments.
-          ...(options.longitudinal ? { pValue: null, z: null } : {}),
+          // Fisher-z over longitudinal subject trajectories is retained only as
+          // an explicitly-labelled approximation. Official p/q remain null.
+          ...(options.longitudinal ? {
+            approxPValue: stat.pValue,
+            approxQValue: null,
+            approxZ: stat.z,
+            pValue: null,
+            z: null
+          } : {}),
           pattern: classifyCorrelationChange(stat.rReference, stat.rComparison),
           qValue: null
         });
@@ -3983,6 +4015,7 @@ function analyseCrossOmics(aggregatedByLayer, layers, loadedLayers, options) {
   }
 
   bhAdjust(pairs);
+  if (options.longitudinal) bhAdjustField(pairs, 'approxPValue', 'approxQValue');
   pairs.sort((a,b) => {
     const aq = Number.isFinite(a.qValue) ? a.qValue : 1;
     const bq = Number.isFinite(b.qValue) ? b.qValue : 1;
@@ -3991,10 +4024,13 @@ function analyseCrossOmics(aggregatedByLayer, layers, loadedLayers, options) {
   });
   return {
     method: options.longitudinal
-      ? 'Descriptive cross-omics Spearman differences for subject trajectories; no browser p/q because longitudinal Fisher-z calibration is unverified.'
+      ? 'Descriptive cross-omics Spearman differences for subject trajectories. Reference p/q remain unavailable because longitudinal Fisher-z calibration is unverified; browser p*/q* expose the Fisher-z approximation for orientation only.'
       : 'Exploratory candidate-selected Spearman correlation by condition; approximate Fisher z for independent groups and BH across the tested selected pairs (not an unbiased discovery test).',
     testedPairs: pairs.length,
     significantPairs: pairs.filter((x) => Number.isFinite(x.qValue) && x.qValue <= 0.10).length,
+    approximateSignificantPairs: options.longitudinal
+      ? pairs.filter((x) => Number.isFinite(x.approxQValue) && x.approxQValue <= 0.10).length
+      : null,
     pairs: pairs.slice(0,100)
   };
 }
