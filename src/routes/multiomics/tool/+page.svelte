@@ -18,6 +18,7 @@
   import { evaluateReferenceBackendHealth } from '#lib/multiomics/reference-backend-preflight.js';
   import { createPortableProject, parsePortableProject, PORTABLE_PROJECT_MAX_BYTES } from '#lib/multiomics/portable-project.js';
   import { buildResearchMethodsManifest } from '#lib/multiomics/research-report.js';
+  import { MULTIOMICS_DEMO_FILES, MULTIOMICS_DEMO_UI_STATE } from '#lib/multiomics/demo-case.js';
 
   // A server-rendered button can be visible before its Svelte click handler
   // is attached. Public-site smoke tests must wait for actual hydration,
@@ -818,10 +819,10 @@
   async function loadDemo(onlyLayer = null) {
     /** @type {Array<['metadata'|'transcriptomics'|'proteomics'|'metabolomics', string]>} */
     const demoFiles = [
-      ['metadata', 'demo_metadata.csv'],
-      ['transcriptomics', 'demo_transcriptomics.csv'],
-      ['proteomics', 'demo_proteomics.csv'],
-      ['metabolomics', 'demo_metabolomics.csv']
+      ['metadata', MULTIOMICS_DEMO_FILES.metadata],
+      ['transcriptomics', MULTIOMICS_DEMO_FILES.transcriptomics],
+      ['proteomics', MULTIOMICS_DEMO_FILES.proteomics],
+      ['metabolomics', MULTIOMICS_DEMO_FILES.metabolomics]
     ];
     /** @type {Record<'metadata'|'transcriptomics'|'proteomics'|'metabolomics', File | null>} */
     const loaded = {
@@ -860,7 +861,7 @@
       proteomics: loaded.proteomics,
       metabolomics: loaded.metabolomics
     };
-    studyName = onlyLayer ? 'Demo — single ' + onlyLayer : 'Demo — treatment × time';
+    studyName = onlyLayer ? 'Demo — single ' + onlyLayer : MULTIOMICS_DEMO_UI_STATE.studyName;
     confirmIndependentAssays = false;
     exploratorySheetGenerated = false;
     msOriginalFile = null;
@@ -871,35 +872,49 @@
     metaboliteAnnotations = [];
     annotationFileName = '';
     annotationError = '';
-    subjectCount = 8;
-    groupVariable = 'condition';
-    outcome = 'outcome';
-    paired = 'yes';
-    longitudinal = 'yes';
-    objective = 'time';
-    studySetting = 'clinical_interventional';
-    designType = 'repeated';
-    groupCount = '2';
-    timepointCount = '2';
-    sampleOverlap = 'same_specimen';
-    technicalReplicatesExpected = 'yes';
-    batchKnown = 'yes';
-    outcomeType = 'binary';
-    partialOmicsExpected = 'no';
-    transcriptomicsValues = 'raw_counts';
-    transcriptomicsIdType = 'gene_symbol';
-    proteomicsValues = 'log_intensity';
-    proteomicsIdType = 'uniprot';
-    metabolomicsValues = 'peak_area';
-    metabolomicsIdType = 'chebi';
-    resolveIdentifiers = false;
+    subjectCount = MULTIOMICS_DEMO_UI_STATE.subjectCount;
+    groupVariable = MULTIOMICS_DEMO_UI_STATE.groupVariable;
+    outcome = MULTIOMICS_DEMO_UI_STATE.outcome;
+    paired = MULTIOMICS_DEMO_UI_STATE.paired;
+    longitudinal = MULTIOMICS_DEMO_UI_STATE.longitudinal;
+    objective = MULTIOMICS_DEMO_UI_STATE.objective;
+    organism = MULTIOMICS_DEMO_UI_STATE.organism;
+    unitType = MULTIOMICS_DEMO_UI_STATE.unitType;
+    studySetting = MULTIOMICS_DEMO_UI_STATE.studySetting;
+    designType = MULTIOMICS_DEMO_UI_STATE.designType;
+    groupCount = MULTIOMICS_DEMO_UI_STATE.groupCount;
+    timepointCount = MULTIOMICS_DEMO_UI_STATE.timepointCount;
+    sampleOverlap = MULTIOMICS_DEMO_UI_STATE.sampleOverlap;
+    technicalReplicatesExpected = MULTIOMICS_DEMO_UI_STATE.technicalReplicatesExpected;
+    batchKnown = MULTIOMICS_DEMO_UI_STATE.batchKnown;
+    outcomeType = MULTIOMICS_DEMO_UI_STATE.outcomeType;
+    outcomeTimepoint = MULTIOMICS_DEMO_UI_STATE.outcomeTimepoint;
+    covariatesAvailable = MULTIOMICS_DEMO_UI_STATE.covariatesAvailable;
+    partialOmicsExpected = MULTIOMICS_DEMO_UI_STATE.partialOmicsExpected;
+    transcriptomicsPlatform = MULTIOMICS_DEMO_UI_STATE.transcriptomicsPlatform;
+    transcriptomicsValues = MULTIOMICS_DEMO_UI_STATE.transcriptomicsValues;
+    transcriptomicsIdType = MULTIOMICS_DEMO_UI_STATE.transcriptomicsIdType;
+    proteomicsPlatform = MULTIOMICS_DEMO_UI_STATE.proteomicsPlatform;
+    proteomicsValues = MULTIOMICS_DEMO_UI_STATE.proteomicsValues;
+    proteomicsIdType = MULTIOMICS_DEMO_UI_STATE.proteomicsIdType;
+    metabolomicsPlatform = MULTIOMICS_DEMO_UI_STATE.metabolomicsPlatform;
+    metabolomicsValues = MULTIOMICS_DEMO_UI_STATE.metabolomicsValues;
+    metabolomicsIdType = MULTIOMICS_DEMO_UI_STATE.metabolomicsIdType;
+    msBlankFilter = MULTIOMICS_DEMO_UI_STATE.msBlankFilter;
+    msBlankFold = MULTIOMICS_DEMO_UI_STATE.msBlankFold;
+    msQcRsdFilter = MULTIOMICS_DEMO_UI_STATE.msQcRsdFilter;
+    msQcRsdThreshold = MULTIOMICS_DEMO_UI_STATE.msQcRsdThreshold;
+    msDriftCorrection = MULTIOMICS_DEMO_UI_STATE.msDriftCorrection;
+    msMnarStrategy = MULTIOMICS_DEMO_UI_STATE.msMnarStrategy;
+    resolveIdentifiers = MULTIOMICS_DEMO_UI_STATE.resolveIdentifiers;
     // One-click demos must remain usable without network access or third-party
     // API availability. Reactome enrichment remains a separate explicit opt-in.
-    useReactome = false;
-    referenceBackendMode = 'browser';
-    analysisIntent = 'exploratory';
-    rnaseqReference = '';
-    rnaseqComparison = '';
+    useReactome = MULTIOMICS_DEMO_UI_STATE.useReactome;
+    referenceBackendMode = MULTIOMICS_DEMO_UI_STATE.referenceBackendMode;
+    analysisIntent = MULTIOMICS_DEMO_UI_STATE.analysisIntent;
+    rnaseqReference = MULTIOMICS_DEMO_UI_STATE.rnaseqReference;
+    rnaseqComparison = MULTIOMICS_DEMO_UI_STATE.rnaseqComparison;
+    validateDiabloHoldout = MULTIOMICS_DEMO_UI_STATE.validateDiabloHoldout;
     demoLoaded = true;
     await inspectMetadata(files.metadata);
     await inspectMatrix('transcriptomics', files.transcriptomics);
