@@ -3393,7 +3393,59 @@ Rscript multiomics-engine/run_backend.R</code></pre>
 </section>
 
 {#if analysisResult}
-<section class="panel demo-results" id="analysis-results" data-testid="multiomics-results">
+<section class="panel demo-results" id="analysis-results" data-testid="multiomics-results"> 
+  <div class="result-reading-first" data-testid="multiomics-result-summary">
+    <p class="eyebrow">{demoLoaded ? t('Démonstration · exploration navigateur', 'Demonstration · browser exploration') : t('Exploration navigateur', 'Browser exploration')}</p>
+    <h2>{demoLoaded ? t('Résultats de la démonstration', 'Demonstration results') : t('Résultats exploratoires', 'Exploratory results')}</h2>
+    <p class="result-lede">{t(
+      'Cette page montre d’abord ce qu’il faut retenir : qualité des données, tendances et figures. Ces résultats sont exploratoires. Pour un résultat statistique exploitable dans un article, utilisez le dossier reproductible et exécutez le code R fourni.',
+      'This page first shows what matters: data quality, trends and figures. These results are exploratory. For statistical results suitable for a paper, use the reproducible dossier and run the included R code.'
+    )}</p>
+    <div class="result-essentials">
+      <article data-testid="multiomics-analysis-mode">
+        <span>{t('Analyse', 'Analysis')}</span>
+        <strong>{analysisResult.engine?.analysisMode === 'single_omic' ? t('Omique unique', 'Single omic') : t('Multi-omique', 'Multi-omics')}</strong>
+      </article>
+      <article>
+        <span>{t('Sujets', 'Subjects')}</span>
+        <strong>{analysisResult.metadataSummary.subjects}</strong>
+      </article>
+      <article>
+        <span>{t('Couches analysées', 'Layers analysed')}</span>
+        <strong>{Object.keys(analysisResult.layers || {}).length}</strong>
+      </article>
+    </div>
+    <div class="result-primary-actions">
+      <button class="btn btn-primary" type="button" data-testid="multiomics-research-bundle-download" disabled={portableProjectBusy} onclick={downloadResearchBundle}>
+        {portableProjectBusy ? t('Préparation du dossier…', 'Preparing dossier…') : t('Télécharger données + code R', 'Download data + R code')}
+      </button>
+      <a href={resolve('multiomics/learn/')} class="btn btn-outline">{t('Comprendre les figures', 'Understand the figures')}</a>
+    </div>
+    <p class="result-reference-note">{t(
+      'R n’est pas nécessaire pour explorer ici. Le ZIP contient les données, paramètres, provenance et scripts R nécessaires pour refaire l’analyse de référence hors du site.',
+      'R is not required to explore here. The ZIP contains the data, settings, provenance and R scripts needed to rerun the reference analysis outside the website.'
+    )}</p>
+  </div>
+
+  {#if analysisResult.scientificAssurance?.notes?.some(isMissingnessRiskNote)}
+    <p role="status" class="annotation-error result-critical-note" data-testid="multiomics-missingness-caution">
+      {t(
+        'Données manquantes détectées : elles peuvent créer de fausses différences. Consultez les détails techniques et prévoyez une analyse de sensibilité avant toute conclusion.',
+        'Missing measurements detected: they can create false differences. Review the technical details and plan a sensitivity analysis before drawing conclusions.'
+      )}
+    </p>
+  {/if}
+
+  {#if analysisResult.visualizations}
+    <MultiomicsVisualizations result={analysisResult} language={$language ?? 'fr'} />
+  {:else if analysisResult.visualizationError}
+    <p class="note">{t('Les résultats exploratoires sont disponibles, mais une figure n’a pas pu être préparée : ', 'Exploratory results are available, but a figure could not be prepared: ')}{analysisResult.visualizationError}</p>
+  {/if}
+
+  <details class="result-technical-detail" data-testid="multiomics-result-technical-detail">
+    <summary>{t('Détails techniques, QC, méthodes et exports', 'Technical details, QC, methods and exports')}</summary>
+    <div class="result-technical-body">
+
     <div class="section-head">
       <div>
         <p class="eyebrow">
@@ -3592,7 +3644,7 @@ Rscript multiomics-engine/run_backend.R</code></pre>
       <p>{t('Le calcul navigateur est une exploration. Pour une conclusion publiable, vérifiez le design et exécutez une méthode statistique de référence en R ; une validation indépendante peut ensuite être nécessaire.',
           'The browser computation is exploratory. For a publishable conclusion, verify the design and run an appropriate reference statistical method in R; independent validation may then be required.')}</p>
         {#if analysisResult.scientificAssurance.notes?.some(isMissingnessRiskNote)}
-        <p role="status" class="annotation-error" data-testid="multiomics-missingness-caution">
+        <p role="status" class="annotation-error" data-testid="multiomics-missingness-caution-detail">
           {t('Données manquantes détectées : elles peuvent créer de fausses différences, même si leur proportion est identique entre groupes. Les p-values et q-values ne suffisent pas : consultez les limites et prévoyez une analyse de sensibilité.',
              'Missing measurements detected: they can create false differences even with identical missing-data rates between groups. P-values and q-values alone are insufficient: review the limitations and plan a sensitivity analysis.')}
           </p>
@@ -3617,11 +3669,6 @@ Rscript multiomics-engine/run_backend.R</code></pre>
     <article><span>{t('Temps', 'Time points')}</span><strong>{analysisResult.metadataSummary.timepoints.join(' / ') || '—'}</strong></article>
     </div>
 
-    {#if analysisResult.visualizations}
-    <MultiomicsVisualizations result={analysisResult} language={$language ?? 'fr'} />
-    {:else if analysisResult.visualizationError}
-      <p class="note">{t('Les résultats statistiques sont disponibles, mais la préparation des visualisations a échoué : ', 'Statistical results are available, but visualization preparation failed: ')}{analysisResult.visualizationError}</p>
-    {/if}
 
   <div class="simple-qc-status" data-testid="multiomics-quality-summary">
       <strong>{t('Méthodes réellement exécutées', 'Methods actually run')}</strong>
@@ -4430,6 +4477,8 @@ Rscript multiomics-engine/run_backend.R</code></pre>
         <p>{t('Aucun récit LLM, aucune causalité ni aucun mécanisme biologique inventé n’est généré.', 'No LLM narrative, causal claim or invented biological mechanism is generated.')}</p>
       </article>
     </div>
+    </div>
+  </details>
   </section>
 {/if}
 
@@ -6316,9 +6365,28 @@ Rscript multiomics-engine/run_backend.R</code></pre>
   .demo-results .result-interpretation-summary article { min-height:0; padding:12px; }
   .demo-results .result-interpretation-summary small { line-height:1.4; }
   .demo-results .integration-result { padding:16px; }
+
+  .result-reading-first { display:grid; gap:14px; margin-bottom:22px; }
+  .result-reading-first h2 { margin:0; }
+  .result-lede { max-width:72ch; margin:0; color:var(--text-secondary); font-size:1rem; line-height:1.65; }
+  .result-essentials { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; max-width:760px; }
+  .result-essentials article { padding:12px 14px; border:1px solid var(--border-subtle); border-radius:9px; background:var(--bg-secondary); min-width:0; }
+  .result-essentials span,.result-essentials strong { display:block; }
+  .result-essentials span { color:var(--text-muted); font-size:var(--text-xs); }
+  .result-essentials strong { margin-top:3px; }
+  .result-primary-actions { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .result-reference-note { margin:0; padding:11px 13px; border-left:3px solid var(--accent-pk); background:var(--bg-secondary); color:var(--text-secondary); max-width:80ch; }
+  .result-critical-note { margin:0 0 18px; }
+  .result-technical-detail { margin-top:22px; padding:0; border:1px solid var(--border-subtle); border-radius:10px; background:var(--bg-secondary); }
+  .result-technical-detail > summary { cursor:pointer; padding:14px 16px; font-weight:700; color:var(--text-primary); }
+  .result-technical-body { padding:0 16px 16px; }
+  .result-technical-body > .section-head { margin-top:6px; }
   @media (max-width:640px) {
     .quick-start { align-items:stretch; }
     .quick-demo-actions { width:100%; }
     .run-box-simple { align-items:stretch; }
+    .result-essentials { grid-template-columns:1fr; }
+    .result-primary-actions { align-items:stretch; }
+    .result-primary-actions .btn { width:100%; }
   }
 </style>
