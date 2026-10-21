@@ -3957,6 +3957,10 @@ function classifyCorrelationChange(rReference, rComparison) {
 }
 
 function analyseCrossOmics(aggregatedByLayer, layers, loadedLayers, options) {
+  // Operational guardrail for the browser Fisher-z approximation. This is not
+  // a power threshold and does not make n>=8 confirmatory; it only prevents the
+  // most degenerate tiny-group cases (notably n=4) from being assigned p*/q*.
+  const minGroupNForApproxInference = 8;
   const pairs = [];
   const layerPairs = [];
   for (let i = 0; i < loadedLayers.length; i += 1) {
@@ -3991,6 +3995,9 @@ function analyseCrossOmics(aggregatedByLayer, layers, loadedLayers, options) {
           cmp.map((x) => x.x), cmp.map((x) => x.y),
           'spearman'
         );
+        const approxInferenceEligible =
+          ref.length >= minGroupNForApproxInference &&
+          cmp.length >= minGroupNForApproxInference;
         pairs.push({
           layerA, featureA, layerB, featureB,
           reference: conditions[0],
@@ -4001,9 +4008,13 @@ function analyseCrossOmics(aggregatedByLayer, layers, loadedLayers, options) {
           // Fisher-z over longitudinal subject trajectories is retained only as
           // an explicitly-labelled approximation. Official p/q remain null.
           ...(options.longitudinal ? {
-            approxPValue: stat.pValue,
+            approxPValue: approxInferenceEligible ? stat.pValue : null,
             approxQValue: null,
-            approxZ: stat.z,
+            approxZ: approxInferenceEligible ? stat.z : null,
+            approxInferenceEligible,
+            approxInferenceReason: approxInferenceEligible
+              ? null
+              : 'Browser Fisher-z approximation withheld: fewer than 8 matched subjects in at least one condition. This is an operational small-n guardrail, not a validation threshold.',
             pValue: null,
             z: null
           } : {}),
@@ -4022,13 +4033,44 @@ function analyseCrossOmics(aggregatedByLayer, layers, loadedLayers, options) {
     if (aq !== bq) return aq-bq;
     return Math.abs(b.deltaR)-Math.abs(a.deltaR);
   });
+  const approximateEligiblePairs = options.longitudinal
+    ? pairs.filter((x) => x.approxInferenceEligible === true)
+    : [];
+  const smallNPairCount = options.longitudinal
+    ? pairs.filter((x) => x.approxInferenceEligible === false).length
+    : 0;
+  const extremeCorrelationPairs = pairs.filter((x) =>
+    (Number.isFinite(x.rReference) && Math.abs(x.rReference) >= 0.999999) ||
+    (Number.isFinite(x.rComparison) && Math.abs(x.rComparison) >= 0.999999)
+  ).length;
+  const bothExtremeCorrelationPairs = pairs.filter((x) =>
+    Number.isFinite(x.rReference) && Math.abs(x.rReference) >= 0.999999 &&
+    Number.isFinite(x.rComparison) && Math.abs(x.rComparison) >= 0.999999
+  ).length;
+  const minReferenceN = pairs.length ? Math.min(...pairs.map((x) => x.nReference)) : null;
+  const minComparisonN = pairs.length ? Math.min(...pairs.map((x) => x.nComparison)) : null;
+  const allLongitudinalPairsSmallN = options.longitudinal && pairs.length > 0 &&
+    smallNPairCount === pairs.length;
   return {
     method: options.longitudinal
-      ? 'Descriptive cross-omics Spearman differences for subject trajectories. Reference p/q remain unavailable because longitudinal Fisher-z calibration is unverified; browser p*/q* expose the Fisher-z approximation for orientation only.'
+      ? allLongitudinalPairsSmallN
+        ? 'Descriptive cross-omics Spearman differences on subject-level longitudinal changes. Browser Fisher-z p*/q* are withheld because every tested pair has fewer than 8 matched subjects in at least one condition; candidate selection is data-driven, so these correlations are descriptive only.'
+        : 'Descriptive cross-omics Spearman differences on subject-level longitudinal changes. Reference p/q remain unavailable because longitudinal calibration is unverified; browser Fisher-z p*/q* are exposed only for pairs with at least 8 matched subjects per condition and remain exploratory after data-driven candidate selection.'
       : 'Exploratory candidate-selected Spearman correlation by condition; approximate Fisher z for independent groups and BH across the tested selected pairs (not an unbiased discovery test).',
+    inferenceStatus: allLongitudinalPairsSmallN
+      ? 'descriptive_only_small_n'
+      : options.longitudinal
+        ? 'exploratory_approximation_when_sample_size_guard_passes'
+        : 'exploratory_candidate_selected',
+    minGroupNForApproxInference: options.longitudinal ? minGroupNForApproxInference : null,
+    minReferenceN,
+    minComparisonN,
+    smallNPairCount,
+    extremeCorrelationPairs,
+    bothExtremeCorrelationPairs,
     testedPairs: pairs.length,
     significantPairs: pairs.filter((x) => Number.isFinite(x.qValue) && x.qValue <= 0.10).length,
-    approximateSignificantPairs: options.longitudinal
+    approximateSignificantPairs: options.longitudinal && approximateEligiblePairs.length
       ? pairs.filter((x) => Number.isFinite(x.approxQValue) && x.approxQValue <= 0.10).length
       : null,
     pairs: pairs.slice(0,100)
