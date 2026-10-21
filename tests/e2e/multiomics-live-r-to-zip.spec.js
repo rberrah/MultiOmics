@@ -216,6 +216,7 @@ test('Four genuinely paired biological units -> actual subject-blocked DESeq2 ->
   await page.getByTestId('multiomics-simple-design').selectOption('paired');
   await expect(page.getByTestId('multiomics-paired-count')).toContainText('4',{timeout:20000});
   await expect(page.getByTestId('multiomics-paired-count')).toContainText('8');
+  await page.getByTestId('multiomics-advanced-analysis-options').locator('summary').click();
   await page.getByTestId('multiomics-analysis-intent').locator('select').selectOption('confirmatory');
   const contrast=page.getByTestId('multiomics-rnaseq-contrast');
   await expect(contrast).toBeVisible();
