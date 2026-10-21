@@ -1,6 +1,6 @@
 // @ts-nocheck
 const LAYERS = ['transcriptomics', 'proteomics', 'metabolomics'];
-const MULTIOMICS_ENGINE_VERSION = '1.3.1';
+const MULTIOMICS_ENGINE_VERSION = '1.3.2';
 const CHEBI_SEARCH_URL = 'https://www.ebi.ac.uk/chebi/backend/api/public/es_search/';
 const metaboliteResolutionCache = new Map();
 
@@ -4027,15 +4027,32 @@ function analyseCrossOmics(aggregatedByLayer, layers, loadedLayers, options) {
 
   bhAdjust(pairs);
   if (options.longitudinal) bhAdjustField(pairs, 'approxPValue', 'approxQValue');
-  pairs.sort((a,b) => {
-    const aq = Number.isFinite(a.qValue) ? a.qValue : 1;
-    const bq = Number.isFinite(b.qValue) ? b.qValue : 1;
-    if (aq !== bq) return aq-bq;
-    return Math.abs(b.deltaR)-Math.abs(a.deltaR);
-  });
   const approximateEligiblePairs = options.longitudinal
     ? pairs.filter((x) => x.approxInferenceEligible === true)
     : [];
+  // Do not manufacture an "interesting" top table from descriptive-only tiny-n
+  // correlations. If no inferential q-value is available, preserve candidate
+  // order instead of ranking by |delta rho|, which would systematically surface
+  // saturated +/-1 correlations first.
+  pairs.sort((a,b) => {
+    const aRef = Number.isFinite(a.qValue) ? a.qValue : null;
+    const bRef = Number.isFinite(b.qValue) ? b.qValue : null;
+    if (aRef != null || bRef != null) {
+      if (aRef == null) return 1;
+      if (bRef == null) return -1;
+      if (aRef !== bRef) return aRef-bRef;
+      return Math.abs(b.deltaR)-Math.abs(a.deltaR);
+    }
+    const aApprox = Number.isFinite(a.approxQValue) ? a.approxQValue : null;
+    const bApprox = Number.isFinite(b.approxQValue) ? b.approxQValue : null;
+    if (aApprox != null || bApprox != null) {
+      if (aApprox == null) return 1;
+      if (bApprox == null) return -1;
+      if (aApprox !== bApprox) return aApprox-bApprox;
+      return Math.abs(b.deltaR)-Math.abs(a.deltaR);
+    }
+    return 0;
+  });
   const smallNPairCount = options.longitudinal
     ? pairs.filter((x) => x.approxInferenceEligible === false).length
     : 0;
@@ -4065,6 +4082,12 @@ function analyseCrossOmics(aggregatedByLayer, layers, loadedLayers, options) {
     minGroupNForApproxInference: options.longitudinal ? minGroupNForApproxInference : null,
     minReferenceN,
     minComparisonN,
+    rankingPolicy: allLongitudinalPairsSmallN
+      ? 'candidate_order_descriptive_only_no_delta_ranking'
+      : approximateEligiblePairs.length
+        ? 'reference_q_then_approximate_q_then_absolute_delta_r'
+        : 'reference_q_then_absolute_delta_r',
+    correlationStatistic: 'Spearman rho',
     smallNPairCount,
     extremeCorrelationPairs,
     bothExtremeCorrelationPairs,
