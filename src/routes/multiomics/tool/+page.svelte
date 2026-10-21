@@ -24,6 +24,10 @@
   // rather than treating visible SSR HTML as an operational application.
   onMount(() => {
     document.documentElement.dataset.pmxMultiomicsHydrated = 'true';
+    const requestedDemo = new URLSearchParams(window.location.search).get('demo');
+    if (requestedDemo === 'multi') {
+      queueMicrotask(() => { void loadDemoAndShowResults(null); });
+    }
     return () => { delete document.documentElement.dataset.pmxMultiomicsHydrated; };
   });
 

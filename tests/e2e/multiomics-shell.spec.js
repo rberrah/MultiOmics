@@ -12,13 +12,18 @@ test('PMx identical editorial dropdown shell with mO monogram', async ({page}) =
     await expect(details).not.toHaveAttribute('open','');
   }
   await header.getByTestId('goal-learn').locator('summary').click();
+  await expect(header.getByTestId('nav-demo')).toBeVisible();
   await expect(header.getByTestId('nav-learn')).toBeVisible();
-  await expect(header.getByTestId('nav-design')).toBeVisible();
+  await expect(header.getByTestId('nav-demo')).toHaveAttribute('href',/\/multiomics\/demo\/$/);
+  await header.getByTestId('goal-analyze').locator('summary').click();
+  await expect(header.getByTestId('nav-tool')).toBeVisible();
+  await expect(header.getByTestId('goal-analyze').locator('.goal-links a')).toHaveCount(1);
   await header.getByTestId('goal-resources').locator('summary').click();
   await expect(header.getByTestId('goal-learn')).not.toHaveAttribute('open','');
   await expect(header.getByTestId('nav-glossary')).toHaveAttribute('href',/\/multiomics\/glossary\/$/);
   await expect(header.getByTestId('nav-references')).toHaveAttribute('href',/\/multiomics\/references\/$/);
   await expect(header.getByTestId('nav-main-site')).toHaveAttribute('href','https://rberrah.github.io/');
+  await expect(header.getByTestId('nav-main-site')).toHaveAttribute('data-sveltekit-reload','');
   await page.keyboard.press('Escape');
   await expect(header.getByTestId('goal-resources')).not.toHaveAttribute('open','');
   await expect(header.getByTestId('goal-resources').locator('summary')).toBeFocused();

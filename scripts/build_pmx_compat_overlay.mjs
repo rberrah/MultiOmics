@@ -15,7 +15,8 @@ const allowed = ['multiomics', '_multiomics_app'];
 const required = [
   'multiomics/index.html',
   'multiomics/tool/index.html',
-  'multiomics/learn/index.html'
+  'multiomics/learn/index.html',
+  'multiomics/demo/index.html'
 ];
 const expectedBase = '/pharmacometrie';
 function assert(condition, message) {

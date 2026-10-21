@@ -11,7 +11,7 @@ const built = join(project, 'build');
 const target = join(project, 'release', 'multiomics-web');
 const site = join(target, 'site');
 const required = ['index.html', 'multiomics/index.html',
-  'multiomics/tool/index.html', 'multiomics/learn/index.html'];
+  'multiomics/tool/index.html', 'multiomics/learn/index.html', 'multiomics/demo/index.html'];
 for (const name of required) {
   const st = await lstat(join(built, name)).catch(() => null);
   assert(st?.isFile(), 'Missing portable site page: ' + name + '. Run npm run build with BASE_PATH unset.');
@@ -44,7 +44,7 @@ await writeFile(join(target, 'START_HERE.txt'),
 'a separate privacy and security assessment. Do not treat its exploratory\n' +
 'results as validated clinical or confirmatory inference.\n\n' +
 'The canonical public URLs remain under\n' +
-'https://rberrah.github.io/pharmacometrie/multiomics/\n' +
+'https://rberrah.github.io/multiomics/\n' +
 'Do not upload this root build over the PMx Explain deployment.\n' +
 'The PMx site uses a separate, namespaced overlay built from the same source.\n\n' +
 'Original source and licenses: https://github.com/rberrah/MultiOmics\n' +
