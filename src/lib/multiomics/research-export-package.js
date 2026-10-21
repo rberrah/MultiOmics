@@ -20,7 +20,9 @@ const CSV_COLUMNS=[
   ['exponentiated_ci95_low','exponentiatedCiLow'],
   ['exponentiated_ci95_high','exponentiatedCiHigh'],
   ['fold_ratio_if_log2','foldRatio'],['p_value','pValue'],
-  ['q_value','qValue'],['n','n'],['n_reference','nReference'],
+  ['q_value','qValue'],['approx_p_value_browser_uncalibrated','approxPValue'],
+  ['approx_q_value_browser_uncalibrated','approxQValue'],
+  ['n','n'],['n_reference','nReference'],
   ['n_comparison','nComparison'],['model','model']
 ];
 const UTF8_FLAG=0x0800;
@@ -131,7 +133,7 @@ export function fullLayerCsv(rows){
   for(const r of rows){
     requireThat(r&&typeof r.feature==='string'&&r.feature.length,
       'Missing measured feature identifier');
-    for(const field of ['pValue','qValue']){
+    for(const field of ['pValue','qValue','approxPValue','approxQValue']){
       if(r[field]!=null)
         requireThat(typeof r[field]==='number'&&Number.isFinite(r[field])&&
           r[field]>=0&&r[field]<=1,'Invalid '+field+' for '+r.feature);
@@ -141,7 +143,7 @@ export function fullLayerCsv(rows){
         key==='effect'||key==='ciLow'||key==='ciHigh'||
         key==='exponentiatedEffect'||key==='exponentiatedCiLow'||
         key==='exponentiatedCiHigh'||key==='foldRatio'||
-        key==='pValue'||key==='qValue'||key==='n'||
+        key==='pValue'||key==='qValue'||key==='approxPValue'||key==='approxQValue'||key==='n'||
         key==='nReference'||key==='nComparison'?decimal(r[key]):r[key];
       return cell(value);
     }).join(','));
