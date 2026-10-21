@@ -100,7 +100,7 @@ test('expert signature upload refuses invalid untraceable scores without affecti
     buffer:Buffer.from('subject_id,sample_id,assay_id,omic,signature_id,score\\nP01,S01,RNA1,transcriptomics,group_logfc,2.4\\n')
   });
   await expect(page.getByTestId('multiomics-signature-error')).toContainText('missing required');
-  await expect(page.getByTestId('multiomics-omics2pk-readiness')).toContainText('Exchange blocked');
+  await expect(page.getByTestId('multiomics-omics2pk-readiness')).toContainText('Exchange unavailable');
   await page.getByTestId('multiomics-research-bundle-download').click();
   await expect(page.getByTestId('multiomics-research-bundle-error')).toContainText('Individual signature import is invalid');
 });
