@@ -78,7 +78,7 @@ test('Mobile 390px: three single-omic shortcuts and a full-width multi-omics but
 
 test('Guided demo is a PMx-style worked example driven by the exact Tool output',async({page})=>{
   const snapshot=()=>page.evaluate(()=>{
-    const r=window.__PMX_MULTIOMICS_ANALYSIS__;
+    const r=(/** @type {any} */ (window)).__PMX_MULTIOMICS_ANALYSIS__;
     if(!r)throw new Error('No published MultiOmics result');
     return {
       protocol:r.protocol,
@@ -98,7 +98,7 @@ test('Guided demo is a PMx-style worked example driven by the exact Tool output'
         groupSizes:layer.groupSizes,
         selectionRule:layer.selectionRule,
         steps:layer.steps,
-        rows:(layer.rows||[]).map(row=>({
+        rows:(layer.rows||[]).map((/** @type {any} */ row)=>({
           feature:row.feature,effect:row.effect,foldRatio:row.foldRatio,
           pValue:row.pValue,qValue:row.qValue,nReference:row.nReference,nComparison:row.nComparison
         }))
@@ -107,7 +107,7 @@ test('Guided demo is a PMx-style worked example driven by the exact Tool output'
         method:r.crossOmics?.method,
         testedPairs:r.crossOmics?.testedPairs,
         significantPairs:r.crossOmics?.significantPairs,
-        pairs:(r.crossOmics?.pairs||[]).map(pair=>({
+        pairs:(r.crossOmics?.pairs||[]).map((/** @type {any} */ pair)=>({
           layerA:pair.layerA,featureA:pair.featureA,layerB:pair.layerB,featureB:pair.featureB,
           rReference:pair.rReference,rComparison:pair.rComparison,deltaR:pair.deltaR,
           pValue:pair.pValue,qValue:pair.qValue,pattern:pair.pattern
