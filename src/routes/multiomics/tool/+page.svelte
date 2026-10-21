@@ -3338,6 +3338,8 @@ Rscript multiomics-engine/run_backend.R</code></pre>
         <p>{t('Confidentialité : vos matrices ne sont envoyées au serveur R que lorsque vous lancez l’analyse avec ce moteur activé. Gardez le serveur sur votre ordinateur (127.0.0.1). Ne connectez pas de serveur distant non sécurisé à des données patients.', 'Privacy: your matrices are sent to the configured R server only when you launch analysis with that engine enabled. Keep the server on your computer (127.0.0.1). Never send patient data to an unsecured remote server.')}</p>
           <p><a href="https://github.com/rberrah/MultiOmics/blob/main/multiomics-engine/README.md" target="_blank" rel="noopener noreferrer">{t('Lire les instructions complètes et les limitations du moteur R', 'Read full R setup instructions and limitations')}</a></p>
       </details>
+        </div>
+      </details>
       <details class="simple-disclosure" data-testid="multiomics-run-options">
         <summary>{t('Options de calcul et connexions externes', 'Analysis options and external services')}</summary>
         <label class="inline-check">
@@ -3380,8 +3382,6 @@ Rscript multiomics-engine/run_backend.R</code></pre>
               {/each}
             </div>
           {/if}
-        </div>
-      </details>
         </div>
       </details>
     </div>
