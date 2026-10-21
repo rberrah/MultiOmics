@@ -107,6 +107,12 @@ assert.ok(example.focusedMetabolicNetwork.coverage.metabolites >= 80);
 assert.ok(example.focusedMetabolicNetwork.coverage.genes >= 90);
 assert.ok(example.focusedMetabolicNetwork.coverage.regions >= 12);
 assert.ok(example.focusedMetabolicNetwork.coverage.links >= 90);
+assert.equal(example.focusedMetabolicNetwork.coverage.inputMetaboliteFeatures,4);
+assert.equal(example.focusedMetabolicNetwork.coverage.mappedMetaboliteFeatures,4);
+assert.equal(example.focusedMetabolicNetwork.coverage.inputTranscriptFeatures,5);
+assert.equal(example.focusedMetabolicNetwork.coverage.mappedTranscriptFeatures,4);
+assert.ok(example.focusedMetabolicNetwork.coverage.measuredRegions >= 3);
+assert.equal(example.focusedMetabolicNetwork.coverage.proteomicsProjected,false);
 const graph=example.focusedMetabolicNetwork;
 const id=(i)=>graph.audit.find((r)=>r.input===i);
 assert.equal(id('CHEBI:16828').status, 'verified_id');
@@ -123,6 +129,32 @@ assert.ok(auto.find((r)=>r.id==='kynurenine').nodes.some((n)=>n.id==='formylkyn'
 assert.ok(!focusMetabolicRegion(graph,'kynurenine',0)[0].nodes.some((n)=>n.id==='formylkyn'));
 assert.ok(focusMetabolicRegion(graph,'kynurenine',2)[0].nodes.length >
   focusMetabolicRegion(graph,'kynurenine',0)[0].nodes.length);
+
+const nonDemoNetwork=await buildMultiomicsVisualizationData({
+  files:{},metadataRows:[],columnMapping:{},dataTypes:{},
+  analysisResult:{layers:{
+    transcriptomics:{rows:[row('GCLC',1.1,0.02),row('GSR',0.8,0.04)]},
+    metabolomics:{rows:[row('glutathione',-0.7,0.03),row('oxidized glutathione',1.2,0.02)]}
+  }}
+});
+const nonDemoAuto=focusMetabolicRegion(nonDemoNetwork.focusedMetabolicNetwork,'auto',1);
+assert.ok(nonDemoAuto.some((region)=>region.id==='redox'),
+  'Automatic map must select a non-demo glutathione/redox region from measured inputs');
+assert.ok(nonDemoNetwork.focusedMetabolicNetwork.coverage.measuredNodes>=4);
+assert.ok(nonDemoNetwork.focusedMetabolicNetwork.coverage.measuredRegions>=1);
+
+const noMap=await buildMultiomicsVisualizationData({
+  files:{},metadataRows:[],columnMapping:{},dataTypes:{},
+  analysisResult:{layers:{
+    transcriptomics:{rows:[row('GENE_OUTSIDE_CURATED_MAP',1.4,0.02)]},
+    metabolomics:{rows:[row('CHEBI:99999999',-1.1,0.03)]}
+  }}
+});
+assert.equal(noMap.focusedMetabolicNetwork.coverage.mappedMetaboliteFeatures,0);
+assert.equal(noMap.focusedMetabolicNetwork.coverage.mappedTranscriptFeatures,0);
+assert.equal(noMap.focusedMetabolicNetwork.coverage.measuredRegions,0);
+assert.deepEqual(focusMetabolicRegion(noMap.focusedMetabolicNetwork,'auto',1),[],
+  'Unknown biology must produce no focused map rather than a fabricated pathway');
 
 const strictResult=await buildMultiomicsVisualizationData({
   files:{},metadataRows:[],columnMapping:{},dataTypes:{},
