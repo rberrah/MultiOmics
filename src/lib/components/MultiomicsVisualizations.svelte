@@ -75,6 +75,10 @@
     return Number.isFinite(value) ? Number(value).toFixed(digits) : '—';
   }
 
+  function qLabel(value) {
+    return Number.isFinite(value) ? fmt(value, 3) : tr('non calculé', 'not computed');
+  }
+
   function itemLabel(item) {
     return language === 'en' ? (item.labelEn || item.feature) : (item.labelFr || item.feature);
   }
@@ -132,7 +136,7 @@
   function measurementTitle(label, measurement) {
     if (!measurement) return label + ' · ' + tr('non mesuré / non reconnu', 'not measured / not matched');
     if (measurement.status !== 'measured') return label + ' · ' + measurement.feature + ' · ' + measurement.status;
-    return label + ' · ' + measurement.feature + ' · ' + scaleLabel([measurement]) + '=' + fmt(measurement.effect) + ' · q=' + fmt(measurement.qValue, 3);
+    return label + ' · ' + measurement.feature + ' · ' + scaleLabel([measurement]) + '=' + fmt(measurement.effect) + ' · q=' + qLabel(measurement.qValue);
   }
 
   function downloadSvg(id, filename) {
@@ -257,7 +261,7 @@
                   height={rowH - 1}
                   fill={diverging(value, 2.5)}
                 >
-                  <title>{row.feature} · {heatmap.samples[column].sampleId} · z={fmt(value)} · {tr('effet', 'effect')}={fmt(row.effect)} · q={fmt(row.qValue, 3)}</title>
+                  <title>{row.feature} · {heatmap.samples[column].sampleId} · z={fmt(value)} · {tr('effet', 'effect')}={fmt(row.effect)} · q={qLabel(row.qValue)}</title>
                 </rect>
               {/each}
             {/each}
@@ -315,13 +319,13 @@
           {#each metaboliteSegments as segment}
             {@const stroke = qStroke(segment.qValue)}
             <path d={segment.path} fill={diverging(segment.effect, metLimit)} stroke="#263238" stroke-width={stroke.width} stroke-dasharray={stroke.dash}>
-              <title>{itemLabel(segment)} · {segment.feature} · {scaleLabel([segment])}={fmt(segment.effect)} · q={fmt(segment.qValue, 3)}</title>
+              <title>{itemLabel(segment)} · {segment.feature} · {scaleLabel([segment])}={fmt(segment.effect)} · q={qLabel(segment.qValue)}</title>
             </path>
           {/each}
           {#each transcriptSegments as segment}
             {@const stroke = qStroke(segment.qValue)}
             <path d={segment.path} fill={diverging(segment.effect, rnaLimit)} stroke="#263238" stroke-width={stroke.width} stroke-dasharray={stroke.dash}>
-              <title>{itemLabel(segment)} · {segment.feature} · {scaleLabel([segment])}={fmt(segment.effect)} · q={fmt(segment.qValue, 3)}</title>
+              <title>{itemLabel(segment)} · {segment.feature} · {scaleLabel([segment])}={fmt(segment.effect)} · q={qLabel(segment.qValue)}</title>
             </path>
           {/each}
 
