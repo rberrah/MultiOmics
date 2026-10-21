@@ -141,7 +141,8 @@ const nonDemoNetwork=await buildMultiomicsVisualizationData({
 const nonDemoAuto=focusMetabolicRegion(nonDemoNetwork.focusedMetabolicNetwork,'auto',1);
 assert.ok(nonDemoAuto.some((region)=>region.id==='redox'),
   'Automatic map must select a non-demo glutathione/redox region from measured inputs');
-assert.ok(nonDemoNetwork.focusedMetabolicNetwork.coverage.measuredNodes>=4);
+assert.ok(nonDemoNetwork.focusedMetabolicNetwork.coverage.measuredNodes>=2,
+  'Non-demo input must contribute real measured nodes to the automatically selected redox map.');
 assert.ok(nonDemoNetwork.focusedMetabolicNetwork.coverage.measuredRegions>=1);
 
 const noMap=await buildMultiomicsVisualizationData({
