@@ -63,6 +63,10 @@ test('multi-omics one-click demo exposes guided heatmap, pathway and map views',
   await page.locator('.figure-switcher button').nth(2).click();
   const focused = page.getByTestId('multiomics-focused-network');
   await expect(focused).toBeVisible();
+  await expect(page.getByTestId('multiomics-network-coverage')).toContainText(/variables métabolomiques appariées|metabolomics features mapped/i);
+  await expect(page.getByTestId('multiomics-network-coverage')).toContainText(/transcrits projetés|transcripts projected/i);
+  await expect(focused).toContainText(/automatisée mais non exhaustive|automated but not exhaustive/i);
+  await expect(focused).toContainText(/Protéomique non projetée|Proteomics is not yet projected/i);
   await expect(focused).toContainText(/Tryptophane et kynurénine|Tryptophan and kynurenine/);
   await expect(focused).toContainText(/Glycolyse|Glycolysis/);
   await expect(focused).toContainText(/Cycle de Krebs|TCA cycle/);
