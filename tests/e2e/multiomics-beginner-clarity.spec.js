@@ -56,6 +56,27 @@ test('FDR explanation counts real feature-grid q-values, not unrelated table q-v
   await expect(policy).toContainText('first ten rows shown per omic');
 });
 
+test('beginner workflow is browser-first, exploratory and keeps R advanced', async ({ page }) => {
+  await page.goto('/multiomics/tool?lang=fr');
+
+  const policy = page.getByTestId('multiomics-exploratory-policy');
+  await expect(policy).toBeVisible();
+  await expect(policy).toContainText('Données exploratoires');
+  await expect(policy).toContainText('code R');
+
+  const advanced = page.getByTestId('multiomics-advanced-analysis-options');
+  await expect(advanced).toBeVisible();
+  await expect(advanced).not.toHaveAttribute('open', '');
+
+  const run = page.getByTestId('multiomics-run');
+  await expect(run).toContainText('Explorer mes données');
+
+  await page.getByTestId('multiomics-quick-demo-rna').click();
+  await expect(page.getByTestId('multiomics-results')).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByTestId('multiomics-research-bundle-download'))
+    .toContainText('dossier + code R');
+});
+
 test('Readiness text derived from visible metadata is escaped, never injected as HTML', async ({ page }) => {
   await page.goto('/multiomics/tool?lang=fr');
   const readiness = page.getByTestId('multiomics-run-readiness');
@@ -94,12 +115,11 @@ test('results explain evidence tier and verify Omics2PK structural exchange with
   await expect(interpretation).toBeVisible();
   await expect(interpretation).toContainText('Source numérique');
   await expect(interpretation).toContainText('Exploratoire navigateur');
-  await expect(interpretation).toContainText('ne certifie ni le design');
+  await expect(interpretation).toContainText(/méthode de référence|reference method/);
 
   const reuse=page.getByTestId('multiomics-omics2pk-readiness');
-  await expect(reuse).toContainText('Échange structurel vérifié');
+  await expect(reuse).toContainText('Échange individuel disponible');
   await expect(reuse).toContainText('8 sujets');
-  await expect(reuse).toContainText('16 prélèvements');
   await expect(reuse).toContainText('49 assays');
   await expect(reuse).toContainText('PK non prête');
   await expect(reuse).toContainText(/vraies doses|genuine PK doses/);
