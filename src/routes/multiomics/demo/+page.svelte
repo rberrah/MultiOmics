@@ -373,8 +373,8 @@
       <li>
         <span>3</span>
         <div><strong>{t('Vérifier la cohérence entre couches','Check cross-layer coherence')}</strong><p>{t(
-          'Un même axe est plus crédible lorsqu’il est visible à plusieurs niveaux indépendants : ici STAT1, IDO1 et KYNU évoluent dans le même sens en transcriptomique et protéomique, tandis que le tryptophane et la kynurénine apportent une lecture métabolique complémentaire.',
-          'A biological axis is more compelling when it appears across independent layers: here STAT1, IDO1 and KYNU move in the same direction in transcriptomics and proteomics, while tryptophan and kynurenine provide complementary metabolic readout.'
+          'Rechercher d’abord une cohérence de direction entre couches, sans la confondre avec une corrélation inter-omique : ici STAT1, IDO1 et KYNU évoluent dans le même sens en transcriptomique et protéomique, tandis que le tryptophane et la kynurénine apportent une lecture métabolique complémentaire.',
+          'First look for directional coherence across layers without confusing it with cross-omics correlation: here STAT1, IDO1 and KYNU move in the same direction in transcriptomics and proteomics, while tryptophan and kynurenine provide complementary metabolic readout.'
         )}</p></div>
       </li>
       <li>
@@ -405,8 +405,8 @@
         'If a similar profile were replicated in real patients, it would first raise the hypothesis of an inflammatory or immunomodulated state associated with kynurenine-pathway activation. The omics signal should then be confronted with independent clinical markers—CRP, cytokines, symptoms and treatment response—rather than treated as a conclusion by itself.'
       )}</p>
       <p>{t(
-        'Le signal CYP3A5 ajoute une hypothèse pharmacologique : son expression RNA est ici à '+featureValue('transcriptomics','CYP3A5')+'. Dans une vraie cohorte exposée à un médicament substrat de CYP3A, cela justifierait de tester une phénoconversion inflammatoire possible avec concentrations PK, génotype CYP3A5, activité/phénotype CYP3A et covariables cliniques. Cela ne justifie jamais, à lui seul, une adaptation posologique.',
-        'CYP3A5 adds a pharmacological hypothesis: its RNA expression is '+featureValue('transcriptomics','CYP3A5')+' here. In a real cohort receiving a CYP3A substrate, this would justify testing possible inflammation-related phenoconversion using PK concentrations, CYP3A5 genotype, CYP3A activity/phenotype and clinical covariates. By itself it never justifies a dose change.'
+        'Le signal CYP3A5 ajoute une hypothèse pharmacologique : son expression RNA est ici à '+featureValue('transcriptomics','CYP3A5')+'. Dans une vraie cohorte exposée à un substrat de CYP3A, ce signal justifierait de tester une modification du phénotype CYP3A avec concentrations PK, génotype CYP3A5, mesure d’activité/phénotype CYP3A et inflammation clinique. Il ne faut pas appeler ce transcript isolé une « phénoconversion » démontrée, et il ne justifie jamais à lui seul une adaptation posologique.',
+        'CYP3A5 adds a pharmacological hypothesis: its RNA expression is '+featureValue('transcriptomics','CYP3A5')+' here. In a real cohort receiving a CYP3A substrate, this signal would justify testing altered CYP3A phenotype using PK concentrations, CYP3A5 genotype, a CYP3A activity/phenotype measure and clinical inflammation. An isolated transcript should not be called demonstrated phenoconversion and never justifies a dose change by itself.'
       )}</p>
       <div class="translation-next">
         <strong>{t('Étape suivante logique','Logical next step')}</strong>
@@ -476,20 +476,43 @@
 </section>
 
 <section>
-  <h2>{t('7 · Intégration inter-omique : que peut-on dire ?','7 · Cross-omics integration: what can be said?')}</h2>
+  <h2>{t('7 · Intégration inter-omique : que peut-on réellement dire ?','7 · Cross-omics integration: what can actually be said?')}</h2>
   {#if status==='done'}
     {@const pair=topCrossPair()}
     <p class="section-intro">{t(
-      'Cette sortie ne cherche pas seulement à savoir quelles variables changent. Elle demande si la relation entre deux variables de couches différentes change elle aussi entre contrôle et traitement.',
-      'This output does not only ask which features change. It asks whether the relationship between two variables from different layers also changes between control and treatment.'
+      'Cette sortie est différente de la cohérence de direction décrite plus haut. Elle étudie, paire par paire, si deux variables de couches différentes varient ensemble de la même façon chez les sujets contrôle et chez les sujets traités.',
+      'This output differs from the directional coherence described above. Pair by pair, it asks whether two features from different layers co-vary in the same way among control and treated subjects.'
     )}</p>
+
+    <div class="cross-definition">
+      <strong>{t('D’où viennent r ref et r comp ?','Where do r ref and r comp come from?')}</strong>
+      <p>{t(
+        'Comme il n’y a que T0 et T12, MultiOmics calcule d’abord pour chaque sujet et chaque variable une variation individuelle T12 − T0 sur l’échelle prétraitée. Pour une paire A↔B, r ref est la corrélation de Spearman entre les variations de A et B chez les contrôles ; r comp est la même corrélation chez les traités. Ici cela signifie seulement '+(pair?.nReference ?? 0)+' sujets contrôle et '+(pair?.nComparison ?? 0)+' sujets traités par corrélation.',
+        'Because there are only T0 and T12, MultiOmics first calculates an individual T12 − T0 change for each subject and feature on the preprocessed scale. For an A↔B pair, r ref is the Spearman correlation between A and B changes among controls; r comp is the same correlation among treated subjects. Here that means only '+(pair?.nReference ?? 0)+' control subjects and '+(pair?.nComparison ?? 0)+' treated subjects per correlation.'
+      )}</p>
+    </div>
+
+    <div class="small-n-alert" data-testid="guided-demo-crossomics-small-n">
+      <strong>{t('Pourquoi voit-on autant de +1 et −1 ?','Why are there so many +1 and −1 values?')}</strong>
+      <p>{t(
+        'Avec n=4 par groupe, Spearman ne regarde que l’ordre des quatre sujets. Si les deux variables classent les quatre sujets exactement dans le même ordre, r=+1 ; si l’ordre est exactement inversé, r=−1. Les données synthétiques de cette démo ont volontairement des trajectoires très régulières, donc ce phénomène est amplifié.',
+        'With n=4 per group, Spearman only uses the ordering of the four subjects. If both features rank the four subjects in exactly the same order, r=+1; if the order is exactly reversed, r=−1. This synthetic demo deliberately contains very regular trajectories, which amplifies this behavior.'
+      )}</p>
+      <p><strong>{analysisResult.crossOmics?.extremeCorrelationPairs ?? 0}/{analysisResult.crossOmics?.testedPairs ?? 0}</strong>
+        {t(' paires ont au moins un r exactement égal à ±1 ; ',' pairs have at least one r exactly equal to ±1; ')}
+        <strong>{analysisResult.crossOmics?.bothExtremeCorrelationPairs ?? 0}/{analysisResult.crossOmics?.testedPairs ?? 0}</strong>
+        {t(' ont les deux r à ±1. Ce sont des corrélations de rang saturées par petit effectif, pas des preuves de couplage biologique parfait.',
+           ' have both r values at ±1. These are rank correlations saturated by tiny sample size, not evidence of perfect biological coupling.')}</p>
+    </div>
 
     <div class="output-explainer" data-testid="guided-demo-crossomics-explainer">
       <div>
         <span class="output-label">{t('Exemple de sortie','Example output')}</span>
         {#if pair}
           <p><code>{featureName(pair.layerA,pair.featureA)}</code> ↔ <code>{featureName(pair.layerB,pair.featureB)}</code><br>
-          r<sub>contrôle</sub>={sig(pair.rReference)} · r<sub>traitement</sub>={sig(pair.rComparison)} · Δr={sig(pair.deltaR)} · p*={probability(pair.approxPValue)} · q*={probability(pair.approxQValue)}</p>
+          n<sub>ref</sub>={pair.nReference} · n<sub>comp</sub>={pair.nComparison} ·
+          r<sub>ref</sub>={sig(pair.rReference)} · r<sub>comp</sub>={sig(pair.rComparison)} · Δr={sig(pair.deltaR)} ·
+          p*={probability(pair.approxPValue)} · q*={probability(pair.approxQValue)}</p>
         {:else}
           <p>{t('Aucune paire estimable dans ce cas.','No estimable pair in this case.')}</p>
         {/if}
@@ -497,30 +520,30 @@
       <div>
         <span class="output-label">{t('Méthode','Method')}</span>
         <p>{t(
-          'Pour chaque paire candidate, MultiOmics résume la trajectoire individuelle puis calcule une corrélation de Spearman séparément dans les deux groupes. Δr = r_traitement − r_contrôle. L’approximation Fisher-z produit p*, puis BH produit q* sur les paires effectivement testées.',
-          'For each candidate pair, MultiOmics summarizes the individual trajectory and calculates Spearman correlation separately in both groups. Δr = r_treatment − r_control. A Fisher-z approximation yields p*, then BH yields q* across the tested pairs.'
+          'Les variables candidates sont d’abord présélectionnées parmi les sorties les plus informatives de chaque couche. MultiOmics calcule ensuite Spearman sur les variations individuelles T12−T0 séparément par condition, puis Δr = r comp − r ref. Le garde-fou navigateur exige au moins '+(analysisResult.crossOmics?.minGroupNForApproxInference ?? 8)+' sujets appariés par condition avant même d’afficher l’approximation Fisher-z p*/q*.',
+          'Candidate features are first preselected among the most informative outputs from each layer. MultiOmics then computes Spearman on individual T12−T0 changes separately by condition, with Δr = r comp − r ref. The browser guardrail requires at least '+(analysisResult.crossOmics?.minGroupNForApproxInference ?? 8)+' matched subjects per condition before even displaying the Fisher-z p*/q* approximation.'
         )}</p>
       </div>
       <div>
         <span class="output-label">{t('Interprétation / utilité','Interpretation / utility')}</span>
         <p>{t(
-          'Un |Δr| élevé suggère que deux variables deviennent plus ou moins couplées sous traitement. Cette sortie sert surtout à prioriser des relations inter-couches à vérifier expérimentalement, ou à construire une signature mécanistique candidate.',
-          'A large |Δr| suggests that two variables become more or less coupled under treatment. This output is mainly useful for prioritizing cross-layer relationships for experimental follow-up or for building a candidate mechanistic signature.'
+          'Avec un effectif suffisant et une analyse préspecifiée, Δr peut aider à repérer une relation inter-couches qui apparaît, disparaît ou change de signe entre deux conditions. Dans cette démo à 4+4 sujets, la bonne conclusion est seulement : « le calcul descriptif fonctionne », pas « cette paire est biologiquement couplée ».',
+          'With adequate sample size and a prespecified analysis, Δr can help identify a cross-layer relationship that appears, disappears or changes sign between conditions. In this 4+4-subject demo, the correct conclusion is only “the descriptive calculation works”, not “this pair is biologically coupled”.'
         )}</p>
       </div>
       <div>
         <span class="output-label">{t('Limites','Limitations')}</span>
         <p>{t(
-          'Une corrélation différentielle ne prouve pas que A régule B. Ici les p/q de référence ne sont pas calculées dans le navigateur, l’effectif est faible et les paires sont présélectionnées parmi les variables les plus informatives. Les p*/q* servent à l’exploration, pas à une revendication confirmatoire.',
-          'Differential correlation does not prove that A regulates B. Here reference p/q are not computed in the browser, sample size is small and pairs are preselected among informative features. p*/q* are exploratory, not confirmatory.'
+          'Ici toutes les paires échouent au garde-fou de petit effectif : p*/q* sont donc volontairement non calculées. De plus, les paires sont sélectionnées avec les mêmes données avant la corrélation ; une BH sur ces seules paires ne corrigerait pas ce biais de sélection. Une analyse confirmatoire doit définir à l’avance les paires ou utiliser une stratégie de validation indépendante.',
+          'Here every pair fails the small-sample guardrail, so p*/q* are intentionally not computed. In addition, pairs are selected using the same data before correlation; BH across those pairs alone would not correct this selection bias. Confirmatory analysis should prespecify pairs or use an independent validation strategy.'
         )}</p>
       </div>
     </div>
 
     <div class="facts small">
-      <article><strong>{analysisResult.crossOmics?.testedPairs ?? 0}</strong><span>{t('paires testées','pairs tested')}</span></article>
-      <article><strong>{analysisResult.crossOmics?.significantPairs ?? 0}</strong><span>{t('paires avec q référence ≤ 0,10','pairs with reference q ≤ 0.10')}</span></article>
-      <article><strong>{analysisResult.crossOmics?.approximateSignificantPairs ?? 0}</strong><span>{t('paires avec q* approx. ≤ 0,10','pairs with approx. q* ≤ 0.10')}</span></article>
+      <article><strong>{analysisResult.crossOmics?.testedPairs ?? 0}</strong><span>{t('paires descriptives calculées','descriptive pairs calculated')}</span></article>
+      <article><strong>{analysisResult.crossOmics?.extremeCorrelationPairs ?? 0}</strong><span>{t('avec au moins un r = ±1','with at least one r = ±1')}</span></article>
+      <article><strong>{analysisResult.crossOmics?.smallNPairCount ?? 0}</strong><span>{t('sans p*/q* car n insuffisant','without p*/q* because n is too small')}</span></article>
     </div>
 
     <details class="technical-pairs">
@@ -528,12 +551,13 @@
       {#if analysisResult.crossOmics?.pairs?.length}
         <div class="table-wrap">
           <table>
-            <thead><tr><th>{t('Paire','Pair')}</th><th>Pattern</th><th>r ref</th><th>r comp</th><th>Δr</th><th>{t('p référence','reference p')}</th><th>{t('q référence','reference q')}</th><th>p* {t('approx.','approx.')}</th><th>q* BH {t('approx.','approx.')}</th></tr></thead>
+            <thead><tr><th>{t('Paire','Pair')}</th><th>Pattern</th><th>n ref</th><th>n comp</th><th>r ref</th><th>r comp</th><th>Δr</th><th>{t('p référence','reference p')}</th><th>{t('q référence','reference q')}</th><th>p* {t('approx.','approx.')}</th><th>q* BH {t('approx.','approx.')}</th></tr></thead>
             <tbody>
               {#each analysisResult.crossOmics.pairs.slice(0,15) as pairRow}
                 <tr>
                   <td><code>{featureName(pairRow.layerA,pairRow.featureA)}</code> ↔ <code>{featureName(pairRow.layerB,pairRow.featureB)}</code></td>
                   <td>{pairRow.pattern?.replaceAll('_',' ')}</td>
+                  <td>{pairRow.nReference}</td><td>{pairRow.nComparison}</td>
                   <td>{sig(pairRow.rReference)}</td><td>{sig(pairRow.rComparison)}</td><td>{sig(pairRow.deltaR)}</td><td>{probability(pairRow.pValue)}</td><td>{probability(pairRow.qValue)}</td><td>{probability(pairRow.approxPValue)}</td><td>{probability(pairRow.approxQValue)}</td>
                 </tr>
               {/each}
@@ -553,8 +577,8 @@
     <p><strong>{t('Statut de cette exécution :','Status of this run:')}</strong> <code>{analysisResult.engine.execution}</code> · <code>{analysisResult.protocol.analysisIntent}</code>.</p>
   {/if}
   <p>{t(
-    'Cette démo sert à comprendre le flux et à vérifier visuellement les résultats. Pour une étude réelle, le ZIP de recherche fourni par Tool doit être conservé avec les données, paramètres et provenance, puis le code R de référence doit être exécuté pour l’inférence destinée à une publication. Le navigateur reste utile pour l’exploration ; il n’est pas présenté comme une validation confirmatoire.',
-    'This demo is for understanding the workflow and visually checking results. For a real study, the research ZIP provided by Tool should be retained with data, settings and provenance, then the reference R code should be run for publication-oriented inference. The browser remains useful for exploration; it is not presented as confirmatory validation.'
+    'Cette démo sert à comprendre le flux et à vérifier visuellement les résultats. Pour une étude réelle, le ZIP de recherche fourni par Tool doit être conservé avec les données, paramètres et provenance, puis le code R de référence doit être exécuté pour l’inférence univariée destinée à une publication. Pour l’intégration inter-omique, il faut en plus un effectif adapté et des relations préspecifiées ou validées sur des données indépendantes ; les corrélations 4+4 de cette démo ne doivent pas être reproduites comme une analyse confirmatoire.',
+    'This demo is for understanding the workflow and visually checking results. For a real study, the research ZIP provided by Tool should be retained with data, settings and provenance, then the reference R code should be run for publication-oriented univariate inference. Cross-omics integration additionally requires adequate sample size and prespecified relationships or independent validation; the 4+4 correlations in this demo should not be reproduced as a confirmatory analysis.'
   )}</p>
   <div class="actions">
     <a class="primary" href={launchHref}>{t('Rejouer ce cas dans Tool','Replay this case in Tool')}</a>
@@ -623,6 +647,9 @@
   .output-label{font-weight:750;color:var(--text-primary)}
   .output-explainer p{margin:0;line-height:1.65;color:var(--text-secondary)}
   .technical-pairs{margin-top:1.2rem}
+  .cross-definition,.small-n-alert{max-width:900px;margin:1rem 0;padding:1rem 1.15rem;border-left:4px solid var(--accent-pk);background:var(--bg-secondary)}
+  .small-n-alert{border-left-color:var(--accent-ai)}
+  .cross-definition p,.small-n-alert p{margin:.45rem 0 0;line-height:1.65;color:var(--text-secondary)}
   .not-computed{color:var(--text-muted);font-style:italic}
   dl{margin:.8rem 0}dl div{display:grid;grid-template-columns:90px 1fr;gap:.5rem;padding:.35rem 0;border-bottom:1px solid var(--border-subtle)}dt{color:var(--text-muted)}dd{margin:0;overflow-wrap:anywhere}
   .note,.cap{font-size:.88rem;color:var(--text-secondary);line-height:1.55}
