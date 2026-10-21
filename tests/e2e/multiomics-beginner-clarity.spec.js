@@ -5,6 +5,7 @@ test('FDR explanation counts real feature-grid q-values, not unrelated table q-v
   await page.goto('/multiomics/tool?lang=fr');
   await page.getByTestId('multiomics-load-demo').click();
   await expect(page.getByTestId('multiomics-results')).toBeVisible({ timeout: 30_000 });
+  await page.getByTestId('multiomics-result-technical-detail').locator('summary').first().click();
 
   await page.evaluate(() => {
     const results = document.querySelector('[data-testid="multiomics-results"]');
@@ -74,7 +75,7 @@ test('beginner workflow is browser-first, exploratory and keeps R advanced', asy
   await page.getByTestId('multiomics-quick-demo-rna').click();
   await expect(page.getByTestId('multiomics-results')).toBeVisible({ timeout: 30_000 });
   await expect(page.getByTestId('multiomics-research-bundle-download'))
-    .toContainText('dossier + code R');
+    .toContainText(/données \+ code R|data \+ R code/i);
 });
 
 test('Readiness text derived from visible metadata is escaped, never injected as HTML', async ({ page }) => {
@@ -92,6 +93,7 @@ test('expert signature upload refuses invalid untraceable scores without affecti
   await page.goto('/multiomics/tool/?lang=en');
   await page.getByTestId('multiomics-load-demo').click();
   await expect(page.getByTestId('multiomics-results')).toBeVisible({timeout:30_000});
+  await page.getByTestId('multiomics-result-technical-detail').locator('summary').first().click();
   await page.getByText('Other downloads', {exact:true}).click();
   const upload=page.getByTestId('multiomics-signature-upload');
   await expect(upload).toBeVisible();
@@ -110,6 +112,7 @@ test('results explain evidence tier and verify Omics2PK structural exchange with
   await page.goto('/multiomics/tool?lang=fr');
   await page.getByTestId('multiomics-load-demo').click();
   await expect(page.getByTestId('multiomics-results')).toBeVisible({timeout:30_000});
+  await page.getByTestId('multiomics-result-technical-detail').locator('summary').first().click();
 
   const interpretation=page.getByTestId('multiomics-result-interpretation');
   await expect(interpretation).toBeVisible();
