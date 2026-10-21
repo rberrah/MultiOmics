@@ -70,6 +70,7 @@ test('Reactome release, analysis token and SHA-256 inputs are retained in the fi
   expect(hashedFiles.length).toBeGreaterThanOrEqual(2);
   for (const file of hashedFiles) expect(file.sha256).toMatch(/^[a-f0-9]{64}$/);
 
+  await page.getByTestId('multiomics-result-technical-detail').locator('summary').first().click();
   const downloadPromise = page.waitForEvent('download');
   await page.locator('.export-detail > summary').click();
   await page.getByRole('button', { name: /Données détaillées|Detailed data/i }).click();
