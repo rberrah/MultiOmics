@@ -60,6 +60,33 @@
   function effect(value){
     return Number.isFinite(Number(value)) ? Number(value).toPrecision(4) : '—';
   }
+  const demoNames = {
+    transcriptomics: { STAT1:'STAT1', IDO1:'IDO1', KYNU:'KYNU', CYP3A5:'CYP3A5', GAPDH:'GAPDH' },
+    proteomics: { P42224:'STAT1', P14902:'IDO1', Q16719:'KYNU', P04406:'GAPDH' },
+    metabolomics: {
+      'CHEBI:16828':t('L-tryptophane','L-tryptophan'),
+      'CHEBI:16946':t('L-kynurénine','L-kynurenine'),
+      'CHEBI:24996':t('Lactate','Lactate'),
+      'CHEBI:30031':t('Succinate','Succinate')
+    }
+  };
+  /** @param {string} layer @param {string} feature */
+  function featureRow(layer,feature){
+    return analysisResult?.layers?.[layer]?.rows?.find((row)=>row.feature===feature) || null;
+  }
+  /** @param {string} layer @param {string} feature */
+  function featureName(layer,feature){
+    return demoNames?.[layer]?.[feature] || feature;
+  }
+  /** @param {string} layer @param {string} feature */
+  function featureValue(layer,feature){
+    const row=featureRow(layer,feature);
+    if(!row)return '—';
+    return row.foldRatio==null ? effect(row.effect) : row.foldRatio.toFixed(2)+'×';
+  }
+  function topCrossPair(){
+    return analysisResult?.crossOmics?.pairs?.[0] || null;
+  }
   /** @param {any} row @param {any} layer */
   function rowReading(row,layer){
     const direction=Number(row?.effect)>0
@@ -317,59 +344,118 @@
 <section>
   <h2>{t('5 · Comment interpréter ces sorties ?','5 · How should these outputs be interpreted?')}</h2>
   {#if status==='done'}
-    <p>{t(
-      'Le contraste renvoyé par Tool est l’interaction condition × temps sur T0→T12. Il répond à la question : « la trajectoire entre T0 et T12 diffère-t-elle entre traitement et contrôle ? ». L’effet n’est donc ni une simple différence traitement–contrôle à T12, ni une p-value : c’est l’amplitude descriptive de l’interaction estimée par le modèle longitudinal.',
-      'The contrast returned by Tool is the condition × time interaction over T0→T12. It answers: “does the trajectory from T0 to T12 differ between treatment and control?”. The effect is therefore neither a simple treatment-versus-control difference at T12 nor a p-value: it is the descriptive magnitude of the interaction estimated by the longitudinal model.'
+    <p class="section-intro">{t(
+      'Une bonne lecture ne commence pas par chercher la plus petite p-value. Elle suit quatre questions successives : quel contraste est estimé, quelle est l’amplitude, le signal se répète-t-il entre couches, puis quelle hypothèse biologique ou clinique mérite réellement d’être testée ?',
+      'A sound interpretation does not start by hunting for the smallest p-value. It follows four questions in sequence: what contrast is estimated, how large is the effect, is the signal repeated across layers, and which biological or clinical hypothesis is actually worth testing?'
     )}</p>
-    <div class="interpret-grid" data-testid="guided-demo-interpretation">
-      {#each layerOrder as layer}
-        {@const r=analysisResult.layers[layer]}
-        <article>
-          <h3>{layerLabel(layer)}</h3>
-          {#each r.rows.slice(0,Math.min(4,r.rows.length)) as row}
-            <div class="reading-row">
-              <code>{row.feature}</code>
-              <p><strong>{row.foldRatio==null?effect(row.effect):row.foldRatio.toFixed(2)+'×'}</strong> · p={probability(row.pValue)} · q={probability(row.qValue)} · p*={probability(row.approxPValue)} · q*={probability(row.approxQValue)}<br>{rowReading(row,r)}</p>
-            </div>
-          {/each}
-        </article>
-      {/each}
+
+    <ol class="reading-sequence" data-testid="guided-demo-interpretation">
+      <li>
+        <span>1</span>
+        <div><strong>{t('Lire le contraste','Read the contrast')}</strong><p>{t(
+          'Ici, chaque effet est une interaction condition × temps : différence entre la trajectoire T0→T12 du groupe traité et celle du groupe contrôle. Ce n’est pas une simple différence à T12.',
+          'Here every effect is a condition × time interaction: the difference between the treated and control T0→T12 trajectories. It is not a simple T12 group difference.'
+        )}</p></div>
+      </li>
+      <li>
+        <span>2</span>
+        <div><strong>{t('Lire l’amplitude avant la significativité','Read magnitude before significance')}</strong><p>{t(
+          'Sur une échelle log2, 2^effet donne un ratio intuitif. Par exemple IDO1 vaut '+featureValue('transcriptomics','IDO1')+' au niveau RNA et '+featureValue('proteomics','P14902')+' au niveau protéique dans ce cas synthétique.',
+          'On a log2 scale, 2^effect gives an intuitive ratio. In this synthetic case IDO1 is '+featureValue('transcriptomics','IDO1')+' at RNA level and '+featureValue('proteomics','P14902')+' at protein level.'
+        )}</p></div>
+      </li>
+      <li>
+        <span>3</span>
+        <div><strong>{t('Vérifier la cohérence entre couches','Check cross-layer coherence')}</strong><p>{t(
+          'Un même axe est plus crédible lorsqu’il est visible à plusieurs niveaux indépendants : ici STAT1, IDO1 et KYNU évoluent dans le même sens en transcriptomique et protéomique, tandis que le tryptophane et la kynurénine apportent une lecture métabolique complémentaire.',
+          'A biological axis is more compelling when it appears across independent layers: here STAT1, IDO1 and KYNU move in the same direction in transcriptomics and proteomics, while tryptophan and kynurenine provide complementary metabolic readout.'
+        )}</p></div>
+      </li>
+      <li>
+        <span>4</span>
+        <div><strong>{t('Séparer preuve et hypothèse','Separate evidence from hypothesis')}</strong><p>{t(
+          'Les p*/q* navigateur servent à hiérarchiser les signaux. Elles ne remplacent pas le replay R. Une histoire biologique cohérente reste une hypothèse tant qu’elle n’est pas reproduite, reliée au phénotype et confrontée à des mesures fonctionnelles.',
+          'Browser p*/q* help rank signals. They do not replace the R replay. A coherent biological story remains a hypothesis until it is replicated, linked to phenotype and challenged with functional measurements.'
+        )}</p></div>
+      </li>
+    </ol>
+
+    <div class="interpretation-story">
+      <h3>{t('Interprétation scientifique du cas','Scientific interpretation of the case')}</h3>
+      <p>{t(
+        'Le motif dominant est compatible avec une activation coordonnée de l’axe interféron–kynurénine. STAT1 augmente au niveau RNA ('+featureValue('transcriptomics','STAT1')+') et protéique ('+featureValue('proteomics','P42224')+'). IDO1 augmente également dans les deux couches ('+featureValue('transcriptomics','IDO1')+' RNA ; '+featureValue('proteomics','P14902')+' protéine), de même que KYNU ('+featureValue('transcriptomics','KYNU')+' ; '+featureValue('proteomics','Q16719')+').',
+        'The dominant pattern is compatible with coordinated activation of an interferon–kynurenine axis. STAT1 increases at RNA ('+featureValue('transcriptomics','STAT1')+') and protein ('+featureValue('proteomics','P42224')+') levels. IDO1 also increases in both layers ('+featureValue('transcriptomics','IDO1')+' RNA; '+featureValue('proteomics','P14902')+' protein), as does KYNU ('+featureValue('transcriptomics','KYNU')+'; '+featureValue('proteomics','Q16719')+').'
+      )}</p>
+      <p>{t(
+        'Le métabolome va dans le même sens qualitatif : le '+featureName('metabolomics','CHEBI:16828')+' est à '+featureValue('metabolomics','CHEBI:16828')+' tandis que la '+featureName('metabolomics','CHEBI:16946')+' est à '+featureValue('metabolomics','CHEBI:16946')+'. Cette convergence est compatible avec une mobilisation de la voie kynurénine, mais elle ne démontre pas un flux métabolique : il faudrait notamment un ratio kynurénine/tryptophane validé, des concentrations quantitatives et idéalement des mesures fonctionnelles ou isotopiques.',
+        'The metabolome points in the same qualitative direction: '+featureName('metabolomics','CHEBI:16828')+' is '+featureValue('metabolomics','CHEBI:16828')+' while '+featureName('metabolomics','CHEBI:16946')+' is '+featureValue('metabolomics','CHEBI:16946')+'. This convergence is compatible with engagement of the kynurenine pathway, but it does not demonstrate metabolic flux: a validated kynurenine/tryptophan ratio, quantitative concentrations and ideally functional or isotope measurements would be needed.'
+      )}</p>
     </div>
+
+    <div class="translation">
+      <h3>{t('Interprétation clinique / translationnelle','Clinical / translational interpretation')}</h3>
+      <p>{t(
+        'Si un profil analogue était reproduit chez de vrais patients, il ferait d’abord suspecter un état inflammatoire ou immunomodulé associé à une activation de la voie kynurénine. Ce serait une raison de confronter les omiques à des marqueurs cliniques indépendants — CRP, cytokines, symptômes, réponse au traitement — plutôt que de conclure à partir des omiques seules.',
+        'If a similar profile were replicated in real patients, it would first raise the hypothesis of an inflammatory or immunomodulated state associated with kynurenine-pathway activation. The omics signal should then be confronted with independent clinical markers—CRP, cytokines, symptoms and treatment response—rather than treated as a conclusion by itself.'
+      )}</p>
+      <p>{t(
+        'Le signal CYP3A5 ajoute une hypothèse pharmacologique : son expression RNA est ici à '+featureValue('transcriptomics','CYP3A5')+'. Dans une vraie cohorte exposée à un médicament substrat de CYP3A, cela justifierait de tester une phénoconversion inflammatoire possible avec concentrations PK, génotype CYP3A5, activité/phénotype CYP3A et covariables cliniques. Cela ne justifie jamais, à lui seul, une adaptation posologique.',
+        'CYP3A5 adds a pharmacological hypothesis: its RNA expression is '+featureValue('transcriptomics','CYP3A5')+' here. In a real cohort receiving a CYP3A substrate, this would justify testing possible inflammation-related phenoconversion using PK concentrations, CYP3A5 genotype, CYP3A activity/phenotype and clinical covariates. By itself it never justifies a dose change.'
+      )}</p>
+      <div class="translation-next">
+        <strong>{t('Étape suivante logique','Logical next step')}</strong>
+        <span>{t(
+          'Relier ce profil individuel à la PK : exposition/AUC ou concentrations → score moléculaire ou variables omiques → comparaison contre clinique + pharmacogénétique. C’est précisément le type de pont destiné à Omics2PK.',
+          'Link this individual profile to PK: exposure/AUC or concentrations → molecular score or omics variables → comparison against clinical + pharmacogenetic predictors. This is precisely the type of bridge intended for Omics2PK.'
+        )}</span>
+      </div>
+    </div>
+
+    <p class="source-note">{t('Contexte biologique externe :','External biological context:')}
+      <a href="https://www.uniprot.org/uniprotkb/P42224" target="_blank" rel="noopener noreferrer">STAT1 / P42224 ↗</a>,
+      <a href="https://www.uniprot.org/uniprotkb/P14902" target="_blank" rel="noopener noreferrer">IDO1 / P14902 ↗</a>,
+      <a href="https://www.uniprot.org/uniprotkb/Q16719" target="_blank" rel="noopener noreferrer">KYNU / Q16719 ↗</a>,
+      <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC8637893/" target="_blank" rel="noopener noreferrer">{t('inflammation et CYP','inflammation and CYP')} ↗</a>.
+    </p>
     <p class="cap">{t(
-      'Pourquoi séparer p/q et p*/q* ? Les simulations sous le nul ont montré que l’approximation Wald/t du navigateur n’était pas assez bien calibrée pour être présentée comme inférence de référence. Elle reste néanmoins calculable et informative : MultiOmics l’affiche donc avec un astérisque. p*/q* ne doivent pas être citées comme résultat confirmatoire ; utilisez le replay R lmerTest pour les p-values, q-values et IC de référence.',
-      'Why separate p/q from p*/q*? Null simulations showed that the browser Wald/t approximation was not sufficiently calibrated to serve as reference inference. It is still computable and informative, so MultiOmics exposes it with an asterisk. p*/q* should not be cited as confirmatory results; use the R lmerTest replay for reference p-values, q-values and confidence intervals.'
+      'p/q de référence restent non calculées dans cette exécution navigateur ; p*/q* sont uniquement des approximations exploratoires. Les conclusions quantitatives d’un article doivent être établies avec le replay R lmerTest et une validation biologique indépendante.',
+      'Reference p/q remain not computed in this browser run; p*/q* are exploratory approximations only. Quantitative conclusions for a paper should be established with the R lmerTest replay and independent biological validation.'
     )}</p>
   {/if}
 </section>
 
 <section>
-  <h2>{t('6 · Les figures exactes rendues par MultiOmics','6 · Exact figures rendered by MultiOmics')}</h2>
-  <p>{t(
-    'Ce composant est le même MultiomicsVisualizations que celui utilisé par Tool ; les valeurs ne sont donc pas reconstituées dans une seconde implémentation pédagogique.',
-    'This is the same MultiomicsVisualizations component used by Tool, so values are not reconstructed in a second educational implementation.'
+  <h2>{t('6 · Comprendre chaque figure','6 · Understand each figure')}</h2>
+  <p class="section-intro">{t(
+    'Chaque figure répond à une question différente. Elles utilisent les mêmes résultats que Tool mais ne constituent pas trois tests statistiques supplémentaires.',
+    'Each figure answers a different question. They reuse the same Tool results and are not three additional statistical tests.'
   )}</p>
-  <div class="figure-guide" data-testid="guided-demo-figure-guide">
-    <article>
-      <h3>{t('Heatmap : structure des échantillons','Heatmap: sample structure')}</h3>
-      <p>{t(
-        'Les colonnes sont les prélèvements et les lignes les variables retenues. Chaque ligne est centrée-réduite séparément : rouge/bleu indique une valeur haute/basse relativement à cette variable, pas un fold change ni une significativité. Cherchez surtout un motif cohérent contrôle/traitement et T0/T12, ainsi que la proximité du réplicat technique.',
-        'Columns are specimens and rows are retained features. Each row is standardized separately: red/blue means high/low relative to that feature, not fold change or significance. Look for coherent control/treatment and T0/T12 patterns and for agreement of the technical replicate.'
-      )}</p>
-    </article>
-    <article>
-      <h3>{t('Metabologramme : cohérence RNA–métabolites','Metabologram: RNA–metabolite coherence')}</h3>
-      <p>{t(
-        'La couleur représente la direction et l’amplitude de l’effet estimé, normalisée séparément dans chaque couche. Le contour n’est renforcé que par une q de référence ; dans cette démo longitudinale il reste donc descriptif. La présence sur une voie ne prouve ni enrichissement significatif ni flux métabolique.',
-        'Color represents the direction and magnitude of the estimated effect, scaled separately within each layer. The outline is strengthened only by a reference q-value, so it remains descriptive in this longitudinal demo. Presence on a pathway proves neither significant enrichment nor metabolic flux.'
-      )}</p>
-    </article>
-    <article>
-      <h3>{t('Réseau ciblé : localisation du signal','Focused network: locating the signal')}</h3>
-      <p>{t(
-        'Les nœuds colorés correspondent aux mesures reconnues ; les éléments gris sont non mesurés/non appariés. Les flèches représentent des relations de carte, pas une causalité démontrée. Une concordance entre plusieurs couches soutient une hypothèse à tester, mais ne démontre pas un mécanisme.',
-        'Colored nodes are matched measurements; gray elements are unmeasured/unmatched. Arrows are map relationships, not demonstrated causality. Agreement across layers supports a hypothesis to test but does not establish a mechanism.'
-      )}</p>
-    </article>
+
+  <div class="output-guide" data-testid="guided-demo-figure-guide">
+    <div class="output-guide-head">
+      <span>{t('Sortie','Output')}</span><span>{t('Exemple de sortie','Example output')}</span><span>{t('Méthode','Method')}</span><span>{t('Interprétation / utilité','Interpretation / utility')}</span><span>{t('Limite','Limit')}</span>
+    </div>
+    <div class="output-guide-row">
+      <strong>Heatmap</strong>
+      <span>{t('Sujets T0/T12 ordonnés avec les variables les plus informatives.','T0/T12 specimens ordered with the most informative features.')}</span>
+      <span>{t('Valeurs d’affichage transformées ; réplicats techniques moyennés ; z-score par variable.','Display-transformed values; technical replicates averaged; per-feature z-score.')}</span>
+      <span>{t('Vérifier la structure globale, les groupes/temps, les réplicats et les éventuels échantillons atypiques.','Check global structure, groups/time, replicates and potential outlier specimens.')}</span>
+      <span>{t('La couleur n’est ni un fold change ni une p-value ; une séparation visuelle n’est pas un test.','Color is neither fold change nor p-value; visual separation is not a test.')}</span>
+    </div>
+    <div class="output-guide-row">
+      <strong>{t('Metabologramme','Metabologram')}</strong>
+      <span>STAT1 / IDO1 / KYNU ↔ {featureName('metabolomics','CHEBI:16828')} / {featureName('metabolomics','CHEBI:16946')}</span>
+      <span>{t('Effets RNA et métabolites replacés dans des régions biologiques connues ; amplitude normalisée séparément par couche.','RNA and metabolite effects placed in known biological regions; magnitude scaled separately by layer.')}</span>
+      <span>{t('Repérer une convergence de direction entre couches et choisir les voies à investiguer.','Identify directional convergence across layers and prioritize pathways for investigation.')}</span>
+      <span>{t('Présence sur une voie ≠ enrichissement, activité enzymatique ou flux.','Pathway presence ≠ enrichment, enzyme activity or flux.')}</span>
+    </div>
+    <div class="output-guide-row">
+      <strong>{t('Réseau ciblé','Focused network')}</strong>
+      <span>{t('La région tryptophane–kynurénine est sélectionnée automatiquement ici car elle contient plusieurs signaux mesurés.','The tryptophan–kynurenine region is selected automatically here because it contains several measured signals.')}</span>
+      <span>{t('Appariement strict des identifiants vers un catalogue curé, sélection automatique des régions mesurées, puis affichage du voisinage à 0–2 sauts.','Strict identifier matching to a curated catalog, automatic selection of measured regions, then 0–2-hop neighborhood display.')}</span>
+      <span>{t('Comprendre où se situent les signaux mesurés et quels voisins biologiques donnent du contexte.','Understand where measured signals sit and which biological neighbors provide context.')}</span>
+      <span>{t('Catalogue non exhaustif ; une voie absente n’est pas inventée. Protéomique non projetée directement à ce jour.','Non-exhaustive catalog; an absent pathway is never invented. Proteomics is not directly projected yet.')}</span>
+    </div>
   </div>
 
   {#if status==='done' && analysisResult.visualizations}
@@ -386,34 +472,72 @@
 <section>
   <h2>{t('7 · Intégration inter-omique : que peut-on dire ?','7 · Cross-omics integration: what can be said?')}</h2>
   {#if status==='done'}
+    {@const pair=topCrossPair()}
+    <p class="section-intro">{t(
+      'Cette sortie ne cherche pas seulement à savoir quelles variables changent. Elle demande si la relation entre deux variables de couches différentes change elle aussi entre contrôle et traitement.',
+      'This output does not only ask which features change. It asks whether the relationship between two variables from different layers also changes between control and treatment.'
+    )}</p>
+
+    <div class="output-explainer" data-testid="guided-demo-crossomics-explainer">
+      <div>
+        <span class="output-label">{t('Exemple de sortie','Example output')}</span>
+        {#if pair}
+          <p><code>{featureName(pair.layerA,pair.featureA)}</code> ↔ <code>{featureName(pair.layerB,pair.featureB)}</code><br>
+          r<sub>contrôle</sub>={sig(pair.rReference)} · r<sub>traitement</sub>={sig(pair.rComparison)} · Δr={sig(pair.deltaR)} · p*={probability(pair.approxPValue)} · q*={probability(pair.approxQValue)}</p>
+        {:else}
+          <p>{t('Aucune paire estimable dans ce cas.','No estimable pair in this case.')}</p>
+        {/if}
+      </div>
+      <div>
+        <span class="output-label">{t('Méthode','Method')}</span>
+        <p>{t(
+          'Pour chaque paire candidate, MultiOmics résume la trajectoire individuelle puis calcule une corrélation de Spearman séparément dans les deux groupes. Δr = r_traitement − r_contrôle. L’approximation Fisher-z produit p*, puis BH produit q* sur les paires effectivement testées.',
+          'For each candidate pair, MultiOmics summarizes the individual trajectory and calculates Spearman correlation separately in both groups. Δr = r_treatment − r_control. A Fisher-z approximation yields p*, then BH yields q* across the tested pairs.'
+        )}</p>
+      </div>
+      <div>
+        <span class="output-label">{t('Interprétation / utilité','Interpretation / utility')}</span>
+        <p>{t(
+          'Un |Δr| élevé suggère que deux variables deviennent plus ou moins couplées sous traitement. Cette sortie sert surtout à prioriser des relations inter-couches à vérifier expérimentalement, ou à construire une signature mécanistique candidate.',
+          'A large |Δr| suggests that two variables become more or less coupled under treatment. This output is mainly useful for prioritizing cross-layer relationships for experimental follow-up or for building a candidate mechanistic signature.'
+        )}</p>
+      </div>
+      <div>
+        <span class="output-label">{t('Limites','Limitations')}</span>
+        <p>{t(
+          'Une corrélation différentielle ne prouve pas que A régule B. Ici les p/q de référence ne sont pas calculées dans le navigateur, l’effectif est faible et les paires sont présélectionnées parmi les variables les plus informatives. Les p*/q* servent à l’exploration, pas à une revendication confirmatoire.',
+          'Differential correlation does not prove that A regulates B. Here reference p/q are not computed in the browser, sample size is small and pairs are preselected among informative features. p*/q* are exploratory, not confirmatory.'
+        )}</p>
+      </div>
+    </div>
+
     <div class="facts small">
       <article><strong>{analysisResult.crossOmics?.testedPairs ?? 0}</strong><span>{t('paires testées','pairs tested')}</span></article>
       <article><strong>{analysisResult.crossOmics?.significantPairs ?? 0}</strong><span>{t('paires avec q référence ≤ 0,10','pairs with reference q ≤ 0.10')}</span></article>
       <article><strong>{analysisResult.crossOmics?.approximateSignificantPairs ?? 0}</strong><span>{t('paires avec q* approx. ≤ 0,10','pairs with approx. q* ≤ 0.10')}</span></article>
     </div>
-    <p class="note"><strong>{t('Méthode publiée par le moteur :','Method reported by the engine:')}</strong> {analysisResult.crossOmics?.method || '—'}</p>
-    {#if analysisResult.crossOmics?.pairs?.length}
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>{t('Paire','Pair')}</th><th>Pattern</th><th>r ref</th><th>r comp</th><th>Δr</th><th>{t('p référence','reference p')}</th><th>{t('q référence','reference q')}</th><th>p* {t('approx.','approx.')}</th><th>q* BH {t('approx.','approx.')}</th></tr></thead>
-          <tbody>
-            {#each analysisResult.crossOmics.pairs.slice(0,15) as pair}
-              <tr>
-                <td><code>{pair.featureA}</code> ↔ <code>{pair.featureB}</code></td>
-                <td>{pair.pattern?.replaceAll('_',' ')}</td>
-                <td>{sig(pair.rReference)}</td><td>{sig(pair.rComparison)}</td><td>{sig(pair.deltaR)}</td><td>{probability(pair.pValue)}</td><td>{probability(pair.qValue)}</td><td>{probability(pair.approxPValue)}</td><td>{probability(pair.approxQValue)}</td>
-              </tr>
-            {/each}
-          </tbody>
-        </table>
-      </div>
-    {:else}
-      <p class="cap">{t('Aucune paire inter-omique n’est estimable dans cette configuration avec le critère du moteur.','No cross-omics pair is estimable under the engine criterion for this configuration.')}</p>
-    {/if}
-    <p class="cap">{t(
-      'Dans ce plan longitudinal, p/q de référence restent non calculées pour les différences de corrélation. Tool affiche néanmoins p*/q* issues de l’approximation Fisher-z comme repères exploratoires, avec le même avertissement : calibration longitudinale non validée, donc replay R requis avant publication. Δr décrit un changement de couplage statistique ; il ne prouve ni causalité, ni chaîne enzymatique, ni mécanisme.',
-      'In this longitudinal design, reference p/q remain not computed for correlation differences. Tool still exposes Fisher-z p*/q* as exploratory guides, with the same warning: longitudinal calibration is not validated, so an R replay is required before publication. Δr describes a change in statistical coupling; it proves neither causality, an enzymatic chain, nor mechanism.'
-    )}</p>
+
+    <details class="technical-pairs">
+      <summary>{t('Voir le tableau détaillé des paires inter-omiques','Show detailed cross-omics pair table')}</summary>
+      {#if analysisResult.crossOmics?.pairs?.length}
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>{t('Paire','Pair')}</th><th>Pattern</th><th>r ref</th><th>r comp</th><th>Δr</th><th>{t('p référence','reference p')}</th><th>{t('q référence','reference q')}</th><th>p* {t('approx.','approx.')}</th><th>q* BH {t('approx.','approx.')}</th></tr></thead>
+            <tbody>
+              {#each analysisResult.crossOmics.pairs.slice(0,15) as pairRow}
+                <tr>
+                  <td><code>{featureName(pairRow.layerA,pairRow.featureA)}</code> ↔ <code>{featureName(pairRow.layerB,pairRow.featureB)}</code></td>
+                  <td>{pairRow.pattern?.replaceAll('_',' ')}</td>
+                  <td>{sig(pairRow.rReference)}</td><td>{sig(pairRow.rComparison)}</td><td>{sig(pairRow.deltaR)}</td><td>{probability(pairRow.pValue)}</td><td>{probability(pairRow.qValue)}</td><td>{probability(pairRow.approxPValue)}</td><td>{probability(pairRow.approxQValue)}</td>
+                </tr>
+              {/each}
+            </tbody>
+          </table>
+        </div>
+      {:else}
+        <p>{t('Aucune paire inter-omique estimable.','No estimable cross-omics pair.')}</p>
+      {/if}
+    </details>
   {/if}
 </section>
 
@@ -467,21 +591,42 @@
   .compact{max-height:340px;overflow:auto}
   details{margin-top:1rem;border:1px solid var(--border-subtle);border-radius:8px;padding:.75rem 1rem}
   summary{cursor:pointer;font-weight:700}
-  .method-grid,.interpret-grid,.figure-guide{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;margin-top:1rem}
-  .method-grid article,.interpret-grid article,.figure-guide article{border:1px solid var(--border-subtle);border-radius:9px;padding:1rem;background:var(--bg-secondary);min-width:0}
-  .figure-guide article p{color:var(--text-secondary);font-size:.9rem;line-height:1.55}
+  .method-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;margin-top:1rem}
+  .method-grid article{border:1px solid var(--border-subtle);border-radius:9px;padding:1rem;background:var(--bg-secondary);min-width:0}
+  .section-intro{max-width:82ch;color:var(--text-secondary);line-height:1.7}
+  .reading-sequence{list-style:none;padding:0;margin:1.4rem 0 2rem;display:grid;gap:.9rem}
+  .reading-sequence li{display:grid;grid-template-columns:42px 1fr;gap:.8rem;align-items:start}
+  .reading-sequence li>span{display:grid;place-items:center;width:34px;height:34px;border:1px solid var(--border-strong);border-radius:50%;font-family:var(--font-mono);font-weight:800;color:var(--accent-pk)}
+  .reading-sequence p{margin:.25rem 0 0;color:var(--text-secondary);line-height:1.6}
+  .interpretation-story,.translation{max-width:900px;margin:1.5rem 0;padding:1.1rem 1.25rem;border-left:4px solid var(--accent-pk);background:var(--bg-secondary)}
+  .translation{border-left-color:var(--accent-ai)}
+  .interpretation-story p,.translation p{line-height:1.7}
+  .translation-next{display:grid;gap:.25rem;margin-top:1rem;padding-top:.8rem;border-top:1px solid var(--border-subtle)}
+  .source-note{font-size:.82rem;color:var(--text-muted);line-height:1.6}
+  .source-note a{color:inherit}
+  .output-guide{margin:1.2rem 0;border:1px solid var(--border-subtle);border-radius:10px;overflow:auto}
+  .output-guide-head,.output-guide-row{display:grid;grid-template-columns:.8fr 1.2fr 1.4fr 1.5fr 1.3fr;min-width:980px}
+  .output-guide-head{background:var(--bg-secondary);font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;color:var(--text-secondary);font-weight:750}
+  .output-guide-head span,.output-guide-row>*{padding:.8rem;border-right:1px solid var(--border-subtle);border-bottom:1px solid var(--border-subtle);line-height:1.5}
+  .output-guide-row:last-child>*{border-bottom:0}
+  .output-guide-row>*:last-child,.output-guide-head span:last-child{border-right:0}
+  .output-guide-row span{font-size:.88rem;color:var(--text-secondary)}
+  .output-explainer{display:grid;gap:0;border:1px solid var(--border-subtle);border-radius:10px;overflow:hidden;margin:1.2rem 0}
+  .output-explainer>div{display:grid;grid-template-columns:180px 1fr;gap:1rem;padding:1rem;border-bottom:1px solid var(--border-subtle)}
+  .output-explainer>div:last-child{border-bottom:0}
+  .output-label{font-weight:750;color:var(--text-primary)}
+  .output-explainer p{margin:0;line-height:1.65;color:var(--text-secondary)}
+  .technical-pairs{margin-top:1.2rem}
   .not-computed{color:var(--text-muted);font-style:italic}
   dl{margin:.8rem 0}dl div{display:grid;grid-template-columns:90px 1fr;gap:.5rem;padding:.35rem 0;border-bottom:1px solid var(--border-subtle)}dt{color:var(--text-muted)}dd{margin:0;overflow-wrap:anywhere}
   .note,.cap{font-size:.88rem;color:var(--text-secondary);line-height:1.55}
   .cap{padding:.8rem 1rem;border-left:3px solid var(--accent-pk);background:var(--bg-secondary)}
   .result-block{margin:1.5rem 0 2.2rem}
   .qualified{font-weight:800}
-  .reading-row{padding:.65rem 0;border-bottom:1px solid var(--border-subtle)}
-  .reading-row:last-child{border-bottom:0}.reading-row p{margin:.3rem 0 0;line-height:1.5;font-size:.9rem}
   .viz{margin-top:1rem}
   .limit{margin:0 0 4rem;padding:1rem 1.2rem;border-left:4px solid var(--accent-ai);background:var(--bg-secondary)}
   .limit p{margin-bottom:0;color:var(--text-secondary)}
   .error{color:var(--danger,#b91c1c);font-weight:650}
-  @media(max-width:820px){.method-grid,.interpret-grid,.figure-guide{grid-template-columns:1fr}.facts{grid-template-columns:1fr 1fr}}
+  @media(max-width:820px){.method-grid{grid-template-columns:1fr}.facts{grid-template-columns:1fr 1fr}.output-explainer>div{grid-template-columns:1fr;gap:.35rem}}
   @media(max-width:520px){.facts,.facts.small{grid-template-columns:1fr}.actions{align-items:stretch}.actions a{width:100%;text-align:center}}
 </style>
