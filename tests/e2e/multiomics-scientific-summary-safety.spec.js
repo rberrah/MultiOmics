@@ -4,6 +4,8 @@ import { test, expect } from '@playwright/test';
 test('Scientific summary displays imported diagnostics literally, never as executable HTML', async ({ page }) => {
   await page.goto('/multiomics/tool?lang=fr');
   await page.getByTestId('multiomics-quick-demo-rna').click();
+  await expect(page.getByTestId('multiomics-results')).toBeVisible({ timeout: 30000 });
+  await page.getByTestId('multiomics-result-technical-detail').locator('summary').first().click();
   const panel = page.getByTestId('multiomics-scientific-summary');
   await expect(panel).toBeVisible({ timeout: 30000 });
 
