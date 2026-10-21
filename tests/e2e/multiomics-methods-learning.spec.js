@@ -110,11 +110,20 @@ test('Guided demo is a PMx-style worked example driven by the exact Tool output'
         testedPairs:r.crossOmics?.testedPairs,
         significantPairs:r.crossOmics?.significantPairs,
         approximateSignificantPairs:r.crossOmics?.approximateSignificantPairs,
+        inferenceStatus:r.crossOmics?.inferenceStatus,
+        minGroupNForApproxInference:r.crossOmics?.minGroupNForApproxInference,
+        minReferenceN:r.crossOmics?.minReferenceN,
+        minComparisonN:r.crossOmics?.minComparisonN,
+        smallNPairCount:r.crossOmics?.smallNPairCount,
+        extremeCorrelationPairs:r.crossOmics?.extremeCorrelationPairs,
+        bothExtremeCorrelationPairs:r.crossOmics?.bothExtremeCorrelationPairs,
         pairs:(r.crossOmics?.pairs||[]).map((/** @type {any} */ pair)=>({
           layerA:pair.layerA,featureA:pair.featureA,layerB:pair.layerB,featureB:pair.featureB,
           rReference:pair.rReference,rComparison:pair.rComparison,deltaR:pair.deltaR,
           pValue:pair.pValue,qValue:pair.qValue,
           approxPValue:pair.approxPValue,approxQValue:pair.approxQValue,
+          approxInferenceEligible:pair.approxInferenceEligible,
+          nReference:pair.nReference,nComparison:pair.nComparison,
           pattern:pair.pattern
         }))
       },
@@ -139,6 +148,8 @@ test('Guided demo is a PMx-style worked example driven by the exact Tool output'
   await expect(page.getByRole('heading',{name:/Interprétation clinique \/ translationnelle/i})).toBeVisible();
   await expect(page.getByTestId('guided-demo-crossomics-explainer')).toContainText(/Méthode/i);
   await expect(page.getByTestId('guided-demo-crossomics-explainer')).toContainText(/Interprétation \/ utilité/i);
+  await expect(page.getByTestId('guided-demo-crossomics-small-n')).toContainText(/n=4 par groupe/i);
+  await expect(page.getByTestId('guided-demo-crossomics-small-n')).toContainText(/±1/i);
   await expect(page.getByTestId('multiomics-figure-reading')).toContainText(/Comment lire la heatmap/i);
   const exactResults=page.getByTestId('guided-demo-exact-results');
   await expect(exactResults).toContainText(/non calculé/i);
@@ -166,7 +177,16 @@ test('Guided demo is a PMx-style worked example driven by the exact Tool output'
     expect(layer.rows.some((/** @type {any} */ row)=>Number.isFinite(row.approxQValue))).toBe(true);
   }
   expect(guided.crossOmics.pairs.length).toBeGreaterThan(0);
+  expect(guided.crossOmics.inferenceStatus).toBe('descriptive_only_small_n');
+  expect(guided.crossOmics.minGroupNForApproxInference).toBe(8);
+  expect(guided.crossOmics.minReferenceN).toBe(4);
+  expect(guided.crossOmics.minComparisonN).toBe(4);
+  expect(guided.crossOmics.smallNPairCount).toBe(guided.crossOmics.testedPairs);
+  expect(guided.crossOmics.approximateSignificantPairs).toBeNull();
+  expect(guided.crossOmics.extremeCorrelationPairs).toBeGreaterThan(guided.crossOmics.testedPairs/2);
+  expect(guided.crossOmics.bothExtremeCorrelationPairs).toBeGreaterThan(0);
   expect(guided.crossOmics.pairs.every((/** @type {any} */ pair)=>pair.pValue===null && pair.qValue===null)).toBe(true);
-  expect(guided.crossOmics.pairs.some((/** @type {any} */ pair)=>Number.isFinite(pair.approxPValue))).toBe(true);
-  expect(guided.crossOmics.pairs.some((/** @type {any} */ pair)=>Number.isFinite(pair.approxQValue))).toBe(true);
+  expect(guided.crossOmics.pairs.every((/** @type {any} */ pair)=>pair.approxPValue===null && pair.approxQValue===null)).toBe(true);
+  expect(guided.crossOmics.pairs.every((/** @type {any} */ pair)=>pair.approxInferenceEligible===false)).toBe(true);
+  expect(guided.crossOmics.pairs.every((/** @type {any} */ pair)=>pair.nReference===4 && pair.nComparison===4)).toBe(true);
 });
