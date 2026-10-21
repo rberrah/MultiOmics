@@ -149,6 +149,11 @@
     if (Math.abs(x) < 0.001) return x.toExponential(2).replace('e-','e−');
     return x.toPrecision(3);
   }
+  /** @param {any[]} rows */
+  function hasApproximateInference(rows) {
+    return Array.isArray(rows) && rows.some((row) =>
+      Number.isFinite(row?.approxPValue) || Number.isFinite(row?.approxQValue));
+  }
   let helpTooltip = { visible: false, text: '', left: 0, top: 0, placement: 'above' };
   // External API requests and reference R data forwarding are opt-in.
   let useReactome = false;
@@ -4266,7 +4271,7 @@ Rscript multiomics-engine/run_backend.R</code></pre>
                 <p class="selection-rule">{result.selectionRule}</p>
             {#if result.inferencePolicy}<p class="selection-rule"><strong>Inference:</strong> {result.inferencePolicy}</p>{/if}
             {@const displayedRows = (result.numericalProvenance === 'exact_native_r_reference_table' ? result.selected : result.rows).slice(0, 10)}
-            {@const showApproxInference = displayedRows.some((row) => Number.isFinite(row?.approxPValue) || Number.isFinite(row?.approxQValue))}
+            {@const showApproxInference = hasApproximateInference(displayedRows)}
             <div class="feature-table" class:with-approx={showApproxInference} data-testid="multiomics-feature-inference">
                   <div class="feature-head">
                     <b>{t('Variable', 'Feature')}</b>
@@ -4369,7 +4374,7 @@ Rscript multiomics-engine/run_backend.R</code></pre>
       {#if analysisResult.crossOmics?.approximateSignificantPairs != null}<span><strong>{analysisResult.crossOmics.approximateSignificantPairs}</strong> {t('paires avec q* approx. ≤ 0,10','pairs with approx. q* ≤ 0.10')}</span>{/if}
           </div>
           {#if analysisResult.crossOmics?.pairs?.length}
-            {@const showCrossApprox = analysisResult.crossOmics.pairs.some((pair) => Number.isFinite(pair?.approxPValue) || Number.isFinite(pair?.approxQValue))}
+            {@const showCrossApprox = hasApproximateInference(analysisResult.crossOmics.pairs)}
             <div class="cross-table" class:with-approx={showCrossApprox}>
               <div class="cross-head">
                 <b>{t('Paire', 'Pair')}</b>
