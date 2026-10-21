@@ -366,8 +366,8 @@
       <li>
         <span>2</span>
         <div><strong>{t('Lire l’amplitude avant la significativité','Read magnitude before significance')}</strong><p>{t(
-          'Sur une échelle log2, 2^effet donne un ratio intuitif. Par exemple IDO1 vaut '+featureValue('transcriptomics','IDO1')+' au niveau RNA et '+featureValue('proteomics','P14902')+' au niveau protéique dans ce cas synthétique.',
-          'On a log2 scale, 2^effect gives an intuitive ratio. In this synthetic case IDO1 is '+featureValue('transcriptomics','IDO1')+' at RNA level and '+featureValue('proteomics','P14902')+' at protein level.'
+          'Sur une échelle log2, 2^effet donne un ratio intuitif sur l’échelle réellement analysée. Par exemple IDO1 vaut '+featureValue('transcriptomics','IDO1')+' au niveau RNA et '+featureValue('proteomics','P14902')+' au niveau protéique dans ce cas synthétique. Pour une couche normalisée ou centrée, ce ratio ne doit pas être renommé « ratio de concentrations brutes ».',
+          'On a log2 scale, 2^effect gives an intuitive ratio on the actual analysed scale. In this synthetic case IDO1 is '+featureValue('transcriptomics','IDO1')+' at RNA level and '+featureValue('proteomics','P14902')+' at protein level. For a normalized or centered layer, this ratio must not be relabelled as a raw-concentration ratio.'
         )}</p></div>
       </li>
       <li>
@@ -393,8 +393,8 @@
         'The dominant pattern is compatible with coordinated activation of an interferon–kynurenine axis. STAT1 increases at RNA ('+featureValue('transcriptomics','STAT1')+') and protein ('+featureValue('proteomics','P42224')+') levels. IDO1 also increases in both layers ('+featureValue('transcriptomics','IDO1')+' RNA; '+featureValue('proteomics','P14902')+' protein), as does KYNU ('+featureValue('transcriptomics','KYNU')+'; '+featureValue('proteomics','Q16719')+').'
       )}</p>
       <p>{t(
-        'Le métabolome va dans le même sens qualitatif : le '+featureName('metabolomics','CHEBI:16828')+' est à '+featureValue('metabolomics','CHEBI:16828')+' tandis que la '+featureName('metabolomics','CHEBI:16946')+' est à '+featureValue('metabolomics','CHEBI:16946')+'. Cette convergence est compatible avec une mobilisation de la voie kynurénine, mais elle ne démontre pas un flux métabolique : il faudrait notamment un ratio kynurénine/tryptophane validé, des concentrations quantitatives et idéalement des mesures fonctionnelles ou isotopiques.',
-        'The metabolome points in the same qualitative direction: '+featureName('metabolomics','CHEBI:16828')+' is '+featureValue('metabolomics','CHEBI:16828')+' while '+featureName('metabolomics','CHEBI:16946')+' is '+featureValue('metabolomics','CHEBI:16946')+'. This convergence is compatible with engagement of the kynurenine pathway, but it does not demonstrate metabolic flux: a validated kynurenine/tryptophan ratio, quantitative concentrations and ideally functional or isotope measurements would be needed.'
+        'Le métabolome va dans le même sens qualitatif : le '+featureName('metabolomics','CHEBI:16828')+' et la '+featureName('metabolomics','CHEBI:16946')+' évoluent en sens opposés sur l’échelle log2 normalisée de l’analyse ('+featureValue('metabolomics','CHEBI:16828')+' et '+featureValue('metabolomics','CHEBI:16946')+'). Cette convergence est compatible avec une mobilisation de la voie kynurénine, mais elle ne démontre ni des concentrations absolues ni un flux métabolique : il faudrait notamment des mesures quantitatives validées, un ratio kynurénine/tryptophane défini sur ces mesures et idéalement des données fonctionnelles ou isotopiques.',
+        'The metabolome points in the same qualitative direction: '+featureName('metabolomics','CHEBI:16828')+' and '+featureName('metabolomics','CHEBI:16946')+' move in opposite directions on the normalized log2 analysis scale ('+featureValue('metabolomics','CHEBI:16828')+' and '+featureValue('metabolomics','CHEBI:16946')+'). This convergence is compatible with engagement of the kynurenine pathway, but it demonstrates neither absolute concentrations nor metabolic flux: validated quantitative measurements, a kynurenine/tryptophan ratio defined on those measurements and ideally functional or isotope data would be needed.'
       )}</p>
     </div>
 
