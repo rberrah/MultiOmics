@@ -115,6 +115,14 @@ assert.ok(ido);
 assert.ok(Number.isFinite(ido.effect));
 assert.ok(ido.foldRatio > 1);
 assert.ok(result.crossOmics.testedPairs > 0);
+assert.equal(result.crossOmics.inferenceStatus,'descriptive_only_small_n');
+assert.equal(result.crossOmics.minGroupNForApproxInference,8);
+assert.equal(result.crossOmics.minReferenceN,4);
+assert.equal(result.crossOmics.minComparisonN,4);
+assert.equal(result.crossOmics.smallNPairCount,result.crossOmics.testedPairs);
+assert.equal(result.crossOmics.approximateSignificantPairs,null);
+assert.ok(result.crossOmics.extremeCorrelationPairs > result.crossOmics.testedPairs/2);
+assert.ok(result.crossOmics.pairs.every((pair)=>pair.approxPValue===null && pair.approxQValue===null));
 assert.ok(result.crossOmics.pairs.some((pair) => ['sign_reversal','gained_in_comparison','strengthened_in_comparison'].includes(pair.pattern)));
 
 
