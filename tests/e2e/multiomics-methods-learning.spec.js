@@ -121,8 +121,9 @@ test('Guided demo is a PMx-style worked example driven by the exact Tool output'
   await expect(page.getByRole('heading',{name:/MultiOmics.*questionnaire.*sorties exactes/i})).toBeVisible();
   await expect(page.getByTestId('guided-demo-exact-results')).toContainText('STAT1',{timeout:30000});
   await expect(page.getByTestId('guided-demo-questionnaire')).toContainText('Mesures répétées');
-  await expect(page.getByTestId('guided-demo-methods')).toContainText('deterministic permutation');
-  await expect(page.getByTestId('guided-demo-methods')).toContainText('difference-in-differences');
+  await expect(page.getByTestId('guided-demo-methods')).toContainText('random-intercept-longitudinal-model');
+  await expect(page.getByTestId('guided-demo-methods')).toContainText('reference_required_for_p_q_and_ci');
+  await expect(page.getByTestId('guided-demo-methods')).toContainText('lmerTest');
   await expect(page.getByTestId('guided-demo-live-visualizations')).toBeVisible();
   await expect(page.getByTestId('guided-demo-limit')).toContainText(/synthétiques/i);
   const guided=await snapshot();
@@ -138,8 +139,9 @@ test('Guided demo is a PMx-style worked example driven by the exact Tool output'
     conditions:['control','treatment'],timepoints:['T0','T12']
   });
   for(const layer of Object.values(guided.layers)){
-    expect(layer.mode).toBe('difference-in-differences');
-    expect(layer.inferenceMethod).toBe('deterministic permutation');
+    expect(layer.mode).toBe('random-intercept-longitudinal-model');
+    expect(layer.inferenceMethod).toContain('random-intercept GLS effect ONLY');
     expect(layer.groupSizes).toEqual([4,4]);
+    expect(layer.rows.every(row=>row.pValue===null && row.qValue===null)).toBe(true);
   }
 });
