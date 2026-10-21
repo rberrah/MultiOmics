@@ -16,7 +16,7 @@ test('multi-omics pre-run gate explains readiness in licence-level language', as
   await expect(readiness).toContainText('Prêt pour explorer');
   await expect(readiness).toContainText('Les contrôles d’entrée permettent de lancer le calcul');
   await expect(readiness).toContainText('pas de valider un résultat scientifique');
-  await page.getByTestId('multiomics-advanced-analysis-options').locator('summary').click();
+  await page.getByTestId('multiomics-advanced-analysis-options').locator('summary').first().click();
   await page.getByTestId('multiomics-analysis-intent').locator('select').selectOption('confirmatory');
   await expect(readiness).toContainText('Prêt pour les contrôles R');
   await expect(readiness).not.toContainText('Prêt à analyser');
