@@ -47,19 +47,31 @@
   $: exactMatches = graph?.audit?.filter((a)=>['verified_id','verified_crossref'].includes(a.status))?.length || 0;
   $: nameMatches = graph?.audit?.filter((a)=>a.status==='name_only')?.length || 0;
   $: declaredMatches = graph?.audit?.filter((a)=>a.status==='user_declared')?.length || 0;
+  $: coverage = graph?.coverage || {};
+  $: mapStatus = views.length
+    ? tr('Carte générée automatiquement à partir des signaux appariés','Map generated automatically from matched signals')
+    : tr('Couverture insuffisante du catalogue pour générer une carte ciblée','Insufficient catalog coverage to generate a focused map');
 </script>
 
 <section class="network" data-testid="multiomics-focused-network">
   <header>
-    <h3>{tr('Réseau métabolique centré sur vos données','Metabolic network focused on your data')}</h3>
-    <p>{tr('Seules les voies liées à vos mesures apparaissent. Les points gris sont des voisins biologiques, pas des mesures inventées.',
-      'Only pathways connected to your measurements are shown. Gray nodes are biological context, not invented measurements.')}</p>
+    <div class="network-title-row">
+      <h3>{tr('Réseau métabolique centré sur vos données','Metabolic network focused on your data')}</h3>
+      <span class:ready={views.length>0} class="network-status">{mapStatus}</span>
+    </div>
+    <p>{tr('La région est choisie automatiquement à partir des mesures effectivement reconnues. Les points gris sont des voisins biologiques, pas des mesures inventées.',
+      'The region is selected automatically from measurements that are actually recognized. Gray nodes are biological context, not invented measurements.')}</p>
   </header>
-  <div class="network-summary">
-    <span><strong>{graph?.coverage?.metabolites || 0}</strong> {tr('métabolites dans le dictionnaire','metabolites in catalog')}</span>
-    <span><strong>{graph?.coverage?.genes || 0}</strong> {tr('gènes dans le réseau','genes in network')}</span>
-    <span><strong>{graph?.coverage?.regions || 0}</strong> {tr('régions disponibles','available regions')}</span>
+  <div class="network-summary" data-testid="multiomics-network-coverage">
+    <span><strong>{coverage.mappedMetaboliteFeatures ?? 0}/{coverage.inputMetaboliteFeatures ?? 0}</strong> {tr('variables métabolomiques appariées','metabolomics features mapped')}</span>
+    <span><strong>{coverage.mappedTranscriptFeatures ?? 0}/{coverage.inputTranscriptFeatures ?? 0}</strong> {tr('transcrits projetés','transcripts projected')}</span>
+    <span><strong>{coverage.measuredNodes ?? 0}</strong> {tr('nœuds mesurés utilisables','usable measured nodes')}</span>
+    <span><strong>{coverage.measuredRegions ?? 0}/{coverage.regions ?? 0}</strong> {tr('régions avec signal','regions with signal')}</span>
   </div>
+  <p class="coverage-note">{tr(
+    'Cette carte est automatisée mais non exhaustive : elle couvre un catalogue curé de grandes voies métaboliques. Une variable hors catalogue reste visible dans les autres sorties mais n’est pas inventée sur la carte. Les protéines ne sont pas encore projetées directement dans ce réseau.',
+    'This map is automated but not exhaustive: it covers a curated catalog of major metabolic pathways. Features outside the catalog remain available in other outputs but are never invented on the map. Proteomics is not yet projected directly into this network.'
+  )}</p>
   <div class="network-controls">
     <label>{tr('Région affichée','Shown region')}
       <select bind:value={selectedRegion} data-testid="multiomics-network-region">
@@ -84,8 +96,8 @@
     <span><i style="background:#f5dba8"></i>{tr('Plusieurs valeurs non fusionnées','Multiple values not merged')}</span>
   </div>
   {#if !views.length}
-    <p class="network-empty">{tr('Aucune correspondance exploitable dans cette région. Choisissez une autre voie ou vérifiez le dictionnaire ci-dessous.',
-      'No matching measurement for this region. Select another pathway or review the dictionary below.')}</p>
+    <p class="network-empty">{tr('Aucune région du catalogue ne contient assez de mesures reconnues pour produire une carte informative. MultiOmics préfère ne rien dessiner plutôt que fabriquer une voie. Vérifiez les identifiants ci-dessous ou utilisez Reactome / les autres sorties pour les signaux hors catalogue.',
+      'No catalog region contains enough recognized measurements to produce an informative map. MultiOmics prefers to draw nothing rather than fabricate a pathway. Review identifiers below or use Reactome / the other outputs for signals outside the catalog.')}</p>
   {/if}
   {#each views as card (card.id)}
     <article class="network-card" data-testid={'multiomics-region-'+card.id}>
@@ -160,17 +172,21 @@
     {/if}
   </details>
   <p class="network-limit">{tr(
-    'Réseau de voisinage pédagogique, construit à partir de voies simplifiées. Les liens indiquent un contexte métabolique, pas des réactions complètes, des flux, une activité enzymatique ou une causalité. Une mesure d’expression génique ne prouve pas un flux métabolique.',
-    'Educational neighborhood graph derived from simplified pathways. Links indicate metabolic context, not complete reactions, flux, enzyme activity or causation. Gene expression does not establish metabolic flux.'
+    'Réseau de voisinage automatisé sur catalogue curé, construit à partir de voies simplifiées. Les liens indiquent un contexte métabolique, pas des réactions complètes, des flux, une activité enzymatique ou une causalité. La couverture affichée ci-dessus doit être lue avant toute interprétation.',
+    'Automated neighborhood graph over a curated catalog, derived from simplified pathways. Links indicate metabolic context, not complete reactions, flux, enzyme activity or causation. Read the coverage summary above before interpreting the map.'
   )}</p>
 </section>
 
 <style>
   .network { display:grid; gap:14px; margin:0 0 18px; color:#182b35; background:#fff; color-scheme:light; padding:14px; border:1px solid #c3d0d8; border-radius:12px; }
+  .network-title-row { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap; }
   .network header h3 { font-size:1.12rem; margin:0 0 5px; color:#182b35 !important; }
+  .network-status { font-size:.74rem; font-weight:700; padding:5px 8px; border-radius:999px; border:1px solid #d0a84b; background:#fff7df; color:#6f5718; }
+  .network-status.ready { border-color:#8ab7a2; background:#edf8f2; color:#275f45; }
   .network header p { margin:0; color:#3e5260; font-size:.88rem; line-height:1.45; }
   .network-summary { display:flex; flex-wrap:wrap; gap:9px; }
   .network-summary span { padding:7px 10px; border:1px solid #cbd5dc; border-radius:8px; font-size:.79rem; color:#182b35; background:#fff; }
+  .coverage-note { margin:0; padding:9px 11px; border-left:3px solid #6f8d9b; background:#f5f8fa; color:#405963; font-size:.82rem; line-height:1.5; }
   .network-controls { display:flex; flex-wrap:wrap; gap:12px; }
   .network-controls label { display:flex; flex:1 1 230px; flex-direction:column; gap:5px; font-size:.85rem; font-weight:600; color:#182b35; }
   .network-controls select { width:100%; min-width:0; border:1px solid #aebcc5; border-radius:8px; padding:9px; background:#fff; color:#182b35; }
