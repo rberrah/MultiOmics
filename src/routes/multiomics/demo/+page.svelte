@@ -51,20 +51,28 @@
   }
   /** @param {any} row @param {any} layer */
   function rowReading(row,layer){
-    const qualified=Number.isFinite(row?.qValue) && row.qValue<=0.10;
     const direction=Number(row?.effect)>0
-      ? t('changement plus positif dans le groupe traitement','more positive change in the treatment group')
+      ? t('la trajectoire T0→T12 est plus positive sous traitement que sous contrôle','the T0→T12 trajectory is more positive under treatment than control')
       : Number(row?.effect)<0
-        ? t('changement plus négatif dans le groupe traitement','more negative change in the treatment group')
-        : t('pas de différence de changement détectée','no detected difference in change');
-    const multiplicity=qualified
-      ? t('La variable franchit le seuil exploratoire q BH ≤ 0,10 utilisé par l’outil.','The feature passes the exploratory BH q ≤ 0.10 display threshold used by the tool.')
-      : t('La variable ne franchit pas le seuil exploratoire q BH ≤ 0,10.','The feature does not pass the exploratory BH q ≤ 0.10 threshold.');
+        ? t('la trajectoire T0→T12 est plus négative sous traitement que sous contrôle','the T0→T12 trajectory is more negative under treatment than control')
+        : t('aucune différence de trajectoire n’est estimée','no trajectory difference is estimated');
+    const inference = layer?.inferenceStatus === 'reference_required_for_p_q_and_ci'
+      ? t(
+          `Effet descriptif uniquement : Tool supprime volontairement p, q et IC dans le navigateur pour ce modèle longitudinal. L’inférence doit être rejouée avec ${layer?.referenceMethodRequired || 'lmerTest'} sous R.`,
+          `Descriptive effect only: Tool deliberately suppresses browser p, q and CIs for this longitudinal model. Inference must be rerun with ${layer?.referenceMethodRequired || 'lmerTest'} in R.`
+        )
+      : Number.isFinite(row?.qValue)
+        ? (row.qValue<=0.10
+            ? t('La variable franchit le seuil exploratoire q BH ≤ 0,10 utilisé par l’outil.','The feature passes the exploratory BH q ≤ 0.10 display threshold used by the tool.')
+            : t('La variable ne franchit pas le seuil exploratoire q BH ≤ 0,10.','The feature does not pass the exploratory BH q ≤ 0.10 threshold.'))
+        : t('Aucune q-value n’est publiée pour cette sortie.','No q-value is published for this output.');
     const ratio=layer?.effectScale==='log2' && Number.isFinite(row?.foldRatio)
-      ? t(` Ici, 2^effet = ${row.foldRatio.toFixed(2)}× : c’est le ratio des changements T12/T0 entre traitement et contrôle sur l’échelle log2.`,
-          ` Here, 2^effect = ${row.foldRatio.toFixed(2)}×: this is the ratio of T12/T0 changes between treatment and control on the log2 scale.`)
+      ? t(
+          ` 2^effet = ${row.foldRatio.toFixed(2)}× : c’est le ratio des variations multiplicatives T0→T12, traitement par rapport au contrôle.`,
+          ` 2^effect = ${row.foldRatio.toFixed(2)}×: this is the ratio of multiplicative T0→T12 changes, treatment relative to control.`
+        )
       : '';
-    return direction+'. '+multiplicity+ratio;
+    return direction+'. '+inference+ratio;
   }
 
   const questionRows=()=>[
@@ -224,8 +232,8 @@
   <h2>{t('3 · Quel test l’outil choisit-il ?','3 · Which test does the tool choose?')}</h2>
   {#if status==='done'}
     <p>{t(
-      'Avec deux temps et des mesures répétées, l’outil calcule d’abord, sujet par sujet, le changement Δ = T12 − T0. Il compare ensuite ces changements entre contrôle et traitement. Comme chaque couche contient moins de 500 variables, la branche navigateur utilise ici le test de permutation déterministe prévu par le moteur, puis ajuste les p-values par Benjamini–Hochberg dans chaque couche.',
-      'With two time points and repeated measures, the tool first computes each subject’s change Δ = T12 − T0. It then compares those changes between control and treatment. Because each layer has fewer than 500 features, the browser branch uses the engine’s deterministic permutation test here, then adjusts p-values with Benjamini–Hochberg within each layer.'
+      'Le questionnaire décrit un plan longitudinal à mesures répétées. Tool sélectionne donc un modèle exploratoire à intercept aléatoire par sujet : feature ~ condition × temps + batch + (1|sujet). Le coefficient présenté est l’interaction condition × temps ramenée sur l’intervalle T0→T12. Cette branche navigateur conserve l’effet estimé mais supprime volontairement les p-values, q-values et intervalles de confiance : les simulations de calibration n’autorisaient pas une inférence navigateur suffisamment fiable. Pour l’inférence longitudinale, le moteur demande lmerTest dans le backend R de référence.',
+      'The questionnaire describes a repeated-measures longitudinal design. Tool therefore selects an exploratory subject random-intercept model: feature ~ condition × time + batch + (1|subject). The displayed coefficient is the condition × time interaction scaled over T0→T12. This browser branch retains the estimated effect but deliberately suppresses p-values, q-values and confidence intervals because calibration simulations did not support sufficiently reliable browser inference. For longitudinal inference, the engine requires lmerTest in the reference R backend.'
     )}</p>
     <div class="method-grid" data-testid="guided-demo-methods">
       {#each layerOrder as layer}
@@ -235,9 +243,11 @@
           <h3>{r.contrast}</h3>
           <dl>
             <div><dt>{t('Mode','Mode')}</dt><dd><code>{r.mode}</code></dd></div>
-            <div><dt>{t('Test','Test')}</dt><dd>{r.inferenceMethod}</dd></div>
+            <div><dt>{t('Méthode','Method')}</dt><dd>{r.inferenceMethod}</dd></div>
             <div><dt>n</dt><dd>{r.groupSizes?.[0]} vs {r.groupSizes?.[1]}</dd></div>
             <div><dt>{t('Échelle','Scale')}</dt><dd><code>{r.effectScale}</code></dd></div>
+            <div><dt>{t('Statut inférentiel','Inferential status')}</dt><dd><code>{r.inferenceStatus || '—'}</code></dd></div>
+            <div><dt>{t('Référence R','R reference')}</dt><dd><code>{r.referenceMethodRequired || '—'}</code></dd></div>
           </dl>
           <p class="note">{r.inferencePolicy}</p>
           <p class="note">{r.selectionRule}</p>
@@ -256,8 +266,8 @@
 <section data-testid="guided-demo-exact-results">
   <h2>{t('4 · Sorties numériques exactes de Tool','4 · Exact numerical outputs from Tool')}</h2>
   <p>{t(
-    'Les tableaux ci-dessous lisent directement result.layers du moteur. La précision d’affichage p/q est la même que dans Tool. « Effet » reste affiché en plus pour montrer le calcul sous-jacent ; lorsque l’échelle est log2, Tool présente principalement 2^effet.',
-    'The tables below read result.layers directly from the engine. p/q display precision matches Tool. “Effect” is also shown here to expose the underlying calculation; on a log2 scale, Tool mainly displays 2^effect.'
+    'Les tableaux ci-dessous lisent directement result.layers du moteur. Pour ce cas longitudinal, les colonnes p et q affichent « — » parce que Tool les supprime intentionnellement dans le navigateur. L’effet, lui, est exactement l’estimation exploratoire utilisée par Tool ; sur l’échelle log2, 2^effet donne le ratio des variations multiplicatives T0→T12 entre traitement et contrôle.',
+    'The tables below read result.layers directly from the engine. For this longitudinal case, p and q display “—” because Tool intentionally suppresses them in the browser. The effect is the exact exploratory estimate used by Tool; on the log2 scale, 2^effect is the ratio of multiplicative T0→T12 changes between treatment and control.'
   )}</p>
   {#if status==='done'}
     {#each layerOrder as layer}
@@ -294,8 +304,8 @@
   <h2>{t('5 · Comment interpréter ces sorties ?','5 · How should these outputs be interpreted?')}</h2>
   {#if status==='done'}
     <p>{t(
-      'Le contraste est toujours « changement T12−T0 chez les traités » moins « changement T12−T0 chez les contrôles ». Un effet positif signifie donc une augmentation relative plus forte sous traitement ; un effet négatif, une diminution relative plus forte. Ce n’est pas simplement une comparaison traitement vs contrôle à T12.',
-      'The contrast is always “T12−T0 change in treated subjects” minus “T12−T0 change in controls”. A positive effect therefore means a stronger relative increase under treatment; a negative effect means a stronger relative decrease. This is not simply a treatment-versus-control comparison at T12.'
+      'Le contraste renvoyé par Tool est l’interaction condition × temps sur T0→T12. Il répond à la question : « la trajectoire entre T0 et T12 diffère-t-elle entre traitement et contrôle ? ». L’effet n’est donc ni une simple différence traitement–contrôle à T12, ni une p-value : c’est l’amplitude descriptive de l’interaction estimée par le modèle longitudinal.',
+      'The contrast returned by Tool is the condition × time interaction over T0→T12. It answers: “does the trajectory from T0 to T12 differ between treatment and control?”. The effect is therefore neither a simple treatment-versus-control difference at T12 nor a p-value: it is the descriptive magnitude of the interaction estimated by the longitudinal model.'
     )}</p>
     <div class="interpret-grid" data-testid="guided-demo-interpretation">
       {#each layerOrder as layer}
@@ -312,8 +322,8 @@
       {/each}
     </div>
     <p class="cap">{t(
-      'q BH est une p-value ajustée pour les tests multiples de la couche. Ici q ≤ 0,10 sert au classement exploratoire. Sur 8 sujets synthétiques, même un petit q ne transforme pas ce cas en validation biologique externe.',
-      'BH q is a multiple-testing-adjusted p-value within the layer. Here q ≤ 0.10 is used for exploratory ranking. With 8 synthetic subjects, even a small q does not turn this case into external biological validation.'
+      'Pourquoi p = q = « — » ici ? Le moteur a explicitement désactivé l’inférence Wald/t du modèle longitudinal navigateur après un problème de calibration sous le nul. Il conserve les effets pour l’exploration et le classement, mais exige lmerTest sous R pour p-values, correction multiplicité et intervalles de confiance utilisables dans une analyse de référence.',
+      'Why are p = q = “—” here? The engine explicitly disabled browser Wald/t inference for the longitudinal model after a null-calibration problem. It retains effects for exploration and ranking, but requires lmerTest in R for p-values, multiplicity correction and confidence intervals suitable for a reference analysis.'
     )}</p>
   {/if}
 </section>
@@ -340,7 +350,7 @@
   {#if status==='done'}
     <div class="facts small">
       <article><strong>{analysisResult.crossOmics?.testedPairs ?? 0}</strong><span>{t('paires testées','pairs tested')}</span></article>
-      <article><strong>{analysisResult.crossOmics?.significantPairs ?? 0}</strong><span>{t('paires q ≤ 0,10','pairs q ≤ 0.10')}</span></article>
+      <article><strong>{analysisResult.crossOmics?.significantPairs ?? 0}</strong><span>{t('paires avec q publiée ≤ 0,10','pairs with published q ≤ 0.10')}</span></article>
     </div>
     <p class="note"><strong>{t('Méthode publiée par le moteur :','Method reported by the engine:')}</strong> {analysisResult.crossOmics?.method || '—'}</p>
     {#if analysisResult.crossOmics?.pairs?.length}
@@ -362,8 +372,8 @@
       <p class="cap">{t('Aucune paire inter-omique n’est estimable dans cette configuration avec le critère du moteur.','No cross-omics pair is estimable under the engine criterion for this configuration.')}</p>
     {/if}
     <p class="cap">{t(
-      'Un changement de corrélation décrit un changement de couplage statistique entre variables. Il ne prouve ni causalité, ni chaîne enzymatique, ni mécanisme.',
-      'A correlation change describes a change in statistical coupling between variables. It proves neither causality, an enzymatic chain, nor mechanism.'
+      'Dans ce plan longitudinal, Tool publie Δr de manière descriptive mais pas de p/q pour les différences de corrélation : l’approximation Fisher-z sur ces trajectoires répétées n’est pas considérée comme calibrée. Un Δr décrit un changement de couplage statistique ; il ne prouve ni causalité, ni chaîne enzymatique, ni mécanisme.',
+      'In this longitudinal design, Tool reports Δr descriptively but no p/q for correlation differences because Fisher-z calibration is not considered valid for these repeated trajectories. Δr describes a change in statistical coupling; it proves neither causality, an enzymatic chain, nor mechanism.'
     )}</p>
   {/if}
 </section>
