@@ -67,11 +67,11 @@ test('Scientific evidence status is explicit and external data transfer is opt-i
   await expect(page.getByLabel(/Mode backend R|R backend mode/i)).toHaveValue('browser');
   await page.getByTestId('multiomics-quick-demo-rna').click();
   await expect(page.getByTestId('multiomics-scientific-assurance')).toBeVisible({ timeout: 25000 });
-  await expect(page.getByTestId('multiomics-scientific-assurance')).toContainText(/validation scientifique|scientific validation/i);
+  await expect(page.getByTestId('multiomics-scientific-assurance')).toContainText(/validité scientifique|scientific evidence status/i);
   const evidence = await page.getByTestId('multiomics-scientific-assurance').innerText();
-  expect(evidence).toMatch(/Exécution réussie|Successful execution/);
+  expect(evidence).toMatch(/calcul navigateur|browser computation/i);
   const reportPromise = page.waitForEvent('download');
-  await page.getByRole('button', { name: /Télécharger le rapport complet|Download full report/ }).click();
+  await page.getByRole('button', { name: /Rapport complet|Full report/ }).click();
   const report = await reportPromise;
   expect(report.suggestedFilename()).toBe('multiomics_reproducible_report.html');
 });

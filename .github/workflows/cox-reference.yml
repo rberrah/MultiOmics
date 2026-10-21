@@ -14,6 +14,7 @@ on:
       - 'release-v1.1-manifest.json'
       - 'docs/multiomics/RELEASE_V1_1_0_20261019.md'
       - 'static/multiomics/ecosystem-graphical-abstract.svg'
+      - 'src/routes/multiomics/tool/+page.svelte'
   push:
     branches: [main]
     paths:
@@ -26,6 +27,7 @@ on:
       - 'multiomics-engine/reference_full_results.R'
       - '.github/workflows/cox-reference.yml'
       - 'static/multiomics/ecosystem-graphical-abstract.svg'
+      - 'src/routes/multiomics/tool/+page.svelte'
   schedule:
     - cron: '19 5 * * 0'
   workflow_dispatch:

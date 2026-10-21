@@ -1540,8 +1540,25 @@
           ? visualizationError.message
           : 'Visualization preparation failed.';
       }
-      await attachMsProvenance(analysisResult);
-      analysisResult.scientificAssurance = assessScientificAssurance(analysisResult, { demo: demoLoaded });
+      try {
+        await attachMsProvenance(analysisResult);
+      } catch (provenanceError) {
+        analysisResult.provenanceWarning = provenanceError instanceof Error ? provenanceError.message : 'Optional provenance enrichment failed.';
+      }
+      try {
+        analysisResult.scientificAssurance = assessScientificAssurance(analysisResult, { demo: demoLoaded });
+      } catch (assuranceError) {
+        analysisResult.scientificAssurance = {
+          status: 'needs_reference_confirmation',
+          notes: [{
+            code: 'assurance_unavailable',
+            status: 'review',
+            fr: 'Le résumé automatique de validité n’a pas pu être calculé. Traitez les résultats comme exploratoires et utilisez l’analyse R de référence.',
+            en: 'The automatic evidence summary could not be computed. Treat results as exploratory and use the reference R analysis.'
+          }]
+        };
+        analysisResult.assuranceError = assuranceError instanceof Error ? assuranceError.message : 'Scientific assurance summary failed.';
+      }
       await refreshOmics2pkReadiness();
       analysisStatus = 'done';
     } catch (error) {
@@ -3235,11 +3252,18 @@
     {#if portableProjectMessage}<p role="status" class="ms-import-message">{portableProjectMessage}</p>{/if}
     {#if portableProjectError}<p role="alert" class="annotation-error">{portableProjectError}</p>{/if}
   </details>
-    <div class="run-box">
-    <div>
-      <p class="eyebrow">{t('4 · Analyser', '4 · Analyze')}</p>
-      <h3>{t('Obtenir mes résultats', 'Get my results')}</h3>
-      <p>{t('Par défaut, tout reste dans votre navigateur. Activer explicitement ChEBI/Reactome transmet certains identifiants moléculaires ; activer le moteur R transmet vos matrices et métadonnées à son adresse configurée.', 'By default, computation stays in your browser. Opting in to ChEBI/Reactome transmits some molecular identifiers; connecting the R engine sends matrices and metadata to its configured address.')}</p>
+    <div class="run-box run-box-simple">
+    <div class="run-copy">
+      <p class="eyebrow">{t('4 · Explorer', '4 · Explore')}</p>
+      <h3>{t('Explorer mes données', 'Explore my data')}</h3>
+      <p>{t('L’analyse standard s’exécute directement dans votre navigateur, sans installation de R. Elle sert à contrôler les données, visualiser les tendances et préparer l’analyse statistique de référence.', 'The standard analysis runs directly in your browser with no R installation. It is intended to check data, visualize trends and prepare the reference statistical analysis.')}</p>
+      <div class="exploratory-callout" data-testid="multiomics-exploratory-policy">
+        <strong>{t('Données exploratoires', 'Exploratory results')}</strong>
+        <span>{t('Les chiffres affichés ici ne doivent pas être utilisés seuls comme résultats confirmatoires. Pour un article ou une conclusion statistique, téléchargez le dossier reproductible avec le code R puis exécutez la méthode de référence dans R.', 'Numbers shown here should not be used alone as confirmatory results. For a paper or statistical conclusion, download the reproducible dossier with the R code and run the reference method in R.')}</span>
+      </div>
+      <details class="advanced-analysis-options" data-testid="multiomics-advanced-analysis-options">
+        <summary>{t('Analyse R et options avancées', 'R analysis and advanced options')}</summary>
+        <div class="advanced-analysis-body">
       <label class="reference-backend-box" data-testid="multiomics-analysis-intent">
         <strong>{t('Quel usage pour ces résultats ?', 'How will you use these results?')}</strong>
         <select bind:value={analysisIntent} aria-label={t('Objectif de validité', 'Scientific evidence objective')}
@@ -3248,8 +3272,8 @@
           <option value="confirmatory">{t('Préparer une analyse confirmatoire (R requis + revue indépendante)', 'Prepare a confirmatory analysis (R required + independent review)')}</option>
         </select>
         <small>{analysisIntent === 'confirmatory'
-          ? t('Le moteur R local devient obligatoire. Les tests contrôlent l’éligibilité, mais ne certifient jamais automatiquement vos résultats. Les fichiers seront envoyés au backend R configuré après lancement de l’analyse.', 'The configured local R engine is required. Checks assess eligibility but never automatically certify findings. Files are sent to the configured R backend when you run the analysis.')
-          : t('Le navigateur applique des méthodes exploratoires et parfois des approximations ou simplifications statistiques : ses p-values, q-values et effets peuvent différer des méthodes R de référence. Les analyses R natives (DESeq2, edgeR/limma selon les données) sont préférables pour une inférence appropriée au modèle, mais leur validité dépend du plan, des hypothèses et du contrôle qualité. Aucune installation R n’est nécessaire pour explorer.', 'The browser uses exploratory models and sometimes statistical approximations or simplifications: its p-values, q-values and effects can differ from native reference R methods. Native R methods (DESeq2, edgeR/limma where applicable) are preferable for model-appropriate inference, but validity still depends on design, assumptions and quality checks. No R installation is needed to explore.')}</small>
+          ? t('Mode avancé : le moteur R local devient obligatoire. Les contrôles vérifient l’éligibilité technique mais ne certifient jamais automatiquement une conclusion.', 'Advanced mode: the local R engine becomes required. Checks verify technical eligibility but never automatically certify a conclusion.')
+          : t('Mode par défaut : exploration locale dans le navigateur, sans R. Utilisez le dossier reproductible et le code R fourni pour produire ensuite une analyse statistique de référence.', 'Default mode: local browser exploration with no R requirement. Use the reproducible dossier and included R code to run a reference statistical analysis afterwards.')}</small>
       </label>
       {#if analysisIntent === 'confirmatory' && !(
         objective === 'groups' ||
@@ -3263,8 +3287,8 @@
       {/if}
       {#if analysisIntent !== 'confirmatory'}
         <p role="note" class="simple-hint" data-testid="multiomics-browser-approximation-warning">
-          {t('Important : les résultats du navigateur servent à repérer des tendances. Selon la méthode et les données, certains calculs simplifient les hypothèses du modèle ou utilisent des approximations ; les chiffres ne sont donc pas nécessairement ceux de DESeq2, edgeR ou limma en R. Pour une analyse de référence, exécutez le backend R, vérifiez le plan expérimental et téléchargez le code effectivement utilisé.',
-             'Important: browser results are intended to explore trends. Depending on the data and method, calculations may simplify model assumptions or use approximations; the numbers therefore need not equal native DESeq2, edgeR or limma results. For reference analysis, run the R backend, review study design and download the code actually used.')}
+          {t('Exploration navigateur : les résultats servent à repérer des tendances et à vérifier le workflow. Pour une analyse de référence, téléchargez le dossier avec le code R et exécutez la méthode native adaptée au plan expérimental.',
+             'Browser exploration: results are for trend finding and workflow checks. For reference analysis, download the dossier with the R code and run the native method appropriate for the study design.')}
         </p>
       {/if}
       {#if analysisIntent === 'confirmatory' && files.transcriptomics && transcriptomicsValues === 'raw_counts'}
@@ -3314,6 +3338,8 @@ Rscript multiomics-engine/run_backend.R</code></pre>
         <p>{t('Confidentialité : vos matrices ne sont envoyées au serveur R que lorsque vous lancez l’analyse avec ce moteur activé. Gardez le serveur sur votre ordinateur (127.0.0.1). Ne connectez pas de serveur distant non sécurisé à des données patients.', 'Privacy: your matrices are sent to the configured R server only when you launch analysis with that engine enabled. Keep the server on your computer (127.0.0.1). Never send patient data to an unsecured remote server.')}</p>
           <p><a href="https://github.com/rberrah/MultiOmics/blob/main/multiomics-engine/README.md" target="_blank" rel="noopener noreferrer">{t('Lire les instructions complètes et les limitations du moteur R', 'Read full R setup instructions and limitations')}</a></p>
       </details>
+        </div>
+      </details>
       <details class="simple-disclosure" data-testid="multiomics-run-options">
         <summary>{t('Options de calcul et connexions externes', 'Analysis options and external services')}</summary>
         <label class="inline-check">
@@ -3360,7 +3386,7 @@ Rscript multiomics-engine/run_backend.R</code></pre>
       </details>
     </div>
     <button class="btn btn-primary" type="button" data-testid="multiomics-run" disabled={!ready || analysisStatus === 'running' || msImportState === 'loading' || msImportState === 'parsed'} onclick={runAnalysis}>
-      {analysisStatus === 'running' ? t('Analyse en cours…', 'Analyzing…') : t('Analyser mes données', 'Analyze my data')}
+      {analysisStatus === 'running' ? t('Analyse en cours…', 'Analyzing…') : t('Explorer mes données', 'Explore my data')}
     </button>
   </div>
   {#if analysisError}<p class="error">{analysisError}</p>{/if}
@@ -3397,30 +3423,24 @@ Rscript multiomics-engine/run_backend.R</code></pre>
             <strong>{evidenceTierLabel(analysisResult)}</strong>
             <small>{primaryEvidenceTier(analysisResult)==='native_r_all_layers'
               ? t('Les statistiques principales affichées proviennent des tableaux R natifs complets.', 'Displayed primary statistics come from complete native-R tables.')
-              : t('Ne pas présenter ces nombres comme une inférence R confirmatoire.', 'Do not present these numbers as confirmatory R inference.')}</small>
+              : t('Exploration navigateur : utilisez le code R fourni pour l’analyse statistique de référence.', 'Browser exploration: use the included R code for the reference statistical analysis.')}</small>
           </article>
           <article>
             <span>{t('Portée scientifique', 'Scientific scope')}</span>
             <strong>{assuranceLabel(analysisResult)}</strong>
-            <small>{t('Un calcul reproductible ne certifie ni le design, ni le FDR, ni la causalité, ni la validité clinique.', 'A reproducible calculation does not certify study design, FDR calibration, causality or clinical validity.')}</small>
+            <small>{t('À interpréter comme exploration tant qu’une méthode de référence et le plan expérimental n’ont pas été vérifiés.', 'Interpret as exploratory until a reference method and the study design have been checked.')}</small>
           </article>
           <article data-testid="multiomics-omics2pk-readiness">
             <span>{t('Réutilisation Omics2PK', 'Omics2PK reuse')}</span>
             {#if omics2pkReadiness}
-              <strong>{t('Échange structurel vérifié · PK non prête', 'Structural exchange verified · not PK-ready')}</strong>
-              <small>
-                {omics2pkReadiness.independent_subjects} {t('sujets', 'subjects')} ·
-                {omics2pkReadiness.unique_specimens} {t('prélèvements', 'specimens')} ·
-                {omics2pkReadiness.assays} assays.
-                {omics2pkReadiness.pk_temporal_numeric_compatible && omics2pkReadiness.explicit_time_origin_complete
-                  ? t(' Temps moléculaires compatibles et origine moléculaire explicite présents ; cette origine doit encore être vérifiée contre le repère temporel PK, puis les vraies doses et concentrations des mêmes sujets doivent être jointes.', ' Compatible numeric molecular times and an explicit molecular time origin are present; that origin still has to be verified against the PK time reference, and genuine dose/concentration records for the same subjects must be joined.')
-                  : t(' Métadonnées temporelles non compatibles avec le contrat PK : utiliser un temps non négatif en min/h/jour, déclarer son unité et une origine explicite, puis joindre les vraies doses/concentrations des mêmes sujets.', ' Temporal metadata are not compatible with the PK contract: use a non-negative time in min/h/day with its unit and an explicit origin, then join genuine dose/concentration records for the same subjects.')}
-              </small>
+              <strong>{t('Échange individuel disponible · PK non prête', 'Individual exchange available · not PK-ready')}</strong>
+              <small>{omics2pkReadiness.independent_subjects} {t('sujets', 'subjects')} · {omics2pkReadiness.assays} assays. {t('Les vraies doses, temps et concentrations PK restent à joindre dans Omics2PK.', 'Genuine PK doses, times and concentrations still need to be joined in Omics2PK.')}</small>
             {:else if omics2pkReadinessError}
-              <strong>{t('Échange bloqué', 'Exchange blocked')}</strong>
-              <small>{omics2pkReadinessError}</small>
+              <strong>{t('Échange non disponible', 'Exchange unavailable')}</strong>
+              <small>{t('Voir les détails d’export si vous souhaitez utiliser Omics2PK.', 'See export details if you want to use Omics2PK.')}</small>
             {:else}
-              <strong>{t('Préflight non disponible', 'Preflight unavailable')}</strong>
+              <strong>{t('Optionnel', 'Optional')}</strong>
+              <small>{t('Sans effet sur l’exploration courante.', 'No effect on the current exploration.')}</small>
             {/if}
           </article>
         </div>
@@ -3436,8 +3456,9 @@ Rscript multiomics-engine/run_backend.R</code></pre>
         {/if}
       </div>
       <div class="result-actions">
-      <button class="btn btn-primary" type="button" data-testid="multiomics-research-bundle-download" disabled={portableProjectBusy} onclick={downloadResearchBundle}>{portableProjectBusy ? t('Préparation du dossier…', 'Preparing dossier…') : t('Télécharger résultats + figures + code R (ZIP)', 'Download results + figures + R code (ZIP)')}</button>
-      <button class="btn btn-outline" type="button" onclick={downloadReproducibleReport}>{t('Télécharger le rapport complet', 'Download full report')}</button>
+      <button class="btn btn-primary" type="button" data-testid="multiomics-research-bundle-download" disabled={portableProjectBusy} onclick={downloadResearchBundle}>{portableProjectBusy ? t('Préparation du dossier…', 'Preparing dossier…') : t('Télécharger le dossier + code R (ZIP)', 'Download dossier + R code (ZIP)')}</button>
+      <button class="btn btn-outline" type="button" onclick={downloadReproducibleReport}>{t('Rapport complet', 'Full report')}</button>
+      <small class="result-action-note">{t('Le navigateur reste exploratoire. Le ZIP conserve les données, paramètres, provenance et scripts R pour poursuivre l’analyse de référence hors du site.', 'The browser remains exploratory. The ZIP preserves data, settings, provenance and R scripts so the reference analysis can continue outside the website.')}</small>
         <details class="simple-disclosure export-detail">
           <summary>{t('Autres exports', 'Other downloads')}</summary>
         <div class="signature-optional-export" data-testid="multiomics-signature-optional">
@@ -3470,27 +3491,31 @@ Rscript multiomics-engine/run_backend.R</code></pre>
             {portableProjectBusy ? t('Préparation…','Preparing…') : t('Télécharger échange Omics2PK (ZIP)','Download Omics2PK exchange (ZIP)')}
           </button>
         </div>
-        <p>{t(
-          'Cet export canonicalise les matrices individuelles originales vers le format d’échange (orientation, identifiants, NA et métadonnées) sans renormaliser les valeurs biologiques. Il conserve les échelles déclarées et SHA-256, n’exporte pas les logFC/q-values de groupe comme covariables PK et n’invente aucune dose ni concentration.',
-          'This export canonicalizes the original individual matrices into the exchange format (orientation, identifiers, NA and metadata) without renormalizing biological values. It preserves declared scales and SHA-256 hashes, does not export group logFC/q-values as PK covariates, and invents no dose or concentration.'
-        )}</p>
-        <p class="note">{t(
-          'Pour tester un effet sur la PK, Omics2PK doit joindre séparément les vraies doses, temps et concentrations des mêmes sujets. Les scores individuels optionnels ne sont acceptés qu’avec modèle figé ou prédiction hors-fold et provenance explicite.',
-          'To test a PK effect, Omics2PK must separately join genuine dose, time and concentration records from the same subjects. Optional individual scores are accepted only with frozen-model or out-of-fold provenance.'
-        )}</p>
+        <details class="simple-disclosure compact-result-detail">
+          <summary>{t('Ce que contient cet export', 'What this export contains')}</summary>
+          <p>{t(
+            'Les matrices individuelles sont conservées avec orientation, identifiants, NA, échelles et SHA-256. Les statistiques de groupe ne sont jamais transformées automatiquement en covariables PK.',
+            'Individual matrices are preserved with orientation, identifiers, missing values, scales and SHA-256. Group statistics are never automatically converted into PK covariates.'
+          )}</p>
+          <p class="note">{t(
+            'Omics2PK doit toujours joindre séparément les vraies doses, temps et concentrations des mêmes sujets.',
+            'Omics2PK must always join genuine doses, times and concentrations from the same subjects separately.'
+          )}</p>
+        </details>
         {#if omics2pkExportMessage}<p role="status" data-testid="multiomics-omics2pk-export-status">{omics2pkExportMessage}</p>{/if}
         {#if omics2pkExportError}<p role="alert" class="error" data-testid="multiomics-omics2pk-export-error">{omics2pkExportError}</p>{/if}
       </div>
       <p class="simple-hint">{t('Le ZIP contient tous les tableaux, les méthodes, les sources et les paramètres. Données potentiellement sensibles : stockage sécurisé recommandé. Les résultats du navigateur restent exploratoires.', 'ZIP includes complete tables, methods, original data and settings. Potentially sensitive: store securely. Browser results remain exploratory.')}</p>
-    <p class="simple-hint" data-testid="multiomics-replay-fidelity-note">
-        {#if referenceReplay?.requestJson}
-        {t('Le ZIP inclut la requête R originale et une copie des sources R, avec contrôle des empreintes SHA-256 si le backend les fournit. La concordance numérique exige un rejeu contrôlé. Le ZIP contient aussi un script R produisant des figures scientifiques similaires (heatmaps, métabologramme, carte métabolique) à partir des valeurs affichées, sans recalculer les statistiques. Les copies SVG du navigateur restent distinctes.',
-           'The ZIP includes the original R request and R source snapshot, checked against the runtime SHA-256 fingerprints if provided. Numerical agreement still requires a verified replay. The ZIP also includes an R script generating scientifically similar heatmaps, circular effect diagrams and metabolic maps from the displayed data without refitting statistics. Browser SVG snapshots remain separate.')}
-        {:else}
-        {t('Cette analyse n’a pas de calcul R de référence réussi : le ZIP ne peut pas fournir un script R prétendument identique aux calculs JavaScript. Les figures sont des instantanés SVG.',
-           'This analysis has no successful R reference computation: the ZIP cannot provide a purportedly identical R script for JavaScript calculations. Figures are SVG snapshots.')}
-        {/if}
-      </p>
+      <details class="simple-disclosure compact-result-detail" data-testid="multiomics-replay-fidelity-note">
+        <summary>{t('Code R et reproductibilité', 'R code and reproducibility')}</summary>
+        <p>
+          {#if referenceReplay?.requestJson}
+          {t('Le ZIP conserve la requête R originale, les sources R vérifiables et les scripts de figures. La concordance numérique exige toujours un rejeu contrôlé.', 'The ZIP preserves the original R request, verifiable R sources and figure scripts. Numerical agreement still requires a controlled replay.')}
+          {:else}
+          {t('Aucun calcul R natif n’a été exécuté dans le navigateur. Le ZIP fournit les données, paramètres et scripts R de reproduction, sans prétendre que les chiffres JavaScript sont des résultats R.', 'No native R computation was run in the browser. The ZIP provides data, settings and R reproduction scripts without pretending that JavaScript numbers are R results.')}
+          {/if}
+        </p>
+      </details>
       {#if analysisResult.referenceBackend?.methods}
       <div class="ms-import-message" role="note" data-testid="multiomics-reference-preview-warning">
           {t('Résultats R : le tableau affiché est un aperçu. Le ZIP ne contient les résultats R exhaustifs que pour les méthodes marquées « complet ». Toute méthode incomplète doit être exportée séparément depuis le moteur R local.', 'R results: on-screen tables are previews. The ZIP contains all R rows only for methods marked complete. Incomplete methods require a separate full export from the local R engine.')}
@@ -3564,8 +3589,8 @@ Rscript multiomics-engine/run_backend.R</code></pre>
               ? t('Exploration descriptive', 'Descriptive exploration')
               : t('Inférence exploratoire · confirmation requise', 'Exploratory inference · confirmation required')
       }</strong>
-      <p>{t('Exécution réussie ≠ validation scientifique. Une q-value faible ou un contrôle QC sans alerte ne certifient pas une découverte. Une conclusion publiable exige un design vérifié, une méthode de référence et, selon l’objectif, une validation indépendante.',
-          'Successful execution is not scientific validation. Low q-values or apparently clean QC do not certify a finding. Publication claims require a checked design, appropriate reference methods and sometimes external validation.')}</p>
+      <p>{t('Le calcul navigateur est une exploration. Pour une conclusion publiable, vérifiez le design et exécutez une méthode statistique de référence en R ; une validation indépendante peut ensuite être nécessaire.',
+          'The browser computation is exploratory. For a publishable conclusion, verify the design and run an appropriate reference statistical method in R; independent validation may then be required.')}</p>
         {#if analysisResult.scientificAssurance.notes?.some(isMissingnessRiskNote)}
         <p role="status" class="annotation-error" data-testid="multiomics-missingness-caution">
           {t('Données manquantes détectées : elles peuvent créer de fausses différences, même si leur proportion est identique entre groupes. Les p-values et q-values ne suffisent pas : consultez les limites et prévoyez une analyse de sensibilité.',
@@ -6277,8 +6302,23 @@ Rscript multiomics-engine/run_backend.R</code></pre>
   .optional-workflows > .contract { margin-top:16px; }
   .annotation-error { color:var(--quiz-error-text); font-weight:700; }
   .ms-import-message { padding:10px 13px; border:1px solid var(--border-strong); border-radius:9px; color:var(--text-primary); background:var(--bg-secondary); font-size:.88rem; line-height:1.55; }
+  .run-box-simple { align-items:flex-end; }
+  .run-copy { flex:1 1 640px; min-width:0; }
+  .exploratory-callout { display:grid; gap:4px; margin:14px 0; padding:13px 15px; border-left:3px solid var(--accent-pk); background:var(--bg-primary); }
+  .exploratory-callout strong { color:var(--text-primary); }
+  .exploratory-callout span { color:var(--text-secondary); font-size:.92rem; line-height:1.55; }
+  .advanced-analysis-options { margin-top:12px; border-top:1px solid var(--border-subtle); padding-top:10px; }
+  .advanced-analysis-options > summary { cursor:pointer; color:var(--text-secondary); font-size:.88rem; font-weight:650; }
+  .advanced-analysis-body { display:grid; gap:12px; margin-top:12px; }
+  .result-action-note { flex:1 1 100%; color:var(--text-muted); line-height:1.45; max-width:68ch; }
+  .compact-result-detail { margin-top:10px; }
+  .compact-result-detail > summary { font-weight:650; }
+  .demo-results .result-interpretation-summary article { min-height:0; padding:12px; }
+  .demo-results .result-interpretation-summary small { line-height:1.4; }
+  .demo-results .integration-result { padding:16px; }
   @media (max-width:640px) {
     .quick-start { align-items:stretch; }
     .quick-demo-actions { width:100%; }
+    .run-box-simple { align-items:stretch; }
   }
 </style>
