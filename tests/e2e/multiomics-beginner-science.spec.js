@@ -173,6 +173,7 @@ test('R1 confirmatory user-selected RNA direction is sent verbatim to the refere
   await page.getByTestId('multiomics-advanced-settings').locator('summary').click();
   await page.getByLabel(/Structure du design|Design structure/).selectOption('independent');
   await page.getByLabel(/Design longitudinal|Longitudinal design/).selectOption('no');
+  await page.getByTestId('multiomics-advanced-analysis-options').locator('summary').click();
   await page.getByTestId('multiomics-analysis-intent').locator('select').selectOption('confirmatory');
   const chooser=page.getByTestId('multiomics-rnaseq-contrast');
   await expect(chooser).toBeVisible();
