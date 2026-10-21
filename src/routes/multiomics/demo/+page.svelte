@@ -89,6 +89,7 @@
     [t('Transcriptome','Transcriptome'),t('Comptages bruts · symboles de gènes','Raw counts · gene symbols'),MULTIOMICS_DEMO_UI_STATE.transcriptomicsValues],
     [t('Protéome','Proteome'),t('Intensités log · UniProt','Log intensities · UniProt'),MULTIOMICS_DEMO_UI_STATE.proteomicsValues],
     [t('Métabolome','Metabolome'),t('Aires de pics · ChEBI','Peak areas · ChEBI'),MULTIOMICS_DEMO_UI_STATE.metabolomicsValues],
+    [t('Confiance d’identification métabolomique','Metabolomics identification confidence'),t('Mixte / inconnue','Mixed / unknown'),MULTIOMICS_DEMO_UI_STATE.metabolomicsIdentificationConfidence],
     [t('Niveau d’analyse','Analysis intent'),t('Exploratoire navigateur','Browser exploratory'),MULTIOMICS_DEMO_UI_STATE.analysisIntent],
     [t('Services externes','External services'),t('Désactivés dans la démo','Disabled in the demo'),'Reactome / mapping = off']
   ];
