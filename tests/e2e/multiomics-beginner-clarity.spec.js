@@ -102,11 +102,11 @@ test('results explain evidence tier and verify Omics2PK structural exchange with
   await expect(reuse).toContainText('16 prélèvements');
   await expect(reuse).toContainText('49 assays');
   await expect(reuse).toContainText('PK non prête');
-  await expect(reuse).toContainText('Métadonnées temporelles non compatibles');
+  await expect(reuse).toContainText(/vraies doses|genuine PK doses/);
 
   const panel=page.getByTestId('multiomics-omics2pk-export-panel');
-  await expect(panel).toContainText('sans renormaliser les valeurs biologiques');
-  await expect(panel).toContainText('n’invente aucune dose ni concentration');
+  await expect(panel).toContainText(/matrices individuelles|Individual matrices/);
+  await expect(panel).toContainText(/doses, temps et concentrations|doses, times and concentrations/);
 
   const downloadPromise=page.waitForEvent('download');
   await page.getByTestId('multiomics-omics2pk-export').click();
