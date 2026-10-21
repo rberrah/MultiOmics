@@ -120,9 +120,15 @@ assert.equal(result.crossOmics.minGroupNForApproxInference,8);
 assert.equal(result.crossOmics.minReferenceN,4);
 assert.equal(result.crossOmics.minComparisonN,4);
 assert.equal(result.crossOmics.smallNPairCount,result.crossOmics.testedPairs);
+assert.equal(result.crossOmics.rankingPolicy,'candidate_order_descriptive_only_no_delta_ranking');
+assert.equal(result.crossOmics.correlationStatistic,'Spearman rho');
 assert.equal(result.crossOmics.approximateSignificantPairs,null);
 assert.ok(result.crossOmics.extremeCorrelationPairs > result.crossOmics.testedPairs/2);
 assert.ok(result.crossOmics.pairs.every((pair)=>pair.approxPValue===null && pair.approxQValue===null));
+const descriptiveAbsDelta=result.crossOmics.pairs.map((pair)=>Math.abs(pair.deltaR)).filter(Number.isFinite);
+assert.ok(descriptiveAbsDelta.length>1);
+assert.ok(descriptiveAbsDelta[0] < Math.max(...descriptiveAbsDelta),
+  'Descriptive tiny-n output must not be reordered to place the largest |delta rho| first.');
 assert.ok(result.crossOmics.pairs.some((pair) => ['sign_reversal','gained_in_comparison','strengthened_in_comparison'].includes(pair.pattern)));
 
 
