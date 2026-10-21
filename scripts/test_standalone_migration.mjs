@@ -30,6 +30,7 @@ for(const path of [
  'src/routes/multiomics/+page.svelte',
  'src/routes/multiomics/tool/+page.svelte',
  'src/routes/multiomics/learn/+page.svelte',
+ 'src/routes/multiomics/demo/+page.svelte',
  'multiomics-engine/server.R',
  'multiomics-engine/run_backend.R',
  'multiomics-engine/run_research_bundle.R',
@@ -54,5 +55,8 @@ assert(source('src/lib/multiomics/research-export-package.js').includes('ANALYSE
   'Downloaded research ZIP must contain the annotated Rmd');
 assert(source('src/routes/multiomics/learn/+page.svelte').includes('DIABLO'),
   'Beginner method guide missing');
+assert(source('src/routes/multiomics/demo/+page.svelte').includes('8 sujets') &&
+       source('src/routes/multiomics/demo/+page.svelte').includes('?demo=multi'),
+  'Guided practical demo missing');
 console.log('PASS: isolated repository migration static completeness and quick-demo UX');
 console.log('NOTE: this does NOT replace npm build, browser tests or independent scientific R validation');
