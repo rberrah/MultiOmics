@@ -380,8 +380,8 @@
       <li>
         <span>4</span>
         <div><strong>{t('Séparer preuve et hypothèse','Separate evidence from hypothesis')}</strong><p>{t(
-          'Les p*/q* navigateur servent à hiérarchiser les signaux. Elles ne remplacent pas le replay R. Une histoire biologique cohérente reste une hypothèse tant qu’elle n’est pas reproduite, reliée au phénotype et confrontée à des mesures fonctionnelles.',
-          'Browser p*/q* help rank signals. They do not replace the R replay. A coherent biological story remains a hypothesis until it is replicated, linked to phenotype and challenged with functional measurements.'
+          'Dans les sorties univariées, les p*/q* navigateur servent uniquement à hiérarchiser les signaux. Elles ne remplacent pas le replay R. L’intégration inter-omique possède ses propres garde-fous, détaillés plus bas. Une histoire biologique cohérente reste une hypothèse tant qu’elle n’est pas reproduite, reliée au phénotype et confrontée à des mesures fonctionnelles.',
+          'In univariate outputs, browser p*/q* are used only to rank signals. They do not replace the R replay. Cross-omics integration has its own guardrails, described below. A coherent biological story remains a hypothesis until it is replicated, linked to phenotype and challenged with functional measurements.'
         )}</p></div>
       </li>
     </ol>
@@ -485,24 +485,24 @@
     )}</p>
 
     <div class="cross-definition">
-      <strong>{t('D’où viennent r ref et r comp ?','Where do r ref and r comp come from?')}</strong>
+      <strong>{t('D’où viennent ρ contrôle et ρ traitement ?','Where do control ρ and treatment ρ come from?')}</strong>
       <p>{t(
-        'Comme il n’y a que T0 et T12, MultiOmics calcule d’abord pour chaque sujet et chaque variable une variation individuelle T12 − T0 sur l’échelle prétraitée. Pour une paire A↔B, r ref est la corrélation de Spearman entre les variations de A et B chez les contrôles ; r comp est la même corrélation chez les traités. Ici cela signifie seulement '+(pair?.nReference ?? 0)+' sujets contrôle et '+(pair?.nComparison ?? 0)+' sujets traités par corrélation.',
-        'Because there are only T0 and T12, MultiOmics first calculates an individual T12 − T0 change for each subject and feature on the preprocessed scale. For an A↔B pair, r ref is the Spearman correlation between A and B changes among controls; r comp is the same correlation among treated subjects. Here that means only '+(pair?.nReference ?? 0)+' control subjects and '+(pair?.nComparison ?? 0)+' treated subjects per correlation.'
+        'Comme il n’y a que T0 et T12, MultiOmics calcule d’abord pour chaque sujet et chaque variable une variation individuelle T12 − T0 sur l’échelle prétraitée. Pour une paire A↔B, ρ contrôle est la corrélation de rang de Spearman entre les variations de A et B chez les contrôles ; ρ traitement est la même corrélation chez les traités. Le symbole ρ évite de confondre cette corrélation avec le logiciel R ou avec le « R de référence ». Ici chaque ρ ne repose que sur '+(pair?.nReference ?? 0)+' ou '+(pair?.nComparison ?? 0)+' sujets.',
+        'Because there are only T0 and T12, MultiOmics first calculates an individual T12 − T0 change for each subject and feature on the preprocessed scale. For an A↔B pair, control ρ is the Spearman rank correlation between A and B changes among controls; treatment ρ is the same correlation among treated subjects. The symbol ρ avoids confusion with the R language or the “reference R” backend. Here each ρ is based on only '+(pair?.nReference ?? 0)+' or '+(pair?.nComparison ?? 0)+' subjects.'
       )}</p>
     </div>
 
     <div class="small-n-alert" data-testid="guided-demo-crossomics-small-n">
       <strong>{t('Pourquoi voit-on autant de +1 et −1 ?','Why are there so many +1 and −1 values?')}</strong>
       <p>{t(
-        'Avec n=4 par groupe, Spearman ne regarde que l’ordre des quatre sujets. Si les deux variables classent les quatre sujets exactement dans le même ordre, r=+1 ; si l’ordre est exactement inversé, r=−1. Les données synthétiques de cette démo ont volontairement des trajectoires très régulières, donc ce phénomène est amplifié.',
-        'With n=4 per group, Spearman only uses the ordering of the four subjects. If both features rank the four subjects in exactly the same order, r=+1; if the order is exactly reversed, r=−1. This synthetic demo deliberately contains very regular trajectories, which amplifies this behavior.'
+        'Avec n=4 par groupe, Spearman ne regarde que l’ordre des quatre sujets : sans ex æquo, il n’existe que 4! = 24 permutations de rang possibles. Si les deux variables classent les sujets exactement dans le même ordre, ρ=+1 ; si l’ordre est exactement inversé, ρ=−1. Les données synthétiques de cette démo ont volontairement des trajectoires très régulières, donc ce phénomène est fortement amplifié.',
+        'With n=4 per group, Spearman only uses the ordering of the four subjects: without ties, there are only 4! = 24 possible rank permutations. If both features rank subjects in exactly the same order, ρ=+1; if the order is exactly reversed, ρ=−1. This synthetic demo deliberately contains very regular trajectories, so the phenomenon is strongly amplified.'
       )}</p>
       <p><strong>{analysisResult.crossOmics?.extremeCorrelationPairs ?? 0}/{analysisResult.crossOmics?.testedPairs ?? 0}</strong>
-        {t(' paires ont au moins un r exactement égal à ±1 ; ',' pairs have at least one r exactly equal to ±1; ')}
+        {t(' paires ont au moins un ρ exactement égal à ±1 ; ',' pairs have at least one ρ exactly equal to ±1; ')}
         <strong>{analysisResult.crossOmics?.bothExtremeCorrelationPairs ?? 0}/{analysisResult.crossOmics?.testedPairs ?? 0}</strong>
-        {t(' ont les deux r à ±1. Ce sont des corrélations de rang saturées par petit effectif, pas des preuves de couplage biologique parfait.',
-           ' have both r values at ±1. These are rank correlations saturated by tiny sample size, not evidence of perfect biological coupling.')}</p>
+        {t(' ont les deux ρ à ±1. Ce sont des corrélations de rang saturées par petit effectif, pas des preuves de couplage biologique parfait.',
+           ' have both ρ values at ±1. These are rank correlations saturated by tiny sample size, not evidence of perfect biological coupling.')}</p>
     </div>
 
     <div class="output-explainer" data-testid="guided-demo-crossomics-explainer">
@@ -510,8 +510,8 @@
         <span class="output-label">{t('Exemple de sortie','Example output')}</span>
         {#if pair}
           <p><code>{featureName(pair.layerA,pair.featureA)}</code> ↔ <code>{featureName(pair.layerB,pair.featureB)}</code><br>
-          n<sub>ref</sub>={pair.nReference} · n<sub>comp</sub>={pair.nComparison} ·
-          r<sub>ref</sub>={sig(pair.rReference)} · r<sub>comp</sub>={sig(pair.rComparison)} · Δr={sig(pair.deltaR)} ·
+          n<sub>{pair.reference}</sub>={pair.nReference} · n<sub>{pair.comparison}</sub>={pair.nComparison} ·
+          ρ<sub>{pair.reference}</sub>={sig(pair.rReference)} · ρ<sub>{pair.comparison}</sub>={sig(pair.rComparison)} · Δρ={sig(pair.deltaR)} ·
           p*={probability(pair.approxPValue)} · q*={probability(pair.approxQValue)}</p>
         {:else}
           <p>{t('Aucune paire estimable dans ce cas.','No estimable pair in this case.')}</p>
@@ -520,15 +520,15 @@
       <div>
         <span class="output-label">{t('Méthode','Method')}</span>
         <p>{t(
-          'Les variables candidates sont d’abord présélectionnées parmi les sorties les plus informatives de chaque couche. MultiOmics calcule ensuite Spearman sur les variations individuelles T12−T0 séparément par condition, puis Δr = r comp − r ref. Le garde-fou navigateur exige au moins '+(analysisResult.crossOmics?.minGroupNForApproxInference ?? 8)+' sujets appariés par condition avant même d’afficher l’approximation Fisher-z p*/q*.',
-          'Candidate features are first preselected among the most informative outputs from each layer. MultiOmics then computes Spearman on individual T12−T0 changes separately by condition, with Δr = r comp − r ref. The browser guardrail requires at least '+(analysisResult.crossOmics?.minGroupNForApproxInference ?? 8)+' matched subjects per condition before even displaying the Fisher-z p*/q* approximation.'
+          'Les variables candidates sont d’abord présélectionnées parmi les sorties les plus informatives de chaque couche. MultiOmics calcule ensuite ρ de Spearman sur les variations individuelles T12−T0 séparément par condition, puis Δρ = ρ traitement − ρ contrôle. Le garde-fou navigateur exige au moins '+(analysisResult.crossOmics?.minGroupNForApproxInference ?? 8)+' sujets appariés par condition avant même d’afficher l’approximation Fisher-z p*/q*. Quand toutes les paires échouent à ce garde-fou, le tableau conserve l’ordre des candidats : il n’est plus trié par |Δρ|, car ce tri survaloriserait précisément les ±1 produits par le petit effectif.',
+          'Candidate features are first preselected among the most informative outputs from each layer. MultiOmics then computes Spearman ρ on individual T12−T0 changes separately by condition, with Δρ = treatment ρ − control ρ. The browser guardrail requires at least '+(analysisResult.crossOmics?.minGroupNForApproxInference ?? 8)+' matched subjects per condition before even displaying the Fisher-z p*/q* approximation. When every pair fails this guardrail, the table preserves candidate order instead of ranking by |Δρ|, because that ranking would preferentially surface the ±1 values created by tiny sample size.'
         )}</p>
       </div>
       <div>
         <span class="output-label">{t('Interprétation / utilité','Interpretation / utility')}</span>
         <p>{t(
-          'Avec un effectif suffisant et une analyse préspecifiée, Δr peut aider à repérer une relation inter-couches qui apparaît, disparaît ou change de signe entre deux conditions. Dans cette démo à 4+4 sujets, la bonne conclusion est seulement : « le calcul descriptif fonctionne », pas « cette paire est biologiquement couplée ».',
-          'With adequate sample size and a prespecified analysis, Δr can help identify a cross-layer relationship that appears, disappears or changes sign between conditions. In this 4+4-subject demo, the correct conclusion is only “the descriptive calculation works”, not “this pair is biologically coupled”.'
+          'Avec un effectif suffisant et une analyse préspecifiée, Δρ peut aider à repérer une relation inter-couches qui apparaît, disparaît ou change de signe entre deux conditions. Dans cette démo à 4+4 sujets, la bonne conclusion est seulement : « le calcul descriptif fonctionne et montre comment lire la sortie », pas « cette paire est biologiquement couplée ».',
+          'With adequate sample size and a prespecified analysis, Δρ can help identify a cross-layer relationship that appears, disappears or changes sign between conditions. In this 4+4-subject demo, the correct conclusion is only “the descriptive calculation works and shows how to read the output”, not “this pair is biologically coupled”.'
         )}</p>
       </div>
       <div>
@@ -542,7 +542,7 @@
 
     <div class="facts small">
       <article><strong>{analysisResult.crossOmics?.testedPairs ?? 0}</strong><span>{t('paires descriptives calculées','descriptive pairs calculated')}</span></article>
-      <article><strong>{analysisResult.crossOmics?.extremeCorrelationPairs ?? 0}</strong><span>{t('avec au moins un r = ±1','with at least one r = ±1')}</span></article>
+      <article><strong>{analysisResult.crossOmics?.extremeCorrelationPairs ?? 0}</strong><span>{t('avec au moins un ρ = ±1','with at least one ρ = ±1')}</span></article>
       <article><strong>{analysisResult.crossOmics?.smallNPairCount ?? 0}</strong><span>{t('sans p*/q* car n insuffisant','without p*/q* because n is too small')}</span></article>
     </div>
 
@@ -551,7 +551,7 @@
       {#if analysisResult.crossOmics?.pairs?.length}
         <div class="table-wrap">
           <table>
-            <thead><tr><th>{t('Paire','Pair')}</th><th>Pattern</th><th>n ref</th><th>n comp</th><th>r ref</th><th>r comp</th><th>Δr</th><th>{t('p référence','reference p')}</th><th>{t('q référence','reference q')}</th><th>p* {t('approx.','approx.')}</th><th>q* BH {t('approx.','approx.')}</th></tr></thead>
+            <thead><tr><th>{t('Paire','Pair')}</th><th>Pattern</th><th>n {pair?.reference ?? 'ref'}</th><th>n {pair?.comparison ?? 'comp'}</th><th>ρ {pair?.reference ?? 'ref'}</th><th>ρ {pair?.comparison ?? 'comp'}</th><th>Δρ</th><th>{t('p référence','reference p')}</th><th>{t('q référence','reference q')}</th><th>p* {t('approx.','approx.')}</th><th>q* BH {t('approx.','approx.')}</th></tr></thead>
             <tbody>
               {#each analysisResult.crossOmics.pairs.slice(0,15) as pairRow}
                 <tr>
