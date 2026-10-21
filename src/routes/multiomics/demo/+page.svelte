@@ -69,8 +69,8 @@
         : t('aucune différence de trajectoire n’est estimée','no trajectory difference is estimated');
     const inference = layer?.inferenceStatus === 'reference_required_for_p_q_and_ci'
       ? t(
-          `Effet descriptif uniquement : Tool supprime volontairement p, q et IC dans le navigateur pour ce modèle longitudinal. L’inférence doit être rejouée avec ${layer?.referenceMethodRequired || 'lmerTest'} sous R.`,
-          `Descriptive effect only: Tool deliberately suppresses browser p, q and CIs for this longitudinal model. Inference must be rerun with ${layer?.referenceMethodRequired || 'lmerTest'} in R.`
+          `p/q de référence : non calculé dans le navigateur. Approximation exploratoire : p*=${probability(row?.approxPValue)}, q*=${probability(row?.approxQValue)}. Rejouez ${layer?.referenceMethodRequired || 'lmerTest'} sous R pour l’inférence de référence.`,
+          `Reference p/q: not computed in the browser. Exploratory approximation: p*=${probability(row?.approxPValue)}, q*=${probability(row?.approxQValue)}. Rerun ${layer?.referenceMethodRequired || 'lmerTest'} in R for reference inference.`
         )
       : Number.isFinite(row?.qValue)
         ? (row.qValue<=0.10
@@ -244,8 +244,8 @@
   <h2>{t('3 · Quel test l’outil choisit-il ?','3 · Which test does the tool choose?')}</h2>
   {#if status==='done'}
     <p>{t(
-      'Le questionnaire décrit un plan longitudinal à mesures répétées. Tool sélectionne donc un modèle exploratoire à intercept aléatoire par sujet : feature ~ condition × temps + batch + (1|sujet). Le coefficient présenté est l’interaction condition × temps ramenée sur l’intervalle T0→T12. Cette branche navigateur conserve l’effet estimé mais supprime volontairement les p-values, q-values et intervalles de confiance : les simulations de calibration n’autorisaient pas une inférence navigateur suffisamment fiable. Pour l’inférence longitudinale, le moteur demande lmerTest dans le backend R de référence.',
-      'The questionnaire describes a repeated-measures longitudinal design. Tool therefore selects an exploratory subject random-intercept model: feature ~ condition × time + batch + (1|subject). The displayed coefficient is the condition × time interaction scaled over T0→T12. This browser branch retains the estimated effect but deliberately suppresses p-values, q-values and confidence intervals because calibration simulations did not support sufficiently reliable browser inference. For longitudinal inference, the engine requires lmerTest in the reference R backend.'
+      'Le questionnaire décrit un plan longitudinal à mesures répétées. Tool sélectionne donc un modèle exploratoire à intercept aléatoire par sujet : feature ~ condition × temps + batch + (1|sujet). Le coefficient présenté est l’interaction condition × temps ramenée sur T0→T12. Les p/q de référence restent volontairement non calculées dans le navigateur car la calibration sous le nul était insuffisante ; l’outil expose désormais séparément p*/q* comme approximation exploratoire. Pour l’inférence de référence, le moteur demande lmerTest sous R.',
+      'The questionnaire describes a repeated-measures longitudinal design. Tool therefore selects an exploratory subject random-intercept model: feature ~ condition × time + batch + (1|subject). The displayed coefficient is the condition × time interaction over T0→T12. Reference p/q remain intentionally not computed in the browser because null calibration was insufficient; the tool now exposes separate p*/q* as exploratory approximations. For reference inference, the engine requires lmerTest in R.'
     )}</p>
     <div class="method-grid" data-testid="guided-demo-methods">
       {#each layerOrder as layer}
@@ -329,7 +329,7 @@
           {#each r.rows.slice(0,Math.min(4,r.rows.length)) as row}
             <div class="reading-row">
               <code>{row.feature}</code>
-              <p><strong>{row.foldRatio==null?effect(row.effect):row.foldRatio.toFixed(2)+'×'}</strong> · p={sig(row.pValue)} · q={sig(row.qValue)}<br>{rowReading(row,r)}</p>
+              <p><strong>{row.foldRatio==null?effect(row.effect):row.foldRatio.toFixed(2)+'×'}</strong> · p={probability(row.pValue)} · q={probability(row.qValue)} · p*={probability(row.approxPValue)} · q*={probability(row.approxQValue)}<br>{rowReading(row,r)}</p>
             </div>
           {/each}
         </article>
