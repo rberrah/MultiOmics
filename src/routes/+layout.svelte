@@ -24,10 +24,9 @@
   // Local routes remain under /multiomics/ in both BASE_PATH builds.
   let links = $derived([
     { key:'overview',href:'/multiomics/',label:t('Accueil','Home') },
-    { key:'learn',href:'/multiomics/learn/',label:t('Cours et méthodes','Courses and methods') },
-    { key:'design',href:'/multiomics/learn/',label:t('Plan d’étude et qualité','Study design and QC') },
-    { key:'tool',href:'/multiomics/tool/',label:t('Lancer une analyse','Run an analysis') },
-    { key:'workflow',href:'/multiomics/tool/',label:t('Découvrir en 1 clic','One-click demos') },
+    { key:'demo',href:'/multiomics/demo/',label:t('Démo guidée','Guided demo') },
+    { key:'learn',href:'/multiomics/learn/',label:t('Méthodologie générale','General methodology') },
+    { key:'tool',href:'/multiomics/tool/',label:t('Outil','Tool') },
     { key:'disciplines',href:'/multiomics/ecosystem/',label:t('Vue d’ensemble de l’écosystème','Ecosystem overview') },
     { key:'pmx',href:pmxExplain,label:'PMx Explain ↗',external:true },
     { key:'omics2pk',href:'https://rberrah.github.io/Omics2PK/',label:'Omics2PK ↗',external:true },
@@ -38,8 +37,8 @@
     { key:'main-site',href:mainSite,label:'Racym Berrah ↗',external:true }
   ]);
   let groups = $derived([
-    {key:'learn',label:t('Apprendre','Learn'),icon:BookOpen,keys:['learn','design']},
-    {key:'analyze',label:t('Analyser','Analyze'),icon:ChartNoAxesCombined,keys:['tool','workflow']},
+    {key:'learn',label:t('Apprendre','Learn'),icon:BookOpen,keys:['demo','learn']},
+    {key:'analyze',label:t('Analyser','Analyze'),icon:ChartNoAxesCombined,keys:['tool']},
     {key:'disciplines',label:t('Écosystème','Ecosystem'),icon:Library,keys:['disciplines','pmx','omics2pk']},
     {key:'resources',label:t('Ressources','Resources'),icon:Library,keys:['resources','glossary','references','source','main-site']}
   ]);
@@ -139,6 +138,7 @@
                   href={link.external ? link.href : internalPath(link.href)}
                   target={link.external ? '_blank' : undefined}
                   rel={link.external ? 'noopener noreferrer' : undefined}
+                  data-sveltekit-reload={link.external ? '' : undefined}
                   onclick={closeNavigation} data-testid={'nav-' + link.key}>{link.label}</a>
               {/if}
             {/each}
@@ -163,9 +163,9 @@
         <p>{t('Analyser les omiques dans un écosystème de recherche partagé avec PMx Explain et Omics2PK.', 'Analyze omics within a research ecosystem shared with PMx Explain and Omics2PK.')}</p>
       </div>
       <nav aria-label={t('Liens de pied de page', 'Footer links')}>
-        <a href={pmxExplain}>PMx Explain</a>
-        <a href="https://rberrah.github.io/Omics2PK/">Omics2PK</a>
-        <a href={mainSite}>{t('Site principal', 'Main site')} ↗</a>
+        <a href={pmxExplain} data-sveltekit-reload>PMx Explain</a>
+        <a href="https://rberrah.github.io/Omics2PK/" data-sveltekit-reload>Omics2PK</a>
+        <a href={mainSite} data-sveltekit-reload>{t('Site principal', 'Main site')} ↗</a>
         <a href="https://github.com/rberrah/MultiOmics">GitHub ↗</a>
       </nav>
     </div>
