@@ -149,7 +149,10 @@ test('Guided demo is a PMx-style worked example driven by the exact Tool output'
   await expect(page.getByTestId('guided-demo-crossomics-explainer')).toContainText(/Méthode/i);
   await expect(page.getByTestId('guided-demo-crossomics-explainer')).toContainText(/Interprétation \/ utilité/i);
   await expect(page.getByTestId('guided-demo-crossomics-small-n')).toContainText(/n=4 par groupe/i);
+  await expect(page.getByTestId('guided-demo-crossomics-small-n')).toContainText(/4! = 24/i);
   await expect(page.getByTestId('guided-demo-crossomics-small-n')).toContainText(/±1/i);
+  await expect(page.getByTestId('guided-demo-crossomics-explainer')).toContainText(/Δρ/);
+  await expect(page.getByTestId('guided-demo-crossomics-explainer')).toContainText(/n’est plus trié par \|Δρ\||not ranking by \|Δρ\|/i);
   await expect(page.getByTestId('multiomics-figure-reading')).toContainText(/Comment lire la heatmap/i);
   const exactResults=page.getByTestId('guided-demo-exact-results');
   await expect(exactResults).toContainText(/non calculé/i);
