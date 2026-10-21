@@ -3508,7 +3508,7 @@ Rscript multiomics-engine/run_backend.R</code></pre>
         {/if}
       </div>
       <div class="result-actions">
-      <button class="btn btn-primary" type="button" data-testid="multiomics-research-bundle-download" disabled={portableProjectBusy} onclick={downloadResearchBundle}>{portableProjectBusy ? t('Préparation du dossier…', 'Preparing dossier…') : t('Télécharger le dossier + code R (ZIP)', 'Download dossier + R code (ZIP)')}</button>
+      <button class="btn btn-primary" type="button" data-testid="multiomics-research-bundle-download-detail" disabled={portableProjectBusy} onclick={downloadResearchBundle}>{portableProjectBusy ? t('Préparation du dossier…', 'Preparing dossier…') : t('Télécharger le dossier + code R (ZIP)', 'Download dossier + R code (ZIP)')}</button>
       <button class="btn btn-outline" type="button" onclick={downloadReproducibleReport}>{t('Rapport complet', 'Full report')}</button>
       <small class="result-action-note">{t('Le navigateur reste exploratoire. Le ZIP conserve les données, paramètres, provenance et scripts R pour poursuivre l’analyse de référence hors du site.', 'The browser remains exploratory. The ZIP preserves data, settings, provenance and R scripts so the reference analysis can continue outside the website.')}</small>
         <details class="simple-disclosure export-detail">
@@ -3661,7 +3661,7 @@ Rscript multiomics-engine/run_backend.R</code></pre>
     {/if}
 
     <div class="computed-summary">
-    <article data-testid="multiomics-analysis-mode"><span>{t('Type d’analyse', 'Analysis type')}</span><strong>{analysisResult.engine?.analysisMode === 'single_omic' ? t('Omique unique', 'Single omic') : t('Multi-omique', 'Multi-omics')}</strong></article>
+    <article data-testid="multiomics-analysis-mode-detail"><span>{t('Type d’analyse', 'Analysis type')}</span><strong>{analysisResult.engine?.analysisMode === 'single_omic' ? t('Omique unique', 'Single omic') : t('Multi-omique', 'Multi-omics')}</strong></article>
     <article><span>{t('Sujets', 'Subjects')}</span><strong>{analysisResult.metadataSummary.subjects}</strong></article>
     <article><span>{t('Prélèvements biologiques', 'Biological samples')}</span><strong>{analysisResult.metadataSummary.samples}</strong></article>
     <article><span>{t('Mesures', 'Assays')}</span><strong>{analysisResult.metadataSummary.assays}</strong></article>
