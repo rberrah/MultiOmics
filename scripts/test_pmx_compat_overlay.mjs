@@ -18,7 +18,7 @@ for (const item of manifest.files) {
   assert.equal((await stat(p)).size, item.bytes);
   assert.equal(createHash('sha256').update(bytes).digest('hex'), item.sha256);
 }
-for (const page of ['multiomics/index.html', 'multiomics/tool/index.html', 'multiomics/learn/index.html']) {
+for (const page of ['multiomics/index.html', 'multiomics/tool/index.html', 'multiomics/learn/index.html', 'multiomics/demo/index.html']) {
   const path = 'pharmacometrie/' + page;
   assert(seen.has(path), 'required route is absent: ' + path);
   const html = await readFile(join(output, 'site', path), 'utf8');
