@@ -25,7 +25,7 @@ for (const file of manifest.files) {
 }
 for(const required of ['serve.mjs','START_HERE.txt','site/index.html',
  'site/multiomics/index.html','site/multiomics/tool/index.html',
- 'site/multiomics/learn/index.html','LICENSE','LICENSE-CONTENT.md','LICENSING.md','NOTICE','CITATION.cff'])
+ 'site/multiomics/learn/index.html','site/multiomics/demo/index.html','LICENSE','LICENSE-CONTENT.md','LICENSING.md','NOTICE','CITATION.cff'])
   assert(tracked.has(required),'Missing portable file '+required);
 async function scan(folder) {
   for(const name of await readdir(folder)) {
@@ -64,7 +64,7 @@ async function wait() {
 }
 try {
   await wait();
-  for(const path of ['/','/multiomics/','/multiomics/tool/','/multiomics/learn/',
+  for(const path of ['/','/multiomics/','/multiomics/tool/','/multiomics/learn/','/multiomics/demo/',
      '/multiomics/README.txt']) {
     const r=await fetch(url+path);
     assert.equal(r.status,200,path+' did not load');
