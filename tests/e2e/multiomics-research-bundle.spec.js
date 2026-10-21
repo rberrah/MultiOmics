@@ -185,7 +185,7 @@ test('Direct Omics2PK download contains only strict source exchange, never inven
     document.documentElement.dataset.pmxMultiomicsHydrated),{timeout:12000}).toBe('true');
   await page.getByTestId('multiomics-load-demo').click();
   await expect(page.getByTestId('multiomics-results')).toBeVisible({timeout:30000});
-  await expect(page.getByTestId('multiomics-omics2pk-export-panel')).toContainText('does not export group logFC/q-values');
+  await expect(page.getByTestId('multiomics-omics2pk-export-panel')).toContainText(/Group statistics are never automatically converted|statistiques de groupe/);
   const [download]=await Promise.all([
     page.waitForEvent('download',{timeout:25000}),
     page.getByTestId('multiomics-omics2pk-export').click()
