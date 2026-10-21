@@ -133,6 +133,12 @@ test('Guided demo is a PMx-style worked example driven by the exact Tool output'
   await expect(page.getByTestId('guided-demo-figure-guide')).toContainText(/Heatmap/i);
   await expect(page.getByTestId('guided-demo-figure-guide')).toContainText(/Metabologramme/i);
   await expect(page.getByTestId('guided-demo-figure-guide')).toContainText(/Réseau ciblé/i);
+  await expect(page.getByTestId('guided-demo-figure-guide')).toContainText(/Exemple de sortie/i);
+  await expect(page.getByTestId('guided-demo-interpretation')).toContainText(/Lire le contraste/i);
+  await expect(page.getByRole('heading',{name:/Interprétation scientifique du cas/i})).toBeVisible();
+  await expect(page.getByRole('heading',{name:/Interprétation clinique \/ translationnelle/i})).toBeVisible();
+  await expect(page.getByTestId('guided-demo-crossomics-explainer')).toContainText(/Méthode/i);
+  await expect(page.getByTestId('guided-demo-crossomics-explainer')).toContainText(/Interprétation \/ utilité/i);
   await expect(page.getByTestId('multiomics-figure-reading')).toContainText(/Comment lire la heatmap/i);
   const exactResults=page.getByTestId('guided-demo-exact-results');
   await expect(exactResults).toContainText(/non calculé/i);

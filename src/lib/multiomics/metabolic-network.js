@@ -247,6 +247,7 @@ export function buildFocusedMetabolicNetwork(result, central) {
       features:[...prior.features,row.feature]});
   }
   const geneMeasurements = new Map();
+  const matchedTranscriptFeatures = new Set();
   const transcriptRows = result?.layers?.transcriptomics?.rows || [];
   for (const e of genes.values()) {
     const wanted = new Set([e.name,...e.aliases].map(key));
@@ -256,7 +257,10 @@ export function buildFocusedMetabolicNetwork(result, central) {
     if (candidates.length !== 1) {
       geneMeasurements.set(e.id,{ status:'duplicate_features',effect:null,
         features:candidates.map((c)=>c.feature) });
-    } else geneMeasurements.set(e.id,{...measurement(candidates[0]),matchStatus:'gene_symbol'});
+    } else {
+      matchedTranscriptFeatures.add(candidates[0].feature);
+      geneMeasurements.set(e.id,{...measurement(candidates[0]),matchStatus:'gene_symbol'});
+    }
   }
   const nodes = new Map();
   for (const mol of chemicals.values()) nodes.set(mol.id,{...mol,measurement:matched.get(mol.id) || null});
@@ -280,10 +284,29 @@ export function buildFocusedMetabolicNetwork(result, central) {
     return {id,labelFr,labelEn,ids:[...ids].filter((n)=>nodes.has(n)),
       measuredIds:measured,measuredCount:measured.length};
   });
+  const measuredNodes=[...nodes.values()].filter((node)=>Number.isFinite(node.measurement?.effect));
+  const metabolomicsRows=result?.layers?.metabolomics?.rows || [];
+  const mappedMetaboliteInputs=audit.filter((item)=>item.id).length;
+  const usableMetaboliteInputs=audit.filter((item)=>item.id && item.usable).length;
+  const measuredRegions=regions.filter((region)=>region.measuredCount>0);
   return {
     nodes:[...nodes.values()], links:allLinks, regions, audit,
-    coverage:{metabolites:chemicals.size,genes:genes.size,links:allLinks.length,regions:regions.length},
-    caveat:'Only exact curated ChEBI IDs are guaranteed. Unambiguous names are explicitly marked name-only. Simplified pathway links are schematic rather than atom-balanced biochemical reactions or flux estimates.'
+    coverage:{
+      metabolites:chemicals.size,
+      genes:genes.size,
+      links:allLinks.length,
+      regions:regions.length,
+      inputMetaboliteFeatures:metabolomicsRows.length,
+      mappedMetaboliteFeatures:mappedMetaboliteInputs,
+      usableMetaboliteFeatures:usableMetaboliteInputs,
+      inputTranscriptFeatures:transcriptRows.length,
+      mappedTranscriptFeatures:matchedTranscriptFeatures.size,
+      measuredNodes:measuredNodes.length,
+      measuredRegions:measuredRegions.length,
+      catalogMode:'curated_partial',
+      proteomicsProjected:false
+    },
+    caveat:'Automatic focused map over a curated, non-exhaustive metabolic catalog. Only exact curated ChEBI IDs are guaranteed; unambiguous names are explicitly marked name-only. Transcriptomics is matched to curated gene symbols. Proteomics is not directly projected in this network yet. Simplified pathway links are schematic rather than atom-balanced biochemical reactions or flux estimates.'
   };
 }
 /**
