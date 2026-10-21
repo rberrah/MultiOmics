@@ -66,6 +66,8 @@ test('Scientific evidence status is explicit and external data transfer is opt-i
   await expect(page.getByLabel(/Résoudre les métabolites non canoniques|Resolve selected non-canonical/)).not.toBeChecked();
   await expect(page.getByLabel(/Mode backend R|R backend mode/i)).toHaveValue('browser');
   await page.getByTestId('multiomics-quick-demo-rna').click();
+  await expect(page.getByTestId('multiomics-results')).toBeVisible({ timeout: 25000 });
+  await page.getByTestId('multiomics-result-technical-detail').locator('summary').first().click();
   await expect(page.getByTestId('multiomics-scientific-assurance')).toBeVisible({ timeout: 25000 });
   await expect(page.getByTestId('multiomics-scientific-assurance')).toContainText(/validité scientifique|scientific evidence status/i);
   const evidence = await page.getByTestId('multiomics-scientific-assurance').innerText();
