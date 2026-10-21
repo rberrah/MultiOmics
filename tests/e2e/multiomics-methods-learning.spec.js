@@ -142,6 +142,6 @@ test('Guided demo is a PMx-style worked example driven by the exact Tool output'
     expect(layer.mode).toBe('random-intercept-longitudinal-model');
     expect(layer.inferenceMethod).toContain('random-intercept GLS effect ONLY');
     expect(layer.groupSizes).toEqual([4,4]);
-    expect(layer.rows.every(row=>row.pValue===null && row.qValue===null)).toBe(true);
+    expect(layer.rows.every((/** @type {any} */ row)=>row.pValue===null && row.qValue===null)).toBe(true);
   }
 });
