@@ -17,7 +17,7 @@
   /** @param {string} pathname */
   function canonicalForPath(pathname) {
     const suffix = pathname.split('/multiomics/')[1] ?? '';
-    const normalized = suffix.replace(/^\\/+|\\/+$/g, '');
+    const normalized = suffix.replace(/^\/+|\/+$/g, '');
     const route = normalized === 'disciplines' ? 'ecosystem' : normalized;
     return 'https://rberrah.github.io/multiomics/' + (route ? route + '/' : '');
   }
