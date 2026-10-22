@@ -15,8 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -46,7 +46,7 @@ jobs:
       - name: Exercise portable downloaded bundle in real desktop/mobile browser
         run: npx playwright test --config playwright.portable.config.js --workers=1 --retries=0
       - name: Publish independently usable browser package as Actions artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: MultiOmics-portable-web-${{ github.sha }}
           path: |
@@ -105,7 +105,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: r-lib/actions/setup-r@v2
         with:
           use-public-rspm: true

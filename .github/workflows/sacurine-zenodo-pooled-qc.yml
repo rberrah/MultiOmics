@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Read public Zenodo per-file original checksums and download budgets
         run: |
           python3 -m py_compile scripts/verify_sacurine_zenodo_qc.py
@@ -32,7 +32,7 @@ jobs:
             --output tmp/zenodo-qc-official-index --metadata-only
       - name: Archive only public source hashes and reported sizes
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: zenodo-galaxy-pooled-QC-original-source-sizes
           path: tmp/zenodo-qc-official-index/zenodo_galaxy_true_qc_source_manifest.json
@@ -49,7 +49,7 @@ jobs:
       QUALIFIED_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
       MULTIOMICS_RAW_MS_OUTPUT: tmp/sacurine-zenodo-qc-output
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Verify nine original Galaxy/Zenodo mzML data against official record checksums
         run: python3 scripts/verify_sacurine_zenodo_qc.py --output tmp/sacurine-zenodo-qc-sources
       - name: Install native pinned xcms reference environment
@@ -76,7 +76,7 @@ jobs:
             tmp/sacurine-zenodo-qc-sources tmp/sacurine-zenodo-qc-output/xcms-fit
       - name: Archive source checksums and anonymous quantitative QC evidence, not raw human specimens
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: genuine-zenodo-Galaxy-LCMS-pooled-QC-native-evidence
           path: |
