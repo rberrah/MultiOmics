@@ -204,6 +204,18 @@
     'Données → réponses au questionnaire → méthode sélectionnée → sorties exactes → figures → interprétation → analyse R de référence',
     'Data → questionnaire answers → selected method → exact outputs → figures → interpretation → reference R analysis'
   )}</p>
+  <div class="learning-goals" data-testid="guided-demo-learning-goals">
+    <div class="learning-goals-head">
+      <span class="eyebrow">{t('Objectifs pédagogiques','Learning objectives')}</span>
+      <strong>{t('En 5 minutes, vous devez pouvoir :','In 5 minutes, you should be able to:')}</strong>
+    </div>
+    <ol>
+      <li>{t('comprendre comment le questionnaire détermine la branche statistique ;','understand how the questionnaire determines the statistical branch;')}</li>
+      <li>{t('lire un effet, une p/q exploratoire et leur niveau de preuve ;','read an effect, an exploratory p/q and their level of evidence;')}</li>
+      <li>{t('comprendre ce qu’apporte — et ce que ne prouve pas — l’intégration inter-omique ;','understand what cross-omics integration adds — and what it does not prove;')}</li>
+      <li>{t('passer d’un signal statistique à une hypothèse biologique ou translationnelle sans surinterpréter.','move from a statistical signal to a biological or translational hypothesis without overinterpreting it.')}</li>
+    </ol>
+  </div>
   <div class="actions">
     <a class="primary" href={launchHref} data-testid="guided-demo-launch">{t('Ouvrir exactement ce cas dans Tool','Open this exact case in Tool')}</a>
     <a class="secondary" href={resolve('multiomics/learn/')}>{t('Méthodologie générale','General methodology')}</a>
@@ -253,6 +265,10 @@
       </table>
     </div>
   </details>
+  <div class="takeaway"><strong>{t('À retenir','Take-home')}</strong><span>{t(
+    'Le sujet biologique — ici le participant — est l’unité d’indépendance. Les réplicats techniques apportent de la précision, pas de nouveaux sujets.',
+    'The biological subject — here the participant — is the independent unit. Technical replicates add precision, not new subjects.'
+  )}</span></div>
 </section>
 
 <section>
@@ -261,16 +277,29 @@
     'Le bouton de démonstration remplit automatiquement ces réponses. Dans une vraie étude, ce sont elles qui déterminent la branche statistique ; MultiOmics ne doit pas deviner le plan expérimental à partir des valeurs moléculaires.',
     'The demo button fills these answers automatically. In a real study, these answers determine the statistical branch; MultiOmics should not infer the experimental design from molecular values.'
   )}</p>
-  <div class="table-wrap">
-    <table data-testid="guided-demo-questionnaire">
-      <thead><tr><th>{t('Question','Question')}</th><th>{t('Réponse affichée','Displayed answer')}</th><th>{t('Valeur utilisée par le moteur','Engine value')}</th></tr></thead>
-      <tbody>
-        {#each questionRows() as row}
-          <tr><td>{row[0]}</td><td><strong>{row[1]}</strong></td><td><code>{row[2]}</code></td></tr>
-        {/each}
-      </tbody>
-    </table>
+  <div class="beginner-summary">
+    <article><span>{t('Plan','Design')}</span><strong>{t('Mesures répétées','Repeated measures')}</strong></article>
+    <article><span>{t('Question','Question')}</span><strong>{t('Évolution dans le temps','Change over time')}</strong></article>
+    <article><span>{t('Données','Data')}</span><strong>RNA + {t('protéines','proteins')} + {t('métabolites','metabolites')}</strong></article>
+    <article><span>{t('But','Goal')}</span><strong>{t('Exploration prudente','Cautious exploration')}</strong></article>
   </div>
+  <details class="technical-details">
+    <summary>{t('Voir toutes les réponses et les valeurs utilisées par le moteur','Show all answers and engine values')}</summary>
+    <div class="table-wrap">
+      <table data-testid="guided-demo-questionnaire">
+        <thead><tr><th>{t('Question','Question')}</th><th>{t('Réponse affichée','Displayed answer')}</th><th>{t('Valeur utilisée par le moteur','Engine value')}</th></tr></thead>
+        <tbody>
+          {#each questionRows() as row}
+            <tr><td>{row[0]}</td><td><strong>{row[1]}</strong></td><td><code>{row[2]}</code></td></tr>
+          {/each}
+        </tbody>
+      </table>
+    </div>
+  </details>
+  <div class="takeaway"><strong>{t('À retenir','Take-home')}</strong><span>{t(
+    'MultiOmics ne devine pas le plan expérimental : les réponses de l’utilisateur définissent ce que l’analyse peut légitimement tester.',
+    'MultiOmics does not guess the experimental design: the user answers define what the analysis can legitimately test.'
+  )}</span></div>
 </section>
 
 <section>
@@ -303,6 +332,10 @@
       'Le réplicat technique RNA est agrégé avant l’inférence ; il ne devient jamais un neuvième sujet. Les batchs déclarés sont audités avant le contraste.',
       'The RNA technical replicate is aggregated before inference; it never becomes a ninth subject. Declared batches are audited before the contrast.'
     )}</p>
+    <div class="takeaway"><strong>{t('À retenir','Take-home')}</strong><span>{t(
+      'Ici, le test demande si l’évolution T0→T12 diffère entre traitement et contrôle. Il ne teste pas simplement une différence entre groupes à T12.',
+      'Here, the model asks whether the T0→T12 change differs between treatment and control. It is not simply testing a group difference at T12.'
+    )}</span></div>
   {:else}
     <p class="note">{t('Le choix du test apparaîtra après le calcul.','The selected test will appear after calculation.')}</p>
   {/if}
@@ -315,11 +348,30 @@
     'Reference p/q are shown as “not computed” when they are not validated in the browser. Separate p*/q* columns show the browser approximation, with BH applied to p*. Small exploratory values use scientific notation and must be rerun in R for reference inference.'
   )}</p>
   {#if status==='done'}
+    <div class="result-highlights" data-testid="guided-demo-result-highlights">
+      <article>
+        <span>{t('Exemple RNA','RNA example')}</span>
+        <strong>IDO1 · {featureValue('transcriptomics','IDO1')}</strong>
+        <p>{t('Amplitude de l’interaction condition × temps sur l’échelle analysée.','Magnitude of the condition × time interaction on the analysed scale.')}</p>
+      </article>
+      <article>
+        <span>{t('Exemple protéique','Protein example')}</span>
+        <strong>IDO1 · {featureValue('proteomics','P14902')}</strong>
+        <p>{t('Même cible biologique, couche différente : on vérifie d’abord la cohérence de direction.','Same biological target, different layer: first check directional coherence.')}</p>
+      </article>
+      <article>
+        <span>{t('Exemple métabolique','Metabolite example')}</span>
+        <strong>{featureName('metabolomics','CHEBI:16946')} · {featureValue('metabolomics','CHEBI:16946')}</strong>
+        <p>{t('Lecture complémentaire de la voie, sans assimiler ce signal à un flux métabolique.','Complementary pathway readout, without equating this signal with metabolic flux.')}</p>
+      </article>
+    </div>
     {#each layerOrder as layer}
       {@const r=analysisResult.layers[layer]}
       <div class="result-block" data-testid={'guided-demo-layer-'+layer}>
         <h3>{layerLabel(layer)} — {r.contrast}</h3>
-        <div class="table-wrap">
+        <details class="technical-details">
+          <summary>{t('Voir la table complète de cette couche','Show the full table for this layer')}</summary>
+          <div class="table-wrap">
           <table>
             <thead>
               <tr><th>{t('Variable','Feature')}</th><th>{t('Effet','Effect')}</th><th>{t('Échelle','Scale')}</th><th>2^effect</th><th>{t('p référence','reference p')}</th><th>{t('q BH référence','reference BH q')}</th><th>p* {t('approx.','approx.')}</th><th>q* BH {t('approx.','approx.')}</th><th>n ref</th><th>n comp</th></tr>
@@ -341,9 +393,14 @@
               {/each}
             </tbody>
           </table>
-        </div>
+          </div>
+        </details>
       </div>
     {/each}
+    <div class="takeaway"><strong>{t('À retenir','Take-home')}</strong><span>{t(
+      'L’effet décrit la taille et le sens du signal. Les p*/q* navigateur servent ici à l’exploration ; l’inférence de référence doit être rejouée sous R.',
+      'The effect describes signal magnitude and direction. Browser p*/q* are exploratory here; reference inference must be rerun in R.'
+    )}</span></div>
   {/if}
 </section>
 
@@ -427,6 +484,10 @@
       'p/q de référence restent non calculées dans cette exécution navigateur ; p*/q* sont uniquement des approximations exploratoires. Les conclusions quantitatives d’un article doivent être établies avec le replay R lmerTest et une validation biologique indépendante.',
       'Reference p/q remain not computed in this browser run; p*/q* are exploratory approximations only. Quantitative conclusions for a paper should be established with the R lmerTest replay and independent biological validation.'
     )}</p>
+    <div class="takeaway"><strong>{t('À retenir','Take-home')}</strong><span>{t(
+      'Une convergence RNA–protéine–métabolite renforce une hypothèse biologique, mais ne démontre ni causalité, ni mécanisme, ni utilité clinique.',
+      'RNA–protein–metabolite convergence strengthens a biological hypothesis, but does not demonstrate causality, mechanism or clinical utility.'
+    )}</span></div>
   {/if}
 </section>
 
@@ -473,6 +534,10 @@
   {:else}
     <p class="note">{t('Préparation des figures…','Preparing figures…')}</p>
   {/if}
+  <div class="takeaway"><strong>{t('À retenir','Take-home')}</strong><span>{t(
+    'Une figure sert à voir la structure des données ou à contextualiser un signal ; elle ne crée pas une preuve statistique supplémentaire.',
+    'A figure helps inspect data structure or contextualize a signal; it does not create an additional statistical proof.'
+  )}</span></div>
 </section>
 
 <section>
@@ -546,6 +611,11 @@
       <article><strong>{analysisResult.crossOmics?.smallNPairCount ?? 0}</strong><span>{t('sans p*/q* car n insuffisant','without p*/q* because n is too small')}</span></article>
     </div>
 
+    <div class="takeaway"><strong>{t('À retenir','Take-home')}</strong><span>{t(
+      'Une corrélation inter-omique indique que deux variations sont associées. Avec n=4 par groupe, les ρ=±1 sont surtout un signal de saturation du rang, pas une preuve de couplage biologique.',
+      'A cross-omics correlation indicates that two changes are associated. With n=4 per group, ρ=±1 mainly reflects rank saturation, not evidence of biological coupling.'
+    )}</span></div>
+
     <details class="technical-pairs">
       <summary>{t('Voir le tableau détaillé des paires inter-omiques','Show detailed cross-omics pair table')}</summary>
       {#if analysisResult.crossOmics?.pairs?.length}
@@ -580,6 +650,10 @@
     'Cette démo sert à comprendre le flux et à vérifier visuellement les résultats. Pour une étude réelle, le ZIP de recherche fourni par Tool doit être conservé avec les données, paramètres et provenance, puis le code R de référence doit être exécuté pour l’inférence univariée destinée à une publication. Pour l’intégration inter-omique, il faut en plus un effectif adapté et des relations préspecifiées ou validées sur des données indépendantes ; les corrélations 4+4 de cette démo ne doivent pas être reproduites comme une analyse confirmatoire.',
     'This demo is for understanding the workflow and visually checking results. For a real study, the research ZIP provided by Tool should be retained with data, settings and provenance, then the reference R code should be run for publication-oriented univariate inference. Cross-omics integration additionally requires adequate sample size and prespecified relationships or independent validation; the 4+4 correlations in this demo should not be reproduced as a confirmatory analysis.'
   )}</p>
+  <div class="takeaway"><strong>{t('À retenir','Take-home')}</strong><span>{t(
+    'La démo apprend à lire le flux. Pour un article, conservez le ZIP de recherche, rejouez l’inférence de référence et validez biologiquement les hypothèses prioritaires.',
+    'The demo teaches how to read the workflow. For a paper, retain the research ZIP, rerun reference inference and biologically validate prioritized hypotheses.'
+  )}</span></div>
   <div class="actions">
     <a class="primary" href={launchHref}>{t('Rejouer ce cas dans Tool','Replay this case in Tool')}</a>
     <a class="secondary" href={resolve('multiomics/learn/')}>{t('Comprendre chaque méthode','Understand each method')}</a>
@@ -602,6 +676,15 @@
   .lede{font-size:var(--text-lg,1.1rem);line-height:1.7;max-width:78ch;color:var(--text-secondary)}
   .warn{padding:.8rem 1rem;border-left:3px solid var(--accent-ai);background:var(--bg-secondary);max-width:80ch}
   .steps-map{font-family:var(--font-mono);font-size:.82rem;color:var(--text-secondary);line-height:1.6}
+  .learning-goals{max-width:900px;margin:1.4rem 0;padding:1.15rem 1.25rem;border:1px solid var(--border-subtle);border-radius:10px;background:var(--bg-secondary);display:grid;grid-template-columns:minmax(180px,.7fr) 1.7fr;gap:1rem}
+  .learning-goals-head{display:grid;align-content:start;gap:.35rem}.learning-goals ol{margin:0;padding-left:1.25rem;display:grid;gap:.45rem;line-height:1.5}
+  .beginner-summary,.result-highlights{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.75rem;margin:1.1rem 0}
+  .beginner-summary article,.result-highlights article{padding:.9rem 1rem;border:1px solid var(--border-subtle);border-radius:8px;background:var(--bg-secondary)}
+  .beginner-summary span,.result-highlights span{display:block;font-size:.78rem;color:var(--text-muted);margin-bottom:.3rem}.beginner-summary strong,.result-highlights strong{display:block}
+  .result-highlights{grid-template-columns:repeat(3,minmax(0,1fr))}.result-highlights p{font-size:.84rem;color:var(--text-secondary);line-height:1.5;margin:.45rem 0 0}
+  .takeaway{max-width:900px;margin:1.25rem 0 0;padding:.85rem 1rem;border-left:4px solid var(--accent-pk);background:var(--bg-secondary);display:grid;grid-template-columns:auto 1fr;gap:.75rem;align-items:start}
+  .takeaway strong{white-space:nowrap}.takeaway span{color:var(--text-secondary);line-height:1.55}
+  .technical-details{margin-top:.8rem}
   section{margin:0 0 3.4rem}
   section>h2{font-size:clamp(1.35rem,3vw,1.85rem);margin-bottom:1rem}
   h3{margin:.4rem 0 .7rem}
@@ -660,6 +743,6 @@
   .limit{margin:0 0 4rem;padding:1rem 1.2rem;border-left:4px solid var(--accent-ai);background:var(--bg-secondary)}
   .limit p{margin-bottom:0;color:var(--text-secondary)}
   .error{color:var(--danger,#b91c1c);font-weight:650}
-  @media(max-width:820px){.method-grid{grid-template-columns:1fr}.facts{grid-template-columns:1fr 1fr}.output-explainer>div{grid-template-columns:1fr;gap:.35rem}}
-  @media(max-width:520px){.facts,.facts.small{grid-template-columns:1fr}.actions{align-items:stretch}.actions a{width:100%;text-align:center}}
+  @media(max-width:820px){.method-grid{grid-template-columns:1fr}.facts{grid-template-columns:1fr 1fr}.output-explainer>div{grid-template-columns:1fr;gap:.35rem}.learning-goals{grid-template-columns:1fr}.beginner-summary,.result-highlights{grid-template-columns:1fr 1fr}}
+  @media(max-width:520px){.facts,.facts.small,.beginner-summary,.result-highlights{grid-template-columns:1fr}.actions{align-items:stretch}.actions a{width:100%;text-align:center}.takeaway{grid-template-columns:1fr;gap:.25rem}.takeaway strong{white-space:normal}}
 </style>

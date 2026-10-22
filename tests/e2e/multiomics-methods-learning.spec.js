@@ -133,8 +133,16 @@ test('Guided demo is a PMx-style worked example driven by the exact Tool output'
 
   await page.goto('/multiomics/demo?lang=fr');
   await expect(page.getByRole('heading',{name:/MultiOmics.*questionnaire.*sorties exactes/i})).toBeVisible();
+  await expect(page.getByTestId('guided-demo-learning-goals')).toBeVisible();
+  await expect(page.getByTestId('guided-demo-learning-goals')).toContainText(/En 5 minutes.*questionnaire.*intégration inter-omique/s);
   await expect(page.getByTestId('guided-demo-exact-results')).toContainText('STAT1',{timeout:30000});
+  await expect(page.getByTestId('guided-demo-result-highlights')).toBeVisible();
+  await expect(page.getByTestId('guided-demo-result-highlights')).toContainText(/IDO1/);
   await expect(page.getByTestId('guided-demo-questionnaire')).toContainText('Mesures répétées');
+  const technicalDetails=page.locator('details.technical-details');
+  expect(await technicalDetails.count()).toBeGreaterThanOrEqual(4);
+  await expect(technicalDetails.first()).not.toHaveAttribute('open',/.+/);
+  await expect(page.locator('.takeaway').first()).toContainText(/À retenir/i);
   await expect(page.getByTestId('guided-demo-methods')).toContainText('random-intercept-longitudinal-model');
   await expect(page.getByTestId('guided-demo-methods')).toContainText('reference_required_for_p_q_and_ci');
   await expect(page.getByTestId('guided-demo-methods')).toContainText('lmerTest');
