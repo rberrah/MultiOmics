@@ -1,6 +1,7 @@
 #!/usr/bin/env Rscript
-# Normalize the small bootstrap layer that basilisk upgrades without exact
-# versions before running the already-pinned MOFA2/mofapy2 scientific stack.
+# Normalize the small dependency layer that Basilisk or unconstrained
+# transitive resolution can upgrade before running the already-pinned
+# MOFA2/mofapy2 scientific stack.
 for(p in c("MOFA2","basilisk","reticulate","jsonlite"))
   if(!requireNamespace(p,quietly=TRUE)) stop("Missing authentic method dependency: ",p)
 
@@ -11,10 +12,10 @@ config <- jsonlite::read_json(
 if(!identical(config$schema,"multiomics.mofa-basilisk-python.v1"))
   stop("Unknown Basilisk environment lock schema")
 
-bootstrap <- c("pip","wheel","setuptools","packaging")
+bootstrap <- c("pip","wheel","setuptools","packaging","python-dateutil")
 expected <- unlist(config$pinnedPackages[bootstrap],use.names=TRUE)
 if(length(expected)!=length(bootstrap) || anyNA(expected))
-  stop("MOFA Python lock must declare exact bootstrap package versions")
+  stop("MOFA Python lock must declare exact normalized package versions")
 
 env <- tryCatch(
   get("mofa_env",asNamespace("MOFA2"),inherits=FALSE),
@@ -55,5 +56,5 @@ for(name in names(expected)){
     stop("Failed to normalize ",name,": expected ",expected[[name]],
          ", got ",actual[[name]])
 }
-cat("PASS: normalized MOFA2 Basilisk bootstrap packages: ",
+cat("PASS: normalized MOFA2 Basilisk drift-sensitive packages: ",
     paste(paste0(names(expected),"=",unname(expected)),collapse=", "), "\n",sep="")
