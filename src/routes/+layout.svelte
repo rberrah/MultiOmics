@@ -12,6 +12,16 @@
   import LanguageToggle from '#lib/components/LanguageToggle.svelte';
 
   let { children } = $props();
+  // All standalone and legacy-mounted routes should point to a single
+  // absolute canonical URL under /multiomics/, regardless of BASE_PATH.
+  /** @param {string} pathname */
+  function canonicalForPath(pathname) {
+    const suffix = pathname.split('/multiomics/')[1] ?? '';
+    const normalized = suffix.replace(/^\\/+|\\/+$/g, '');
+    const route = normalized === 'disciplines' ? 'ecosystem' : normalized;
+    return 'https://rberrah.github.io/multiomics/' + (route ? route + '/' : '');
+  }
+  let canonical = $derived(canonicalForPath(page.url.pathname));
   /** @param {string} fr @param {string} en */
   const t = (fr,en) => $language === 'en' ? en : fr;
   const mainSite = 'https://rberrah.github.io/';
@@ -79,6 +89,10 @@
   afterNavigate(closeNavigation);
   $effect(() => { document.documentElement.lang = $language === 'en' ? 'en' : 'fr'; });
 </script>
+
+<svelte:head>
+  <link rel="canonical" href={canonical} />
+</svelte:head>
 
 <svelte:window
   onclick={handleOutsideClick}
