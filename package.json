@@ -17,8 +17,8 @@
     "test:portable": "node scripts/test_portable_web.mjs"
   },
   "devDependencies": {
-    "@axe-core/playwright": "^4.13.0",
-    "@playwright/test": "^1.62.1",
+    "@axe-core/playwright": "^4.14.0",
+    "@playwright/test": "^1.64.1",
     "@sveltejs/adapter-auto": "^8.0.0",
     "@sveltejs/adapter-static": "^4.0.0",
     "@sveltejs/kit": "^3.1.0",
@@ -30,16 +30,16 @@
     "vite": "^8.3.4"
   },
   "dependencies": {
-    "@fontsource-variable/inter": "^5.2.8",
-    "@fontsource-variable/jetbrains-mono": "^5.2.8",
-    "@fontsource-variable/source-serif-4": "^5.2.9",
-    "@lucide/svelte": "^1.45.0",
+    "@fontsource-variable/inter": "^5.3.0",
+    "@fontsource-variable/jetbrains-mono": "^5.3.0",
+    "@fontsource-variable/source-serif-4": "^5.3.1",
+    "@lucide/svelte": "^1.59.0",
     "d3": "^7.9.0",
     "d3-scale": "^4.0.2",
     "d3-selection": "^3.0.0",
     "d3-shape": "^3.2.0",
     "js-yaml": "^4.1.0",
-    "jsep": "^1.4.0",
+    "jsep": "^1.6.0",
     "markdown-it": "^14.1.0",
     "zod": "^3.23.8"
   },
