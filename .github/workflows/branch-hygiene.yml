@@ -1,3 +1,4 @@
+# CI retrigger after transient runner setup stall
 # Maintenance trigger: MOFA Basilisk lock fix 2026-10-22
 name: Repository branch hygiene
 
