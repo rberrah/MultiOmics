@@ -34,7 +34,7 @@ jobs:
       MULTIOMICS_MIXED_REFERENCE_REPLICATES: '8'
       MULTIOMICS_VALIDATION_OUTPUT: tmp/reference-methods
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Parse all native BH audit scripts before costly R installation
         run: |
           Rscript -e 'for(f in c(
@@ -150,7 +150,7 @@ jobs:
         run: Rscript multiomics-engine/tests/bioconductor_mixed_truth_reference.R
       - name: Preserve all scientific results, including negative outcomes
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: multiomics-frozen-r-calibration-evidence
           path: |

@@ -46,7 +46,7 @@ jobs:
       MULTIOMICS_MIXED_REFERENCE_REPLICATE_OFFSET: '1000'
       MULTIOMICS_VALIDATION_OUTPUT: tmp/rnaseq-precision
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Refuse invalid R research scripts before installing dependencies
         run: |
           Rscript -e 'for(f in c(
@@ -90,7 +90,7 @@ jobs:
         run: Rscript multiomics-engine/validation/rnaseq_precision_decision.R tmp/rnaseq-precision
       - name: Archive every per-study result including negative outcomes
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: MultiOmics-independent-RNAseq-precision-${{ github.sha }}
           path: |
