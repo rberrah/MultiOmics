@@ -27,13 +27,13 @@
     "svelte": "^5.57.2",
     "svelte-check": "^4.7.5",
     "typescript": "^6.0.3",
-    "vite": "^8.3.4"
+    "vite": "^8.3.5"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.3.0",
     "@fontsource-variable/jetbrains-mono": "^5.3.0",
     "@fontsource-variable/source-serif-4": "^5.3.1",
-    "@lucide/svelte": "^1.59.0",
+    "@lucide/svelte": "^1.61.0",
     "d3": "^7.9.0",
     "d3-scale": "^4.0.2",
     "d3-selection": "^3.0.0",
