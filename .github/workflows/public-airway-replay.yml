@@ -22,7 +22,7 @@ jobs:
     container:
       image: bioconductor/bioconductor_docker:RELEASE_3_22-r-4.5.2@sha256:e34177896c1579f66d48b756e4229b58237499183a089da084af72d7aba1d40a
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Install actual scientific R reference packages
         shell: bash
         run: |
@@ -42,7 +42,7 @@ jobs:
         env:
           PMX_PAIRED_AIRWAY_REPORT_DIR: /tmp/paired-airway-evidence
         run: Rscript multiomics-engine/tests/test_public_airway_paired_backend.R
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
       - name: Install independent research ZIP dependencies
@@ -59,7 +59,7 @@ jobs:
         run: node scripts/test_public_airway_website_r_numeric_figures.mjs
       - name: Confirm reference API syntax remains valid
         run: Rscript -e 'p<-plumber::plumb("multiomics-engine/server.R");stopifnot(inherits(p,"Plumber"))'
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: standalone-airway-GSE52778-replay-evidence
