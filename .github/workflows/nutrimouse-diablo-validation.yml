@@ -3,6 +3,9 @@ name: Multi-omics real public Nutrimouse DIABLO biological validation
 on:
   pull_request:
     paths:
+      # Requalify the exact dependency tree, not only R or UI source changes.
+      - 'package.json'
+      - 'package-lock.json'
       - '.github/workflows/nutrimouse-diablo-validation.yml'
       - 'multiomics-engine/tests/test_diablo_real_nutrimouse.R'
       - 'multiomics-engine/tests/test_diablo_real_nutrimouse_ablation.R'
