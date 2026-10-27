@@ -3,6 +3,9 @@ name: MultiOmics survival native-R qualification
 on:
   pull_request:
     paths:
+      # Validate the exact npm dependency revision required by the release pin.
+      - 'package.json'
+      - 'package-lock.json'
       - 'src/lib/multiomics/**'
       - 'scripts/test_multiomics_cox_reference.mjs'
       - 'multiomics-engine/tests/independent_cox_reference.R'
