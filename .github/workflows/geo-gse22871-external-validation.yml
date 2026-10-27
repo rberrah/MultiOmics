@@ -3,6 +3,9 @@ name: Independent external GEO GSE22871 source qualification
 on:
   pull_request:
     paths:
+      # Validate the exact npm dependency revision required by the release pin.
+      - 'package.json'
+      - 'package-lock.json'
       - '.github/workflows/geo-gse22871-external-validation.yml'
       - 'scripts/qualify_geo_gse22871.py'
       - 'scripts/qualify_gpl1261_annotation.py'
