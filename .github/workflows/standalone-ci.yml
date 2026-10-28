@@ -98,6 +98,9 @@ jobs:
           console.log('PASS: standalone navigation links to the ecosystem without depending on or redirecting to PMx.');
           NODE
 
+      - name: Fail CI on any npm advisory including low severity (Kit3 zero advisory gate)
+        run: npm audit --audit-level=low
+
   r-contract:
     name: Independent R package-free reference contracts
     runs-on: ubuntu-latest
@@ -157,5 +160,3 @@ jobs:
           do
             Rscript "multiomics-engine/tests/$test"
           done
-      - name: Fail CI on any npm advisory including low severity (Kit3 zero advisory gate)
-        run: npm audit --audit-level=low
