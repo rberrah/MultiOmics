@@ -3,6 +3,9 @@ name: Public Airway native-R replay and R Markdown
 on:
   pull_request:
     paths:
+      # Requalify the exact dependency tree, not only R or UI source changes.
+      - 'package.json'
+      - 'package-lock.json'
       - 'multiomics-engine/**'
       - 'src/lib/multiomics/**'
       - 'scripts/test_public_airway_website_r_numeric_figures.mjs'

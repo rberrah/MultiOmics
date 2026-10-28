@@ -3,6 +3,9 @@ name: Multi-omics real Nutrimouse MOFA2 factor and experimental-effect audit
 on:
   pull_request:
     paths:
+      # Requalify the exact dependency tree, not only R or UI source changes.
+      - 'package.json'
+      - 'package-lock.json'
       - '.github/workflows/nutrimouse-mofa-validation.yml'
       - 'multiomics-engine/advanced_methods.R'
       - 'multiomics-engine/environment/**'

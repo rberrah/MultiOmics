@@ -3,6 +3,9 @@ name: Frozen R reference — calibration and negative-control qualification
 on:
   pull_request:
     paths:
+      # Validate the exact npm dependency revision required by the release pin.
+      - 'package.json'
+      - 'package-lock.json'
       - 'multiomics-engine/environment/**'
       - 'multiomics-engine/tests/bioconductor_null_calibration.R'
       - 'multiomics-engine/tests/bioconductor_mixed_truth_reference.R'
