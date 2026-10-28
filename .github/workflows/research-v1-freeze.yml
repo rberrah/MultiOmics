@@ -40,10 +40,8 @@ jobs:
           use-public-rspm: true
       - name: Verify freeze metadata and scientific boundaries
         run: python scripts/verify_research_v1_freeze.py
-      - name: Reinstall exactly from the lock and reject known npm advisories
-        run: |
-          npm ci
-          npm audit --audit-level=low
+      - name: Reinstall exactly from the lock
+        run: npm ci
       - name: Typecheck, scientific JS contracts and production build
         run: |
           npm run check
@@ -53,3 +51,5 @@ jobs:
         run: |
           python -m py_compile scripts/verify_research_v1_freeze.py
           Rscript -e 'for(f in c("multiomics-engine/advanced_methods.R","multiomics-engine/validation/external_nki_survival_research_v1.R","multiomics-engine/validation/external_gse191328_longitudinal_research_v1.R")) parse(file=f); cat("Research v1 R evidence syntax PASS\n")'
+      - name: Fail release on any npm advisory including low severity
+        run: npm audit --audit-level=low
