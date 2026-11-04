@@ -1,4 +1,5 @@
 // @ts-nocheck
+import {SOURCE_LOCATION_COLUMNS,validateSourceLocation,summarizeSourceLocation} from './tissue-provenance.js';
 // Conservative, opt-in exchange from the EXACT original portable project inputs.
 // Unsupported metadata/matrices skip the exchange; never relabel processed data as raw.
 const TYPES=['transcriptomics','proteomics','metabolomics'];
@@ -144,7 +145,7 @@ export async function buildDownstreamExchange(portableProject,{individualSignatu
   const optional=[
     'tissue','collection_time','collection_time_unit','condition','batch',
     'technical_replicate_id','technical_replicate','source_dataset_id',
-    'timepoint','timepoint_unit','time_origin'
+    'timepoint','timepoint_unit','time_origin',...SOURCE_LOCATION_COLUMNS
   ];
   const sampleRows=metadata.rows.map(r=>{
     const raw=Object.fromEntries(h.map((key,i)=>[key,r[i]]));
@@ -153,6 +154,7 @@ export async function buildDownstreamExchange(portableProject,{individualSignatu
       const column=sourceColumn(key);
       sample[key]=column?raw[column]||'':'';
     }
+    Object.assign(sample,validateSourceLocation(sample));
     sample.omic=canonicalOmic(sample.omic);
     sample.technical_replicate_id=sample.technical_replicate_id||
       sample.technical_replicate||'';
@@ -163,7 +165,7 @@ export async function buildDownstreamExchange(portableProject,{individualSignatu
   const sampleIds=new Set(),sampleOutput=[[
     'assay_id','sample_id','subject_id','omic','tissue','collection_time',
     'collection_time_unit','condition','batch','technical_replicate_id','source_dataset_id',
-    'timepoint','timepoint_unit','time_origin'
+    'timepoint','timepoint_unit','time_origin',...SOURCE_LOCATION_COLUMNS
   ]];
   for(const s of sampleRows){
     if(!TYPES.includes(s.omic)||!s.assay_id||!s.sample_id||!s.subject_id)
@@ -173,12 +175,14 @@ export async function buildDownstreamExchange(portableProject,{individualSignatu
       throw Error('One sample_id cannot belong to multiple biological subjects');
     specimenOwners.set(s.sample_id,s.subject_id);
     const previous=specimenContext.get(s.sample_id)||{};
-    for(const field of ['tissue','collection_time','collection_time_unit','timepoint','timepoint_unit','time_origin']){
+    for(const field of ['tissue','collection_time','collection_time_unit','timepoint','timepoint_unit','time_origin',
+      ...SOURCE_LOCATION_COLUMNS]){
       if(previous[field] && s[field] && previous[field]!==s[field])
         throw Error('Conflicting '+field+' for shared specimen '+s.sample_id);
     }
     specimenContext.set(s.sample_id,{...previous,...Object.fromEntries(
-      ['tissue','collection_time','collection_time_unit','timepoint','timepoint_unit','time_origin']
+      ['tissue','collection_time','collection_time_unit','timepoint','timepoint_unit','time_origin',
+        ...SOURCE_LOCATION_COLUMNS]
         .map(field=>[field,s[field]||previous[field]||''])
     )});
     const key=s.omic+'\u0000'+s.assay_id;
@@ -275,11 +279,13 @@ export async function buildDownstreamExchange(portableProject,{individualSignatu
     pk_temporal_numeric_compatible:pkTemporalNumericCompatible,
     explicit_time_origin_complete:sampleRows.length>0&&sampleRows.every(r=>nonBlank(r.time_origin)),
     tissue_present:sampleRows.some(r=>nonBlank(r.tissue)),
+    source_location_provenance:summarizeSourceLocation(sampleRows),
     individual_signature_rows:0,
     individual_signature_fit_scopes:[],
     pk_dose_concentration_data_included:false,
     interpretation:'Source matrices are structurally usable by Omics2PK after extraction. Values are canonicalized, not biologically renormalized. PK readiness still requires subject-matched dose/concentration events, a verified shared time origin and study-specific fit-ready preprocessing.'
   };
+  manifest.validation.source_location_provenance=summary.source_location_provenance;
   manifest.validation.downstream_pk_readiness={
     status:'source_exchange_only_not_pk_ready',
     structural_exchange_valid:true,

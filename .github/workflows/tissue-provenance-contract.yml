@@ -1,0 +1,25 @@
+name: Tissue-aware bulk omics provenance contract
+on:
+  pull_request:
+    paths:
+      - "src/lib/multiomics/downstream-exchange.js"
+      - "src/lib/multiomics/tissue-provenance.js"
+      - "scripts/test_multiomics_tissue_provenance.mjs"
+      - "scripts/test_multiomics_exchange_interop.mjs"
+      - ".github/workflows/tissue-provenance-contract.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-location-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Existing original downstream exchange contract
+        run: node scripts/test_multiomics_exchange_interop.mjs
+      - name: New no-inferred-tissue and original source metadata contract
+        run: node scripts/test_multiomics_tissue_provenance.mjs
