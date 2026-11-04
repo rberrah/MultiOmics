@@ -1,7 +1,7 @@
 // @ts-nocheck
 // Source-location provenance is an analytical constraint, NOT a proxy model.
 // No diagnosis, hepatic function, dose response or tissue equivalence inferred.
-const VALID_BULK=new Set(['bulk','single_cell','single_nucleus','sorted_cells','cell_line','unknown']);
+const VALID_BULK=new Set(['bulk','single_cell','single_nucleus','sorted_cells','cell_line','cell_free','unknown']);
 const VALID_COMPONENT_STATUS=new Set(['measured','estimated','not_measured','unknown']);
 const VALID_RELATIVE_DOSE=new Set(['pre_dose','post_dose','at_dose','not_applicable','unknown']);
 const KNOWN_LIVER=new Set(['liver','hepatic_tissue','liver_biopsy','liver_microsomes','liver_s9','hepatocytes']);
@@ -21,7 +21,7 @@ export function validateSourceLocation(row){
   const result={};
   for(const col of SOURCE_LOCATION_COLUMNS)result[col]=trim(row[col]);
   if(result.cell_type_or_bulk && !VALID_BULK.has(key(result.cell_type_or_bulk)))
-    throw Error('cell_type_or_bulk requires bulk/single_cell/single_nucleus/sorted_cells/cell_line/unknown');
+    throw Error('cell_type_or_bulk requires bulk/single_cell/single_nucleus/sorted_cells/cell_line/cell_free/unknown');
   if(result.cell_composition_status && !VALID_COMPONENT_STATUS.has(key(result.cell_composition_status)))
     throw Error('cell_composition_status requires measured/estimated/not_measured/unknown');
   if(result.relative_to_dose && !VALID_RELATIVE_DOSE.has(key(result.relative_to_dose)))
