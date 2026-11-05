@@ -93,7 +93,7 @@ class SpecimenSourceTests(unittest.TestCase):
         self.assertEqual(r["actual_original_assay_specimens"][1]["collection_landmark"],"postdrug_response")
         self.assertFalse(r["in_vivo_drug_PK_or_PD_improvement_estimated"])
         self.assertTrue(r["specimen_provenance_qualified_without_inferring_function"])
-        with self.assertRaisesRegex(SpecimenContextError,"Cell variants"):
+        with self.assertRaisesRegex(SpecimenContextError,"not one patient tissue aliquot"):
             rows[0]["original_source_sample_key_scope"]="same_original_specimen"
             reconcile_variant_with_original_specimens(c,rows)
 
