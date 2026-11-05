@@ -94,7 +94,7 @@ metabolite nonspecificity.
 
 **CYP3A5 [actual GEO source-metadata pairing](https://github.com/rberrah/Omics2PK/blob/feat/cyp3a5-functional-evidence-triage-20261103/docs/CYP3A5_GEO_HEPATOCYTE_RNA_GENOTYPE_SOURCE_CROSSWALK_20261105.md):** 60 original hepatocyte RNA samples have matching genotype-source sample titles within 96 genotype records. Original `rs776746` SNP calls and exon/isoform quantities are **not independently quantified yet**; published exon-QTL ≠ our own per-sample model. No tacrolimus clinical PK endpoints in these GEO data.
 
-These source results motivate the sidecar and ensure its **hypotheses can be contradicted by real measurements**; the MultiOmics module itself currently has synthetic software-unit tests, not an original cohort-ready/clinically validated variant-effect classifier.
+These source results motivate the sidecar and ensure its **hypotheses can be contradicted by real measurements**; MultiOmics now also has an original-source MaveDB NUDT15 **construct-level** replay; it is **not** a cohort-ready or clinically validated patient variant-effect or pharmacokinetic classifier.
 
 **Updated original-source qualification:** NUDT15 protein has 164 amino
 acids. The original Omics2PK parser excluded 19 legitimate variants at
@@ -126,6 +126,52 @@ proteins depending on **linear versus log MAE**, and every
 source-donor bootstrap interval spans zero. The user-facing omic
 selection layer must therefore carry uncertainty and the
 prespecified clinically relevant error function.
+
+## Original source replay on genuine variant-level assays — completed
+
+**Successful source-backed workflow:**
+[MultiOmics public NUDT15 MaveDB replay #42019147700](https://github.com/rberrah/MultiOmics/actions/runs/42019147700).
+The [original MaveDB paired score set](https://www.mavedb.org/score-sets/urn:mavedb:00000055-0-1)
+(Suiter et al., PNAS 2020, DOI 10.1073/pnas.1915680117)
+was fetched from the source API using a pinned SHA-256
+`2e248907c0dcf54372d6ebf79c4d8a91b9ec2f2cd50d6c8aa365abec39d85a59`.
+The production `reconcile_variant_omic_evidence()` function was
+run on each of the **2,844 original paired missense constructs**
+(from 3,015 source records; 170 missing one score, one wild-type
+reference identity). **No original variant row, source measurement,
+personal identifier or per-variant prediction was committed.**
+
+| Original source protein and cell PD score pattern | Number of genuine paired constructs | Interpreter output (hypothesis only) |
+|---|---:|---|
+| Protein abundance >=0.8; thiopurine tolerance <0.3 | **131** | `HYPOTHESIS_PRESERVED_PROTEIN_BUT_REDUCED_CELL_DRUG_TOLERANCE` |
+| Protein abundance <0.3; thiopurine tolerance >=0.8 | **222** | `HYPOTHESIS_LOW_PROTEIN_BUT_PRESERVED_CELL_DRUG_TOLERANCE` |
+| Neither extreme discordant pattern | **2,491** | `NO_UNIQUE_VARIANT_MECHANISM_ESTABLISHED_FROM_AVAILABLE_READOUTS` |
+
+**0/2,844 causal protein-decay, enzymatic-specificity or clinical
+PK/PD claims were automatically generated.** Both source assays
+were carried out in engineered-cell experimental screens matched
+on original **variant identity**; a cell's post-thioguanine PD
+readout is not an endogenous predose metabolite, nor an independent
+NUDT15 hydrolase activity assay, nor an outcome observed in a human
+patient. The >=0.8 and <0.3 categories are **exploratory
+source-scale cutoffs, not clinically validated allele categories**.
+
+This is genuine **public variant-matched molecular-evidence hypothesis
+generation** and an advance from synthetic tests. It does **not yet**
+validate the full genotype/transcriptome/proteome/metabolome →
+drug plasma PK selection pathway. The hypothesis is falsifiable:
+follow-up substrate-specific functional measurements or turnover
+experiments must distinguish catalysis from instability, substrate
+uptake and cell viability. An unknown genetic mutation cannot be
+declared loss-of-function from a single abundance readout.
+
+Reproduction: `scripts/replay_public_nudt15_variant_omic_hypotheses.py`,
+`scripts/test_public_nudt15_variant_omic_hypothesis_replay.py`,
+and the source-qualified CI workflow
+`.github/workflows/nudt15-original-variant-omic-hypotheses.yml`.
+Tests on invented data remain mandatory on pull requests; source
+live-fetch replays can be run on demand to avoid confusing transient
+MaveDB HTTP access failures with method failures.
 
 ## Complementarity with Omics2PK
 
