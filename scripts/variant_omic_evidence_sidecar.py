@@ -186,6 +186,12 @@ def reconcile_variant_omic_evidence(case):
         required+=["orthogonal_substrate_specific_enzyme_activity",
                    "cell_viability_and_drug_uptake_controls"]
         qualifiers.append("CELL_PD_IS_NOT_ENZYME_ACTIVITY_OR_CLINICAL_TOXICITY")
+    if (protein in {"decreased","absent"} and
+            cellular_tolerance in {"reference_like","increased"}):
+        notes.append("HYPOTHESIS_LOW_PROTEIN_BUT_PRESERVED_CELL_DRUG_TOLERANCE")
+        required+=["orthogonal_variant_specific_hydrolase_activity",
+                   "independent_viability_and_drug_trafficking_controls"]
+        qualifiers.append("LOW_PROTEIN_DOES_NOT_ESTABLISH_LOST_CELL_DRUG_PROTECTION")
     if consequence in {"stop_gained","frameshift"} and rna in {"reference_like","increased"}:
         notes.append("HYPOTHESIS_NMD_ESCAPE_OR_ALTERNATIVE_ISOFORM_POSSIBLE")
         required+=["original_transcript_specific_stop_position","allelic_aware_RNA_isoform"]
