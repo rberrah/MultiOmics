@@ -90,11 +90,42 @@ metabolite nonspecificity.
 
 **CYP2C9 [original public n4,421 missense variant/abundance/activity benchmark](https://github.com/rberrah/Omics2PK/blob/feat/cyp3a5-functional-evidence-triage-20261103/docs/TWO_WAY_GENETIC_VARIANT_OMICS_TO_PK_PD_PUBLIC_VALIDATION_20261105.md):** 400 independently source-classified missense variants have *decreased activity* despite *wild-type-like abundance*. These assays share the variant identity but were measured in yeast (activity Click-seq) versus cultured human cells (abundance VAMP-seq), **not** paired patient tissues.
 
-**NUDT15 [original public MaveDB n2,825 strict score-paired missense variants](https://github.com/rberrah/Omics2PK/blob/feat/cyp3a5-functional-evidence-triage-20261103/docs/NUDT15_PUBLIC_MAVEDB_VARIANT_STABILITY_THIOPURINE_PD_20261105.md):** 131 source variants show protein-stability score ≥0.8 but thiopurine cellular-tolerance score below 0.3; **another 222** show stability below 0.3 despite cellular tolerance ≥0.8, at exploratory *nonclinical* thresholds. The original 3,015 MaveDB rows include 170 incomplete and 20 nonstandard/uninterpretable protein-ID records. This is a **cellular PD assay**, not a specific hydrolase activity measurement, human treatment response or proof of protein decay.
+**NUDT15 [original public MaveDB n2,844 strict score-paired missense variants](https://github.com/rberrah/Omics2PK/blob/feat/cyp3a5-functional-evidence-triage-20261103/docs/NUDT15_PUBLIC_MAVEDB_VARIANT_STABILITY_THIOPURINE_PD_20261105.md):** 131 source variants show protein-stability score ≥0.8 but thiopurine cellular-tolerance score below 0.3; **another 222** show stability below 0.3 despite cellular tolerance ≥0.8, at exploratory *nonclinical* thresholds. The original 3,015 MaveDB rows include 170 incomplete measurements and one non-missense reference `p.=` row. This is a **cellular PD assay**, not a specific hydrolase activity measurement, human treatment response or proof of protein decay.
 
 **CYP3A5 [actual GEO source-metadata pairing](https://github.com/rberrah/Omics2PK/blob/feat/cyp3a5-functional-evidence-triage-20261103/docs/CYP3A5_GEO_HEPATOCYTE_RNA_GENOTYPE_SOURCE_CROSSWALK_20261105.md):** 60 original hepatocyte RNA samples have matching genotype-source sample titles within 96 genotype records. Original `rs776746` SNP calls and exon/isoform quantities are **not independently quantified yet**; published exon-QTL ≠ our own per-sample model. No tacrolimus clinical PK endpoints in these GEO data.
 
 These source results motivate the sidecar and ensure its **hypotheses can be contradicted by real measurements**; the MultiOmics module itself currently has synthetic software-unit tests, not an original cohort-ready/clinically validated variant-effect classifier.
+
+**Updated original-source qualification:** NUDT15 protein has 164 amino
+acids. The original Omics2PK parser excluded 19 legitimate variants at
+the terminal 164th residue; this has been corrected, and the source
+now reproduces the published complete **2,844** variant/paired-phenotype
+subset with 163 observed mutated positions. This illustrates why a
+sequence-aware approach requires an independently checked protein
+reference and a complete genetic-code translation.
+
+**2026 prior work:** Kırboğa, *G3* (2026-08-29),
+[DOI 10.1093/g3journal/jkag248](https://doi.org/10.1093/g3journal/jkag248)
+already showed **28%** CYP2C9 and **48%** NUDT15 assay-score
+discordance and compared AlphaMissense/ESM1v/ESM2/structure/graphs.
+Consequently this sidecar claims **no new scientific discovery** from
+abundance-versus-function discordance. Its potential novel
+role is an **assay-qualified, explainable, evidence-graded component
+of the full genotype → actually measured omics → actual heldout
+drug PK/PD validation pipeline**. An unobserved mechanism such as
+degradation remains a *candidate*, not a proven cause.
+
+**Previously measured owner-authorized liver cohort:** a
+[real CYP liver RNA+limited SNP→microsomal activity experiment](https://github.com/rberrah/Omics2PK/blob/feat/cyp3a5-functional-evidence-triage-20261103/docs/HLC_ORIGINAL_400_LIVER_CYP_RNA_GENOTYPE_RESULTS_20261018.md)
+(n171–172) supplies partial genotype-versus-target transcript
+comparisons. This is not a complete star-allele panel or actual human
+plasma PK. In a separate
+[original human hepatocyte n13 imatinib source replay](https://github.com/rberrah/Omics2PK/actions/runs/42015617333),
+the best molecular layer switches between enzyme probe and targeted
+proteins depending on **linear versus log MAE**, and every
+source-donor bootstrap interval spans zero. The user-facing omic
+selection layer must therefore carry uncertainty and the
+prespecified clinically relevant error function.
 
 ## Complementarity with Omics2PK
 
