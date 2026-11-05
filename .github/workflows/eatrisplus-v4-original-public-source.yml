@@ -1,0 +1,43 @@
+name: EATRIS-Plus v4 genuine public MuData WBC/plasma original source provenance
+on:
+  pull_request:
+    paths:
+      - "scripts/audit_eatrisplus_v4_original_h5mu.py"
+      - "scripts/test_eatrisplus_public_source_schema.py"
+      - ".github/workflows/eatrisplus-v4-original-public-source.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  official-zenodo-mudata-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Install isolated read-only HDF5 tooling
+        run: python -m pip install "h5py>=3.10,<4"
+      - name: Strict no-data-disclosure source specimen and ID integrity contracts
+        run: python -m unittest discover -s scripts -p 'test_eatrisplus_public_source_schema.py' -v
+      - name: Official Zenodo v4 published 141.7MB original MuData / exact biological sample indices
+        run: |
+          python -m scripts.audit_eatrisplus_v4_original_h5mu > /tmp/eatris_v4_aggregate_only.json || {
+            cat /tmp/eatris_v4_aggregate_only.json
+            exit 2
+          }
+          python - <<'PY'
+          import json
+          r=json.load(open("/tmp/eatris_v4_aggregate_only.json"))
+          assert r["status"]=="ORIGINAL_ZENODO_V4_MUDATA_IDENTITY_METADATA_AUDIT_NOT_CLINICAL_PK"
+          assert r["original_MuData_MD5_verified"]
+          assert 5<=r["n_original_global_observation_keys"]<=180
+          assert r["n_omics_assay_modalities"]>=2
+          assert r["original_sample_IDs_not_released"]
+          assert not r["original_complete_germline_PGx_unrestricted_public"]
+          assert not r["original_human_drug_PK_endpoint_present"]
+          print(json.dumps(r,indent=2,sort_keys=True))
+          PY
+      - if: always()
+        run: rm -f /tmp/eatris_v4_aggregate_only.json
