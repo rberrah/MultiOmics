@@ -76,6 +76,25 @@ class MatchedProteinPanelSyntheticContracts(unittest.TestCase):
                 original["panel_results"]["proteomics-ipp"],
                 changed["panel_results"]["proteomics-ipp"])
 
+    def test_exact_feature_key_overlap_does_not_claim_same_analyte_or_change_losses(self):
+        with tempfile.TemporaryDirectory() as td:
+            p = Path(td) / "synthetic.h5mu"
+            make_two_panel_source(p)
+            before = benchmark_proteome_panels(p, verify_source=False, repeats=1)
+            self.assertEqual(before["source_feature_identity_diagnostic"]
+                             ["exact_identical_original_feature_keys_both_protein_panels"], 0)
+            with h5py.File(p, "r+") as h:
+                v = h["mod"]["proteomics-ipp"]["var"]
+                names = v["_index"][()]
+                names[:8] = [f"proteins_{i}".encode() for i in range(8)]
+                del v["_index"]
+                v.create_dataset("_index", data=names)
+            after = benchmark_proteome_panels(p, verify_source=False, repeats=1)
+            d = after["source_feature_identity_diagnostic"]
+            self.assertEqual(d["exact_identical_original_feature_keys_both_protein_panels"], 8)
+            self.assertFalse(d["cross_platform_analyte_and_proteoform_mapping_proven"])
+            self.assertEqual(before["panel_results"], after["panel_results"])
+
     def test_unverified_source_cannot_be_presented_as_original(self):
         with tempfile.TemporaryDirectory() as td:
             p = Path(td) / "synthetic.h5mu"
