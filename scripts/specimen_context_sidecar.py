@@ -113,6 +113,11 @@ def qualify_specimen_records(records, *, original_matched_biological_unit_verifi
         if (sample=="same_engineered_variant_different_screens"
                 and status!="engineered_variant_construct"):
             raise SpecimenContextError("Same engineered variant is not germline donor pairing")
+        if sample=="source_cohort_only_unpaired":
+            raise SpecimenContextError("Cohort-wide study labels cannot establish same original donor or construct")
+        if sample=="same_original_specimen" and status in {
+                "aggregated_reference_tissue","engineered_variant_construct"}:
+            raise SpecimenContextError("Reference medians or engineered protein screens are not one patient tissue aliquot")
         method=r["assay_method"]
         contexts.append({
             "assay_id":assay,
@@ -138,4 +143,55 @@ def qualify_specimen_records(records, *, original_matched_biological_unit_verifi
         "does_not_upgrade_variant_construct_to_patient_genotype":True,
         "in_vivo_PK_omic_superiority_inferred":False,
         "original_numeric_patient_omics_or_PK_released":False,
+    }
+
+
+def reconcile_variant_with_original_specimens(case, specimen_records, *,
+                                             original_matched_biological_unit_verified=True,
+                                             original_collection_time_verified=True):
+    """Qualify complete assay↔physical specimen mapping before hypotheses.
+
+    This is an *optional* v1 companion to the existing frozen
+    DOWNSTREAM_EXCHANGE_V1, NOT a modification to its data schema.
+    """
+    from scripts.variant_omic_evidence_sidecar import (
+        reconcile_variant_omic_evidence, VariantOmicSidecarError,
+    )
+    source=qualify_specimen_records(
+        specimen_records,
+        original_matched_biological_unit_verified=original_matched_biological_unit_verified,
+        original_collection_time_verified=original_collection_time_verified)
+    if not isinstance(case,Mapping) or not isinstance(case.get("observations"),(tuple,list)):
+        raise SpecimenContextError("Original variant/assay observations absent")
+    a={r.get("assay_id"):r for r in case["observations"] if isinstance(r,Mapping)}
+    b={r["assay_id"]:r for r in specimen_records}
+    if len(a)!=len(case["observations"]) or set(a)!=set(b):
+        raise SpecimenContextError("Every molecular source assay must be mapped to one physical sample")
+    for k in a:
+        if a[k].get("omic")!=b[k].get("omic"):
+            raise SpecimenContextError("Original sample preparation mismatched across assay and biological evidence")
+    original=reconcile_variant_omic_evidence(case)
+    if original.get("status")!="QUALIFIED_ORIGINAL_ASSAY_DESCRIPTIVE_HYPOTHESES_NOT_CAUSAL_PROOF":
+        raise SpecimenContextError("Source assay context cannot rescue an abstained biological evidence join")
+    actual_pairing=original.get("source_pairing_scope")
+    if actual_pairing=="same_construct_variant_independent_assays":
+        if any(x["original_source_sample_key_scope"]!="same_engineered_variant_different_screens"
+               for x in source["contexts"]):
+            raise SpecimenContextError("Cell variants require construct-level source pairing, never same patient")
+    elif actual_pairing=="same_original_specimen":
+        if any(x["original_source_sample_key_scope"] not in {
+                "same_original_specimen","same_donor_different_fraction"}
+               for x in source["contexts"]):
+            raise SpecimenContextError("Patient tissues cannot be paired by construct or cohort label")
+        # Different organs/samples require the original donor match in the
+        # specimen contract. The legacy biological engine declines
+        # comparing those fractions as a within-tissue discordance.
+    else:
+        raise SpecimenContextError("Unknown biological source pairing type")
+    return {
+        **original,
+        "separate_specimen_sidecar_schema":SCHEMA,
+        "actual_original_assay_specimens":source["contexts"],
+        "specimen_provenance_qualified_without_inferring_function":True,
+        "not_a_clinical_PK_or_Bayesian_function_prior":True,
     }
