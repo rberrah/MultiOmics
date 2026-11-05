@@ -17,6 +17,7 @@ def obs(readout,call,unit="synthetic_subject_1",tissue="liver",landmark="predose
             "assay_method":"original_source_qualified_assay_method",
             "original_feature_id":"source_"+readout,
             "original_assay_source_url":URL,
+            "source_variant_construct_id":"rs116855232",
             "biological_unit_id":unit,"tissue":tissue,"collection_landmark":landmark}
 
 
@@ -86,6 +87,27 @@ class VariantMolecularSidecar(unittest.TestCase):
         self.assertFalse(r["in_vivo_drug_PK_or_PD_improvement_estimated"])
         self.assertNotIn("HYPOTHESIS_POSTTRANSCRIPTIONAL_TRANSLATION_OR_PROTEIN_INSTABILITY",
                          r["hypotheses_to_test"])
+
+    def test_construct_cross_assay_host_and_postdrug_time_is_not_same_patient(self):
+        r=reconcile_variant_omic_evidence(case(observations=[
+            obs("protein_total","reference_like",
+                tissue="original_HEK293T_stability_host",landmark="baseline_construct_screen"),
+            obs("drug_cell_tolerance","decreased",
+                tissue="separate_original_HEK293T_PD_host",landmark="post_thioguanine"),
+        ],).copy() | {"original_pairing_scope":"same_construct_variant_independent_assays"})
+        self.assertEqual(r["source_pairing_scope"],"same_construct_variant_independent_assays")
+        self.assertTrue(r["same_original_variant_identity_across_independent_assays_verified"])
+        self.assertFalse(r["assays_share_source_biological_unit_tissue_and_time"])
+        self.assertTrue(r["do_not_use_postdrug_cell_PD_as_predose_pk_covariate"])
+        self.assertFalse(r["causal_variant_mechanism_proven_by_this_report"])
+        with self.assertRaisesRegex(VariantOmicSidecarError,"variant identity mismatch"):
+            case_data=case(observations=[
+                obs("protein_total","reference_like"),
+                {**obs("drug_cell_tolerance","decreased"),
+                 "source_variant_construct_id":"DIFFERENT_VARIANT"},
+            ])
+            case_data["original_pairing_scope"]="same_construct_variant_independent_assays"
+            reconcile_variant_omic_evidence(case_data)
 
     def test_unverified_original_pairing_cannot_make_mechanism_hypothesis(self):
         x=case(observations=[obs("protein_total","decreased")])
