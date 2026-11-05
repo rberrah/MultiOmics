@@ -21,7 +21,7 @@ import re
 from urllib.error import HTTPError,URLError
 from urllib.request import Request,urlopen
 
-from scripts.variant_omic_evidence_sidecar import reconcile_variant_omic_evidence
+from scripts.specimen_context_sidecar import reconcile_variant_with_original_specimens
 
 URN="urn:mavedb:00000055-0-1"
 SOURCE_URL=f"https://api.mavedb.org/api/v1/score-sets/{URN}/scores"
@@ -131,7 +131,7 @@ def replay_from_bytes(b,*,strict_original=True):
     for variant,abundance,tolerance in data:
         molecular=_category(abundance)
         pd=_category(tolerance)
-        status=reconcile_variant_omic_evidence({
+        status=reconcile_variant_with_original_specimens({
             "gene":"NUDT15",
             "genome_assay_status":"engineered_protein_variant_construct",
             "variant_consequence":"missense",
@@ -151,11 +151,27 @@ def replay_from_bytes(b,*,strict_original=True):
                              original_biological_system="published_thioguanine_screen",
                              original_landmark="post_thioguanine_PD"),
             ],
-        })
+        },[
+            {"assay_id":"protein_total","omic":"proteomics",
+             "collected_fraction":"engineered_human_cells",
+             "anatomical_origin":"laboratory_culture",
+             "assay_method":"VAMPseq_abundance",
+             "collection_landmark":"ex_vivo_baseline",
+             "biological_provenance":"engineered_variant_construct",
+             "original_source_sample_key_scope":"same_engineered_variant_different_screens"},
+            {"assay_id":"drug_cell_tolerance","omic":"cellular_PD",
+             "collected_fraction":"engineered_human_cells",
+             "anatomical_origin":"laboratory_culture",
+             "assay_method":"drug_cell_survival",
+             "collection_landmark":"postdrug_response",
+             "biological_provenance":"engineered_variant_construct",
+             "original_source_sample_key_scope":"same_engineered_variant_different_screens"},
+        ])
         if status["status"]!="QUALIFIED_ORIGINAL_ASSAY_DESCRIPTIVE_HYPOTHESES_NOT_CAUSAL_PROOF":
             raise NUOriginalSourceError("Source-variant interpretation refused exact pairing")
         if (status["assays_share_source_biological_unit_tissue_and_time"] or
                 status["original_person_germline_genotype_measured"] or
+                not status["specimen_provenance_qualified_without_inferring_function"] or
                 not status["source_variant_is_engineered_construct_not_human_genotype"] or
                 status["causal_variant_mechanism_proven_by_this_report"] or
                 status["protein_decay_observed_directly"] or
