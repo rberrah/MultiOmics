@@ -1,0 +1,43 @@
+name: EATRIS v4 original n90 source matched 3PC inner CV plasma proteome check
+on:
+  pull_request:
+    paths:
+      - "scripts/benchmark_eatrisplus_v4_capacity_matched.py"
+      - "scripts/test_eatrisplus_v4_capacity_matched.py"
+      - ".github/workflows/eatrisplus-v4-nested-capacity-original.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  original-tissue-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 17
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Install HDF5 and original cohort multiview model dependencies
+        run: python -m pip install "numpy>=1.26,<3" "scipy>=1.11,<2" "scikit-learn>=1.5,<2" "h5py>=3.10,<4"
+      - name: Finite sample no-forced-omic-win nested inner/outer original subject contracts
+        run: python -m unittest discover -s scripts -p 'test_eatrisplus_v4_capacity_matched.py' -v
+      - name: Official pinned original EATRIS v4 WBC RNA plasma metabolomics to independently heldout plasma proteins
+        run: |
+          python -m scripts.benchmark_eatrisplus_v4_capacity_matched > /tmp/eatris_v4_capacity_aggregate.json || {
+            cat /tmp/eatris_v4_capacity_aggregate.json
+            exit 2
+          }
+          python - <<'PY'
+          import json
+          d=json.load(open("/tmp/eatris_v4_capacity_aggregate.json"))
+          assert d["status"]=="EATRIS_V4_SOURCE_REAL_MATCHED_CAPACITY_NESTED_ALPHA_WBC_PLASMA_PROTEOME_NOT_PK"
+          assert d["original_h5mu_integrity_checked"]
+          assert d["n_exact_matched_original_blood_and_plasma_donors"]==90
+          assert d["all_omic_arms_have_exactly_three_total_train_only_PCs"]
+          assert d["all_prediction_arms_same_original_subjects_and_assay_outcome"]
+          assert d["original_individual_source_IDs_or_molecular_values_emitted"] is False
+          assert d["original_drug_exposure_or_germline_PGx_present"] is False
+          print(json.dumps(d,sort_keys=True,indent=2))
+          PY
+      - if: always()
+        run: rm -f /tmp/eatris_v4_capacity_aggregate.json
