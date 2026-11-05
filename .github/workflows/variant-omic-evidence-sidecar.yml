@@ -1,0 +1,21 @@
+name: Research-only variant-omic discordance sidecar scientific safety (offline)
+on:
+  pull_request:
+    paths:
+      - "scripts/variant_omic_evidence_sidecar.py"
+      - "scripts/test_variant_omic_evidence_sidecar.py"
+      - ".github/workflows/variant-omic-evidence-sidecar.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  mechanism-hypotheses-not-function-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Synthetic original assay biological-consistency contracts
+        run: python -m unittest discover -s scripts -p 'test_variant_omic_evidence_sidecar.py' -v
