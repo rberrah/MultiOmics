@@ -25,7 +25,7 @@ CONSEQUENCES={
 }
 GENOTYPE={"original_variant_called","original_no_variant_detected_in_qualified_panel",
           "untyped","partial"}
-OMICS={"transcriptomics","proteomics","metabolomics","functional_activity"}
+OMICS={"transcriptomics","proteomics","metabolomics","functional_activity","cellular_PD"}
 CALLED={"reference_like","decreased","increased","absent","unknown"}
 READOUTS={
     "total_RNA":"transcriptomics",
@@ -36,6 +36,7 @@ READOUTS={
     "protein_variant_specific":"proteomics",
     "endogenous_metabolite":"metabolomics",
     "measured_substrate_activity":"functional_activity",
+    "drug_cell_tolerance":"cellular_PD",
 }
 FUNCTION={"measured_substrate_activity"}
 OBSERVED_SIGNAL_PROOF="OBSERVED_ORIGINAL_SOURCE_ASSAY_CONTRAST_NOT_BIOCHEMICAL_CAUSAL_PROOF"
@@ -85,6 +86,9 @@ def reconcile_variant_omic_evidence(case):
             "published_normal_function","not_established"}:
             raise VariantOmicSidecarError("Published allele-function assertion requires externally curated proof")
         _https(evidence.get("source_url"),"published variant function")
+    pairing=case.get("original_pairing_scope")
+    if pairing not in {"same_original_specimen","same_construct_variant_independent_assays"}:
+        raise VariantOmicSidecarError("Original pairing scope must distinguish specimen from independent construct assays")
     observations=case.get("observations")
     if (not isinstance(observations,(list,tuple)) or len(observations)<1
             or len(observations)>100):
@@ -136,6 +140,7 @@ def reconcile_variant_omic_evidence(case):
     aberrant=relevant.get("aberrant_splice_RNA")
     protein=relevant.get("protein_full_length",relevant.get("protein_total"))
     activity=relevant.get("measured_substrate_activity")
+    cellular_tolerance=relevant.get("drug_cell_tolerance")
     if (rna in {"reference_like","increased"} and protein in {"decreased","absent"}):
         notes.append("HYPOTHESIS_POSTTRANSCRIPTIONAL_TRANSLATION_OR_PROTEIN_INSTABILITY")
         required+=["pulse_chase_protein_turnover_or_proteasome_rescue","variant_specific_protein_mapping"]
@@ -157,6 +162,12 @@ def reconcile_variant_omic_evidence(case):
         if "HYPOTHESIS_CATALYTIC_OR_LOCALIZATION_OR_SUBSTRATE_BINDING_DEFECT" not in notes:
             notes.append("HYPOTHESIS_PRESERVED_ABUNDANCE_LOST_MISSENSE_FUNCTION")
             required+=["orthogonal_substrate_specific_function","allele_phase_and_proteoform"]
+    if (protein in {"reference_like","increased"} and
+            cellular_tolerance in {"decreased","absent"}):
+        notes.append("HYPOTHESIS_PRESERVED_PROTEIN_BUT_REDUCED_CELL_DRUG_TOLERANCE")
+        required+=["orthogonal_substrate_specific_enzyme_activity",
+                   "cell_viability_and_drug_uptake_controls"]
+        qualifiers.append("CELL_PD_IS_NOT_ENZYME_ACTIVITY_OR_CLINICAL_TOXICITY")
     if consequence in {"stop_gained","frameshift"} and rna in {"reference_like","increased"}:
         notes.append("HYPOTHESIS_NMD_ESCAPE_OR_ALTERNATIVE_ISOFORM_POSSIBLE")
         required+=["original_transcript_specific_stop_position","allelic_aware_RNA_isoform"]
@@ -172,6 +183,10 @@ def reconcile_variant_omic_evidence(case):
         qualifiers.append("PUBLISHED_ALLELE_FUNCTION_IS_NOT_INDEPENDENT_PATIENT_ACTIVITY_MEASUREMENT")
     if activity in {"decreased","absent"} and protein not in {"decreased","absent"}:
         required.append("assay_substrate_specificity_and_batch_controls")
+    if cellular_tolerance is not None:
+        qualifiers.append("CELL_TOLERANCE_RESPONSE_NOT_PATIENT_TOXICITY_OR_DRUG_CLEARANCE")
+    if pairing=="same_construct_variant_independent_assays":
+        qualifiers.append("INDEPENDENT_SCREENS_SHARE_VARIANT_NOT_ORIGINAL_BIOLOGICAL_SPECIMEN")
     if "endogenous_metabolite" in relevant:
         qualifiers.append("ENDOGENOUS_METABOLITE_LEVEL_NOT_UNIQUE_ENZYME_OR_TRANSPORT_ACTIVITY")
     if not notes:
@@ -182,7 +197,9 @@ def reconcile_variant_omic_evidence(case):
         "gene":gene,"genomic_consequence":consequence,
         "genotype_coverage_state":status,
         "original_per_assay_signals_measured_not_inferred":dict(sorted(relevant.items())),
-        "assays_share_source_biological_unit_tissue_and_time":True,
+        "assays_share_source_biological_unit_tissue_and_time":(pairing=="same_original_specimen"),
+        "source_pairing_scope":pairing,
+        "same_construct_variant_does_not_equal_same_patient":True,
         "hypotheses_to_test":sorted(set(notes)),
         "additional_independent_evidence_needed":sorted(set(required)),
         "methodological_interpretation_caveats":sorted(set(qualifiers)),
