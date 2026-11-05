@@ -372,9 +372,7 @@ without importing any unavailable patient dataset.
 
 ## 7. Protein-panel sensitivity: same donors, \`proteins\` vs \`proteomics-ipp\` (new source replay)
 
-**Status at implementation:** benchmark and source-replay CI added;
-**original source execution and numeric results must be checked against
-the new workflow before reporting either panel as better**.
+**Status: original-source replay PASS** — [GitHub Actions #42077407584](https://github.com/rberrah/MultiOmics/actions/runs/42077407584). Exact original v4 MD5 verified; synthetic checks PASS; 88 original persons match all five required assay views. Results below remain exploratory.
 
 EATRIS public v4 contains two distinct quantitative assays:
 \`proteins\` (125 donors, **1,393** original features)
@@ -445,3 +443,82 @@ The source workflow is
 This is an exploratory, post-hoc robustness extension
 that follows inspection of EATRIS results and does not
 replace the primary original benchmark.
+
+
+### Completed MD5-verified original-source paired-panel results
+
+**Original cohort:** 88 unique matched donors, WBC mRNA
+16,386 features, targeted plasma acylcarnitines + amino
+acids 79 features. Original measured target panels:
+\`proteins\` 1,393 features, \`proteomics-ipp\` 6,831
+features. Exactly 80 panel-specific training-selected
+protein target features are evaluated per outer fold.
+The same 3 × 5 heldout-donor splits and input feature
+representations are used for each target. All
+synthetic source-index/permutation/isolation tests
+passed and original source checksum was verified
+([source run #42077407584](https://github.com/rberrah/MultiOmics/actions/runs/42077407584)).
+
+**Panel-specific heldout standardized protein-profile
+MAE (lower is better):**
+
+| Predictor (fixed alpha=10) | \`proteins\` MAE | \`proteomics-ipp\` MAE |
+|---|---:|---:|
+| Training-only no-omics mean baseline | **0.753535** | **0.331838** |
+| WBC mRNA, 3 total PCs | 0.776767 | 0.367851 |
+| Targeted plasma metabolites, 3 total PCs | 0.766483 | 0.361322 |
+| WBC mRNA + plasma metabolites, 3 total PCs | **0.772035** | **0.367762** |
+| WBC mRNA + plasma metabolites, 9 total PCs | **0.805722** | **0.421688** |
+| WBC mRNA train-permuted, 3 PCs | 0.770463 | 0.365588 |
+
+**Same-panel relative change in MAE versus no omics
+(positive values here mean WORSE error):**
+
+| Fixed alpha10 configuration | \`proteins\` excess MAE | \`proteomics-ipp\` excess MAE |
+|---|---:|---:|
+| WBC mRNA, 3 PCs | +3.083% | +10.852% |
+| Targeted plasma metabolites, 3 PCs | +1.718% | +8.885% |
+| Joint, 3 PCs | **+2.455%** | **+10.826%** |
+| Joint, 9 PCs | **+6.926%** | **+27.076%** |
+
+At the fixed strong Ridge penalty **alpha=1,000,000**,
+joint 3-PC MAE becomes **0.753547** and **0.331837**
+for \`proteins\` and \`proteomics-ipp\` respectively:
+essentially the corresponding no-omic references,
+not a demonstrated gain.
+
+For joint **3 PCs / alpha10**, original matched-person
+relative **skill** (baseline minus model, divided by
+baseline) is lower in IPP by **−8.3706 percentage points**
+with 95% descriptive paired bootstrap interval
+**[−11.2219, −5.8733] percentage points**.
+For joint **9 PCs / alpha10**, the difference is
+**−20.1508 percentage points**, descriptive interval
+**[−23.8146, −16.8954]**. These are *not*
+multiplicity-adjusted or model-refit uncertainty
+intervals. These comparisons do **not** isolate a
+causal assay-platform effect: the target analyte
+identities, source preprocessing, scales and
+distributions are not held constant.
+
+The difference in **no-omics baseline** (0.753535 vs
+0.331838) itself demonstrates why their absolute
+MAEs must **not** be ranked as comparable assay
+performance. The target sets and raw-value
+distributions are distinct. The train-permuted WBC
+control is similar to, and sometimes better than,
+the genuinely paired WBC arm: **no robust predictive
+RNA-to-plasma protein biological link established**
+by this tested model.
+
+**Bounded result:** two originally measured public
+proteomic targets support a reproducible negative
+result for under-regularized multi-view *interomic
+reconstruction*, with large sensitivity of the
+relative excess prediction error to target-panel
+choice. Neither proteomic target constitutes drug
+PK, CYP activity, a complete PGx baseline or a
+mechanistic validation. The next necessary assay
+comparison is *original feature-identity mapping
+and matched-analyte measurement-method auditing*,
+not a stronger causal claim from this table.
