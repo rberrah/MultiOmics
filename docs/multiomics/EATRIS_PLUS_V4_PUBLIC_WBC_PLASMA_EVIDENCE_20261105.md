@@ -40,6 +40,37 @@ sample-source crosswalk. In particular `proteins` and
 qualification. We neither call circulating proteins intracellular
 hepatocyte CYP, nor replace WBC mRNA with liver RNA.
 
+### Original study ISA metadata was also checked, not just the HDF5
+
+The separate primary [EATRIS v4 original `eatris_isa_filled_JH.ttl`
+metadata source](https://zenodo.org/records/19136013)
+was independently downloaded and matched its official
+MD5 `e724062d5f16e2eccc0cdeba2de15405`
+([live provenance audit SUCCESS #42039226457](https://github.com/rberrah/MultiOmics/actions/runs/42039226457)).
+Across the original 3.46-million-character ISA RDF file the
+replay finds **1,397 occurrences of “plasma”**,
+**4 white-blood-cell terminology matches** and
+**254 “serum” matches**, alongside multiple protein,
+mass spectrometry, transcriptomic, metabolic and
+lipidomic method terms. This supports the need to
+retain exact physical fraction provenance.
+
+**The count is lexical, not biological:** an RDF
+occurrence might be an ontology term, a method name
+or a sample annotation; it is **not** proof that 1,397
+samples were plasma nor that 254 original subjects
+had serum protein assays. The per-assay sample
+crosswalk (particularly `proteins` versus
+`proteomics-ipp`) remains **source-method
+qualification pending**; the plasma assignments
+in the table above are from the public repository's
+study-level description, not this RDF term count.
+Therefore do not merge serum/plasma analytes as
+interchangeable concentrations, or infer a
+different fluid for a given modality from
+keyword frequencies. The original individual ISA
+RDF triples were never printed.
+
 ## 2. Complete-case loss is already observed, not assumed
 
 The original HDF5 contains **125 global original subject keys**.
