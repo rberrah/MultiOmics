@@ -1,0 +1,26 @@
+name: Biological sampling-site provenance and method original offline evidence
+on:
+  pull_request:
+    paths:
+      - "scripts/specimen_context_sidecar.py"
+      - "scripts/test_specimen_context_sidecar.py"
+      - "scripts/replay_public_nudt15_variant_omic_hypotheses.py"
+      - "scripts/replay_public_cyp2c9_variant_omic_hypotheses.py"
+      - ".github/workflows/specimen-context-sidecar.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Original biological sample fraction versus assay method and timing
+        run: |
+          python -m unittest discover -s scripts -p 'test_specimen_context_sidecar.py' -v
+          python -m unittest discover -s scripts -p 'test_public_nudt15_variant_omic_hypothesis_replay.py' -v
+          python -m unittest discover -s scripts -p 'test_public_cyp2c9_variant_omic_hypotheses.py' -v
