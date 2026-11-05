@@ -1,0 +1,47 @@
+name: Public NUDT15 independent omic and cell PD mutation-hypothesis source reproduction
+on:
+  pull_request:
+    paths:
+      - "scripts/variant_omic_evidence_sidecar.py"
+      - "scripts/replay_public_nudt15_variant_omic_hypotheses.py"
+      - "scripts/test_public_nudt15_variant_omic_hypothesis_replay.py"
+      - ".github/workflows/nudt15-original-variant-omic-hypotheses.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  published-MaveDB-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Original-source parser, no fake patient genotype, cross-host threshold hypothesis tests
+        run: |
+          python -m unittest discover -s scripts -p 'test_public_nudt15_variant_omic_hypothesis_replay.py' -v
+          python -m unittest discover -s scripts -p 'test_variant_omic_evidence_sidecar.py' -v
+      # Verified successful live original-source replay: Actions run 42019147700.
+      # On PR, offline source and hypothesis tests are mandatory; external
+      # MaveDB source network availability is checked on workflow_dispatch.
+      - name: Pinned source original MaveDB paired n2844 variant protein and cellular PD mechanisms
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          python -m scripts.replay_public_nudt15_variant_omic_hypotheses > /tmp/NUDT15_original_source_aggregate.json || { cat /tmp/NUDT15_original_source_aggregate.json; exit 2; }
+          python - <<'PY'
+          import json
+          o=json.load(open("/tmp/NUDT15_original_source_aggregate.json"))
+          assert o["status"]=="ORIGINAL_NUDT15_ENGINEERED_VARIANT_OMICS_VS_CELL_PD_HYPOTHESIS_REPLAY_NOT_CLINICAL"
+          assert o["n_source_rows"]==3015
+          assert o["n_paired_original_missense_constructs"]==2844
+          assert o["n_preserved_protein_abundance_but_low_cell_drug_tolerance"]==131
+          assert o["n_low_protein_abundance_but_preserved_cell_drug_tolerance"]==222
+          assert o["n_causal_mechanism_claims"]==0
+          assert o["no_genetic_PGx_diplotypes_from_engineered_DMS_constructs"]
+          assert o["postdrug_cell_PD_not_eligible_as_predose_PK_feature"]
+          assert o["no_variant_row_score_or_original_person_id_output"]
+          print(json.dumps(o,sort_keys=True,indent=2))
+          PY
+      - if: always()
+        run: rm -f /tmp/NUDT15_original_source_aggregate.json

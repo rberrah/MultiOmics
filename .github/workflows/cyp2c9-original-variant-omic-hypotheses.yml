@@ -1,0 +1,44 @@
+name: Public CYP2C9 variant protein versus independent activity mechanism original reproduction
+on:
+  pull_request:
+    paths:
+      - "scripts/variant_omic_evidence_sidecar.py"
+      - "scripts/replay_public_cyp2c9_variant_omic_hypotheses.py"
+      - "scripts/test_public_cyp2c9_variant_omic_hypotheses.py"
+      - ".github/workflows/cyp2c9-original-variant-omic-hypotheses.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  original_CYP2C9:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Offline original-source provenance and biological mechanism negative controls
+        run: |
+          python -m unittest discover -s scripts -p 'test_public_cyp2c9_variant_omic_hypotheses.py' -v
+          python -m unittest discover -s scripts -p 'test_variant_omic_evidence_sidecar.py' -v
+      # Source-pinned original experiment succeeded on GitHub Actions 42020023060.
+      # Keep offline fail-closed biological interpreter tests on each PR;
+      # live public API replay is retriggered by workflow_dispatch.
+      - name: Original immutable Git blob direct CYP2C9 n4421 missense activity and VAMPseq
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          python -m scripts.replay_public_cyp2c9_variant_omic_hypotheses > /tmp/original_cyp2c9_omic_hypotheses.json || { cat /tmp/original_cyp2c9_omic_hypotheses.json; exit 2; }
+          python - <<'PY'
+          import json
+          o=json.load(open("/tmp/original_cyp2c9_omic_hypotheses.json"))
+          assert o["status"]=="ORIGINAL_CYP2C9_VARIANT_VAMPSEQ_CLICKSEQ_MOLECULAR_REPLAY_NOT_CLINICAL_PK"
+          assert o["n_original_source_paired_missense_constructs"]==4421
+          assert o["n_original_decreased_activity_but_wtlike_abundance"]==400
+          assert o["n_automatically_proven_functional_or_decay_causal_mechanisms"]==0
+          assert o["yeast_activity_and_human_cultured_cell_protein_not_same_original_biospecimen"]
+          assert o["no_original_patient_germline_PGx_or_drug_PK"]
+          print(json.dumps(o,indent=2,sort_keys=True))
+          PY
+      - if: always()
+        run: rm -f /tmp/original_cyp2c9_omic_hypotheses.json

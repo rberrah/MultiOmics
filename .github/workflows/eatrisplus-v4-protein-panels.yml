@@ -1,0 +1,50 @@
+name: EATRIS v4 paired original plasma protein assay target sensitivity (not PK)
+on:
+  pull_request:
+    paths:
+      - "scripts/benchmark_eatrisplus_v4_protein_panels.py"
+      - "scripts/test_eatrisplus_v4_protein_panels.py"
+      - "scripts/audit_eatrisplus_v4_original_h5mu.py"
+      - "scripts/benchmark_eatrisplus_v4_cross_fraction.py"
+      - "scripts/benchmark_eatrisplus_v4_orthogonal_capacity_shrinkage.py"
+      - ".github/workflows/eatrisplus-v4-protein-panels.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  original-public-two-proteome-panels:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Install original-data scientific libraries
+        run: python -m pip install "numpy>=1.26,<3" "scipy>=1.11,<2" "scikit-learn>=1.5,<2" "h5py>=3.10,<4"
+      - name: Source-ID pairing, platform-target isolation, no-leak synthetic tests
+        run: python -m unittest discover -s scripts -p 'test_eatrisplus_v4_protein_panels.py' -v
+      - name: Official Zenodo original-MD5 checked paired plasma proteome sensitivity
+        run: |
+          python -m scripts.benchmark_eatrisplus_v4_protein_panels > /tmp/eatris_two_protein_panels_summary.json || {
+            cat /tmp/eatris_two_protein_panels_summary.json
+            exit 2
+          }
+          python - <<'PY'
+          import json
+          o = json.load(open("/tmp/eatris_two_protein_panels_summary.json"))
+          assert o["status"] == "SOURCE_ORIGINAL_EATRIS_V4_TWO_PROTEIN_PANELS_MATCHED_PERSONS_EXPLORATORY_NOT_PK"
+          assert o["original_h5mu_MD5_verified"]
+          assert 30 <= o["n_original_independent_matched_people_in_all_five_assays"] <= 90
+          assert set(o["panel_results"]) == {"proteins", "proteomics-ipp"}
+          assert o["panel_results"]["proteins"]["n_measured_original_features"] == 1393
+          assert o["panel_results"]["proteomics-ipp"]["n_measured_original_features"] == 6831
+          assert o["identical_donor_split_and_input_representation_all_panels"]
+          assert o["source_ISA_assay_level_platform_and_same_aliquot_qualification"] == "PENDING"
+          assert o["different_protein_panels_MAE_not_directly_interchangeable"]
+          assert o["raw_individual_donor_ids_and_molecular_rows_emitted"] is False
+          assert o["original_germline_full_PGx_or_human_drug_PK_measured"] is False
+          print(json.dumps(o, indent=2, sort_keys=True))
+          PY
+      - if: always()
+        run: rm -f /tmp/eatris_two_protein_panels_summary.json

@@ -1,0 +1,46 @@
+name: EATRIS v4 original WBC RNA vs plasma metabolite cross-compartment heldout protein prediction
+on:
+  pull_request:
+    paths:
+      - "scripts/audit_eatrisplus_v4_original_h5mu.py"
+      - "scripts/benchmark_eatrisplus_v4_cross_fraction.py"
+      - "scripts/test_eatrisplus_v4_cross_fraction_benchmark.py"
+      - ".github/workflows/eatrisplus-v4-cross-fraction-benchmark.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  real-original-public-cohort:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Install fixed public original-data analytic libraries
+        run: python -m pip install "numpy>=1.26,<3" "scipy>=1.11,<2" "scikit-learn>=1.5,<2" "h5py>=3.10,<4"
+      - name: Synthetic source-ID and no-leakage cross-compartment regression tests
+        run: python -m unittest discover -s scripts -p 'test_eatrisplus_v4_cross_fraction_benchmark.py' -v
+      - name: Original Zenodo md5 pinned n90 WBC RNA plasma metabolites vs heldout plasma proteome
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          python -m scripts.benchmark_eatrisplus_v4_cross_fraction > /tmp/eatris_original_prediction_aggregate.json || {
+            cat /tmp/eatris_original_prediction_aggregate.json
+            exit 2
+          }
+          python - <<'PY'
+          import json
+          obj=json.load(open("/tmp/eatris_original_prediction_aggregate.json"))
+          assert obj["status"]=="ORIGINAL_EATRIS_V4_H5MU_DONOR_HELDOUT_CROSS_COMPARTMENT_PROTEOME_RECONSTRUCTION_NOT_PK"
+          assert obj["original_source_hash_verified"]
+          assert obj["n_exact_same_original_subjects_in_all_four_model_input_output_assays"]==90
+          assert obj["source_MuData_modality_count"]==12
+          assert obj["train_only_preprocessing_target_and_molecular_components"]
+          assert obj["per_donor_source_rows_and_values_emitted"] is False
+          assert obj["measured_endpoint_is_not_clinical_drug_PK_or_PD"]
+          assert obj["no_causal_blood_RNA_to_plasma_protein_claim"]
+          print(json.dumps(obj,indent=2,sort_keys=True))
+          PY
+      - if: always()
+        run: rm -f /tmp/eatris_original_prediction_aggregate.json
