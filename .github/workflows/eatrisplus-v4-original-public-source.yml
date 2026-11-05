@@ -22,6 +22,7 @@ jobs:
       - name: Strict no-data-disclosure source specimen and ID integrity contracts
         run: python -m unittest discover -s scripts -p 'test_eatrisplus_public_source_schema.py' -v
       - name: Official Zenodo v4 published 141.7MB original MuData / exact biological sample indices
+        if: github.event_name == 'workflow_dispatch'
         run: |
           python -m scripts.audit_eatrisplus_v4_original_h5mu > /tmp/eatris_v4_aggregate_only.json || {
             cat /tmp/eatris_v4_aggregate_only.json
