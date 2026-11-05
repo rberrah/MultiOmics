@@ -24,7 +24,7 @@ CONSEQUENCES={
     "splice_acceptor","splice_region","intron","regulatory","unknown",
 }
 GENOTYPE={"original_variant_called","original_no_variant_detected_in_qualified_panel",
-          "untyped","partial"}
+          "untyped","partial","engineered_protein_variant_construct"}
 OMICS={"transcriptomics","proteomics","metabolomics","functional_activity","cellular_PD"}
 CALLED={"reference_like","decreased","increased","absent","unknown"}
 READOUTS={
@@ -72,10 +72,13 @@ def reconcile_variant_omic_evidence(case):
     consequence=case.get("variant_consequence","unknown")
     if consequence not in CONSEQUENCES:
         raise VariantOmicSidecarError("Exact annotated genetic consequence required")
-    if status=="original_variant_called":
-        _short(case.get("source_variant_id"),"original variant ID")
-        _short(case.get("reference_transcript"),"source versioned transcript")
-        _https(case.get("genetic_evidence_url"),"original variant source")
+    if status in {"original_variant_called","engineered_protein_variant_construct"}:
+        _short(case.get("source_variant_id"),"original source variant or construct ID")
+        if status=="original_variant_called":
+            _short(case.get("reference_transcript"),"source versioned transcript")
+        else:
+            _short(case.get("reference_protein_accession"),"original engineered protein reference accession")
+        _https(case.get("genetic_evidence_url"),"original variant / construct source")
     else:
         if consequence!="unknown" or case.get("source_variant_id"):
             raise VariantOmicSidecarError("No named functional variant when untyped or only negative assayed sites")
@@ -89,8 +92,11 @@ def reconcile_variant_omic_evidence(case):
     pairing=case.get("original_pairing_scope")
     if pairing not in {"same_original_specimen","same_construct_variant_independent_assays"}:
         raise VariantOmicSidecarError("Original pairing scope must distinguish specimen from independent construct assays")
-    if pairing=="same_construct_variant_independent_assays" and status!="original_variant_called":
-        raise VariantOmicSidecarError("Independent constructs require authentic source-called variant identity")
+    if (pairing=="same_construct_variant_independent_assays" and
+            status not in {"original_variant_called","engineered_protein_variant_construct"}):
+        raise VariantOmicSidecarError("Independent constructs require source-qualified identical variant identity")
+    if pairing=="same_original_specimen" and status=="engineered_protein_variant_construct":
+        raise VariantOmicSidecarError("Engineered DMS construct cannot be a directly genotyped human biological specimen")
     observations=case.get("observations")
     if (not isinstance(observations,(list,tuple)) or len(observations)<1
             or len(observations)>100):
@@ -208,6 +214,10 @@ def reconcile_variant_omic_evidence(case):
         "status":"QUALIFIED_ORIGINAL_ASSAY_DESCRIPTIVE_HYPOTHESES_NOT_CAUSAL_PROOF",
         "gene":gene,"genomic_consequence":consequence,
         "genotype_coverage_state":status,
+        "original_person_germline_genotype_measured":
+            status=="original_variant_called",
+        "source_variant_is_engineered_construct_not_human_genotype":
+            status=="engineered_protein_variant_construct",
         "original_per_assay_signals_measured_not_inferred":dict(sorted(relevant.items())),
         "assays_share_source_biological_unit_tissue_and_time":(pairing=="same_original_specimen" and len(contexts)==1),
         "source_pairing_scope":pairing,
