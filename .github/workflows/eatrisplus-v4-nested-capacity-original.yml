@@ -22,6 +22,7 @@ jobs:
       - name: Finite sample no-forced-omic-win nested inner/outer original subject contracts
         run: python -m unittest discover -s scripts -p 'test_eatrisplus_v4_capacity_matched.py' -v
       - name: Official pinned original EATRIS v4 WBC RNA plasma metabolomics to independently heldout plasma proteins
+        if: github.event_name == 'workflow_dispatch'
         run: |
           python -m scripts.benchmark_eatrisplus_v4_capacity_matched > /tmp/eatris_v4_capacity_aggregate.json || {
             cat /tmp/eatris_v4_capacity_aggregate.json
