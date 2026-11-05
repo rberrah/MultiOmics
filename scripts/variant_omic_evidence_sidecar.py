@@ -89,6 +89,8 @@ def reconcile_variant_omic_evidence(case):
     pairing=case.get("original_pairing_scope")
     if pairing not in {"same_original_specimen","same_construct_variant_independent_assays"}:
         raise VariantOmicSidecarError("Original pairing scope must distinguish specimen from independent construct assays")
+    if pairing=="same_construct_variant_independent_assays" and status!="original_variant_called":
+        raise VariantOmicSidecarError("Independent constructs require authentic source-called variant identity")
     observations=case.get("observations")
     if (not isinstance(observations,(list,tuple)) or len(observations)<1
             or len(observations)>100):
@@ -115,6 +117,16 @@ def reconcile_variant_omic_evidence(case):
         _short(entry.get("assay_method"),"assay technology")
         _short(entry.get("original_feature_id"),"original feature")
         _https(entry.get("original_assay_source_url"),"original molecular assay source")
+        if pairing=="same_construct_variant_independent_assays":
+            # Two independent systems may assay *exactly the same variant*
+            # in different tissues, hosts and post-drug time windows.
+            # Do NOT pretend they are one patient's original specimen.
+            matched_construct=_short(
+                entry.get("source_variant_construct_id"),
+                "independently source-verified construct variant identity")
+            if matched_construct!=case["source_variant_id"]:
+                raise VariantOmicSidecarError(
+                    "Cross-assay variant identity mismatch: ABSTAIN instead of arbitrary gene-level join")
         contexts.add((
             _short(entry.get("biological_unit_id"),"biological subject"),
             _short(entry.get("tissue"),"measured tissue"),
@@ -123,7 +135,7 @@ def reconcile_variant_omic_evidence(case):
         if target in relevant:
             conflicting.append(target)
         relevant[target]=call
-    if len(contexts)>1:
+    if len(contexts)>1 and pairing=="same_original_specimen":
         return {
             "status":"ABSTAIN_UNMATCHED_SUBJECT_TISSUE_OR_SAMPLE_LANDMARK",
             "gene":gene,
@@ -197,8 +209,12 @@ def reconcile_variant_omic_evidence(case):
         "gene":gene,"genomic_consequence":consequence,
         "genotype_coverage_state":status,
         "original_per_assay_signals_measured_not_inferred":dict(sorted(relevant.items())),
-        "assays_share_source_biological_unit_tissue_and_time":(pairing=="same_original_specimen"),
+        "assays_share_source_biological_unit_tissue_and_time":(pairing=="same_original_specimen" and len(contexts)==1),
         "source_pairing_scope":pairing,
+        "same_original_variant_identity_across_independent_assays_verified":
+            pairing=="same_construct_variant_independent_assays",
+        "do_not_use_postdrug_cell_PD_as_predose_pk_covariate":
+            pairing=="same_construct_variant_independent_assays",
         "same_construct_variant_does_not_equal_same_patient":True,
         "hypotheses_to_test":sorted(set(notes)),
         "additional_independent_evidence_needed":sorted(set(required)),
