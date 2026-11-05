@@ -368,3 +368,80 @@ AUC/CL/C0?"* from being answered here.
 This public-only study can validate physical source
 annotations, model robustness and false discoveries,
 without importing any unavailable patient dataset.
+
+
+## 7. Protein-panel sensitivity: same donors, \`proteins\` vs \`proteomics-ipp\` (new source replay)
+
+**Status at implementation:** benchmark and source-replay CI added;
+**original source execution and numeric results must be checked against
+the new workflow before reporting either panel as better**.
+
+EATRIS public v4 contains two distinct quantitative assays:
+\`proteins\` (125 donors, **1,393** original features)
+and \`proteomics-ipp\` (123 donors, **6,831** original features).
+Both are described at study level as plasma-related protein
+measurements. **Their analytical platforms, exact analyte
+identities, sample aliquots and collection times are not yet
+authenticated at individual-assay level against original ISA.**
+Do not assert that \`proteomics-ipp\` is a gold standard or assign a
+causal effect to the measurement technology.
+
+The new original-source code
+[\`scripts/benchmark_eatrisplus_v4_protein_panels.py\`](../../scripts/benchmark_eatrisplus_v4_protein_panels.py)
+and [synthetic checks](../../scripts/test_eatrisplus_v4_protein_panels.py)
+use only the public H5MU after exact original Zenodo MD5
+verification. They join **all five assays by identical source
+person keys** (WBC mRNA, plasma acylcarnitines, plasma amino
+acids, and the two plasma-related protein panels), without filling
+missing subjects. Each outcome panel is evaluated on the
+**same final subject intersection, the same 3 x 5 person-disjoint
+CV folds, and the same input preprocessing**.
+
+Within each fold the reference and prediction arms are:
+- training-only mean target profile (no omics);
+- WBC mRNA, plasma targeted metabolites, both;
+- negative control with source WBC RNA association permuted
+  within training people only.
+
+Every target panel uses its own **80 source training-only
+variance-selected protein variables**, plus training-only
+missingness thresholds, imputation and standardization.
+Predictors use **fixed total PC budgets 3 and 9** and fixed
+Ridge alpha **10 and 1,000,000**; no outer-test-driven
+choice. The permutation control uses 3 WBC PCs and alpha10.
+
+**Primary cross-panel interpretation:** for each measured
+panel separately, compute (MAE of no-omics training-mean
+reference minus MAE of omic arm) / MAE of reference.
+Then descriptively compare these **within-panel relative
+skills** in exact original paired people, with paired subject
+bootstrap of the difference (IPP minus proteins). The
+bootstrap is on frozen CV residuals, **not a model-refit
+uncertainty or multiplicity-adjusted confirmatory test**.
+A simple comparison of standardized absolute MAEs across
+the two panels is invalid because the target analyte
+distributions, coverage and identities differ.
+
+**Decision rule for the scientific write-up:** if the
+relative added value changes materially across panels,
+report *assay-target sensitivity of the current algorithm*,
+**not** a causal analytical-platform effect, better CYP
+activity inference or drug PK. If changes are small,
+report only that this configuration is insensitive to
+the observed panel choice; never generalize to all
+protein assays. If source controls fail, mark the
+original comparison **ABSTAIN** and do not report
+synthetic fixtures as EATRIS findings.
+
+All original participant-level assay values and IDs
+remain ephemeral in the source-replay job; only
+aggregate scores, matched counts, and checks appear
+in logs. **No original clinical PK, complete germline
+PGx, hepatic CYP function, or causal cross-compartment
+chain is measured by this experiment.**
+
+The source workflow is
+[.github/workflows/eatrisplus-v4-protein-panels.yml](../../.github/workflows/eatrisplus-v4-protein-panels.yml).
+This is an exploratory, post-hoc robustness extension
+that follows inspection of EATRIS results and does not
+replace the primary original benchmark.
