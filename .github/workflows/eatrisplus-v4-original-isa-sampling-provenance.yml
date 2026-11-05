@@ -20,6 +20,7 @@ jobs:
       - name: Original collection-fraction terminology offline negative controls
         run: python -m unittest discover -s scripts -p 'test_eatrisplus_v4_isa_material.py' -v
       - name: Zenodo original MD5-pinned ISA metadata, aggregate plasma/WBC mentions only
+        if: github.event_name == 'workflow_dispatch'
         run: |
           python -m scripts.audit_eatrisplus_v4_original_isa_material > /tmp/eatris_primary_ISA_aggregate.json || {
             cat /tmp/eatris_primary_ISA_aggregate.json
