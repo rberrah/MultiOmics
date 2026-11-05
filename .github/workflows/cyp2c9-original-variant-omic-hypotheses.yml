@@ -22,7 +22,11 @@ jobs:
         run: |
           python -m unittest discover -s scripts -p 'test_public_cyp2c9_variant_omic_hypotheses.py' -v
           python -m unittest discover -s scripts -p 'test_variant_omic_evidence_sidecar.py' -v
+      # Source-pinned original experiment succeeded on GitHub Actions 42020023060.
+      # Keep offline fail-closed biological interpreter tests on each PR;
+      # live public API replay is retriggered by workflow_dispatch.
       - name: Original immutable Git blob direct CYP2C9 n4421 missense activity and VAMPseq
+        if: github.event_name == 'workflow_dispatch'
         run: |
           python -m scripts.replay_public_cyp2c9_variant_omic_hypotheses > /tmp/original_cyp2c9_omic_hypotheses.json || { cat /tmp/original_cyp2c9_omic_hypotheses.json; exit 2; }
           python - <<'PY'
