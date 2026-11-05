@@ -86,6 +86,16 @@ stop/NMD-unknown, genotype untyped or panel-negative, different
 biological subject/sample times, original feature/method validity and
 metabolite nonspecificity.
 
+## Original public-dataset evidence (computed in Omics2PK, not fabricated by this sidecar)
+
+**CYP2C9 [original public n4,421 missense variant/abundance/activity benchmark](https://github.com/rberrah/Omics2PK/blob/feat/cyp3a5-functional-evidence-triage-20261103/docs/TWO_WAY_GENETIC_VARIANT_OMICS_TO_PK_PD_PUBLIC_VALIDATION_20261105.md):** 400 independently source-classified missense variants have *decreased activity* despite *wild-type-like abundance*. These assays share the variant identity but were measured in yeast (activity Click-seq) versus cultured human cells (abundance VAMP-seq), **not** paired patient tissues.
+
+**NUDT15 [original public MaveDB n2,825 strict score-paired missense variants](https://github.com/rberrah/Omics2PK/blob/feat/cyp3a5-functional-evidence-triage-20261103/docs/NUDT15_PUBLIC_MAVEDB_VARIANT_STABILITY_THIOPURINE_PD_20261105.md):** 131 source variants show protein-stability score ≥0.8 but thiopurine cellular-tolerance score below 0.3; **another 222** show stability below 0.3 despite cellular tolerance ≥0.8, at exploratory *nonclinical* thresholds. The original 3,015 MaveDB rows include 170 incomplete and 20 nonstandard/uninterpretable protein-ID records. This is a **cellular PD assay**, not a specific hydrolase activity measurement, human treatment response or proof of protein decay.
+
+**CYP3A5 [actual GEO source-metadata pairing](https://github.com/rberrah/Omics2PK/blob/feat/cyp3a5-functional-evidence-triage-20261103/docs/CYP3A5_GEO_HEPATOCYTE_RNA_GENOTYPE_SOURCE_CROSSWALK_20261105.md):** 60 original hepatocyte RNA samples have matching genotype-source sample titles within 96 genotype records. Original `rs776746` SNP calls and exon/isoform quantities are **not independently quantified yet**; published exon-QTL ≠ our own per-sample model. No tacrolimus clinical PK endpoints in these GEO data.
+
+These source results motivate the sidecar and ensure its **hypotheses can be contradicted by real measurements**; the MultiOmics module itself currently has synthetic software-unit tests, not an original cohort-ready/clinically validated variant-effect classifier.
+
 ## Complementarity with Omics2PK
 
 **MultiOmics:** describe and reconcile what the original independent
