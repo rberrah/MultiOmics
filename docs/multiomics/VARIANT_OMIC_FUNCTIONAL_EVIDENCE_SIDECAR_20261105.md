@@ -127,6 +127,53 @@ source-donor bootstrap interval spans zero. The user-facing omic
 selection layer must therefore carry uncertainty and the
 prespecified clinically relevant error function.
 
+## Second original source: CYP2C9 measured protein versus enzymatic function
+
+The exact MultiOmics production interpreter also succeeded on the
+[official Amorosi et al. CYP2C9 original Git blob](https://github.com/dunhamlab/CYP2C9)
+(DOI 10.1016/j.ajhg.2021.07.001; immutable Git SHA
+`1a3041077f399dba6b4115877d31bd9def115787`), in
+[GitHub Actions #42020023060](https://github.com/rberrah/MultiOmics/actions/runs/42020023060).
+
+The original 8,701 variant entries yield **4,421** matched
+missense protein constructs with both scores. The source-replayed
+actual same-variant but **independently measured** Click-seq activity
+in engineered yeast and VAMP-seq protein abundance in cultured
+human cells show:
+
+- **400** protein variants whose abundance is source-labelled
+  `wt-like` but activity is `decreased`;
+- **12** additional `wt-like` abundance variants whose original
+  activity label is `nonsense-like`;
+- **4,009** other paired variants with no qualifying strong discordance
+  under these published categorical labels.
+
+The interpreter generated exactly **412**
+`HYPOTHESIS_PRESERVED_ABUNDANCE_LOST_MISSENSE_FUNCTION`
+records, **4,009** `NO_UNIQUE_VARIANT_MECHANISM_ESTABLISHED...`
+records, and **zero** automatically proven protein-decay/causal/PK
+claims. These are the original source's own functional-class labels,
+**not invented activity percentages, PGx genotypes, clinical exposure
+or matched patient biospecimens**. The functional substrate measured
+by Click-seq must not be relabelled actual clinical drug clearance.
+
+Reproduction:
+`scripts/replay_public_cyp2c9_variant_omic_hypotheses.py`,
+`scripts/test_public_cyp2c9_variant_omic_hypotheses.py`,
+`.github/workflows/cyp2c9-original-variant-omic-hypotheses.yml`.
+Pinned original GitHub API download replays are on demand after
+successful live validation; synthetic negative controls remain
+mandatory on pull requests.
+
+**Interpretation across two independent original genes:** the
+same qualitative, source-aware engine recognizes known missense
+variants with protein abundance/function contradictions both for
+CYP2C9 enzyme activity and for NUDT15 thiopurine cellular PD.
+This is a genuine **two-gene MultiOmics assay-interpretation**
+feasibility validation, not a new finding that protein abundance
+can diverge from function (already published) and not an
+Omics2PK proof of added clinical pharmacogenomic value.
+
 ## Original source replay on genuine variant-level assays — completed
 
 **Successful source-backed workflow:**
