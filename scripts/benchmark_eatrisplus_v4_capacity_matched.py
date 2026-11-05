@@ -29,7 +29,7 @@ from scripts.benchmark_eatrisplus_v4_cross_fraction import (
 from math import isfinite
 from statistics import mean
 
-ALPHAS=(1.,10.,100.,1000.)
+ALPHAS=(1.,10.,100.,1000.,10000.,100000.,1000000.)
 ARMS=(
     "train_mean_only",
     "WBC_mRNA_3PC",
