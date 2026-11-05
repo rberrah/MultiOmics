@@ -18,7 +18,7 @@ import json
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
-from scripts.variant_omic_evidence_sidecar import reconcile_variant_omic_evidence
+from scripts.specimen_context_sidecar import reconcile_variant_with_original_specimens
 
 SHA="1a3041077f399dba6b4115877d31bd9def115787"
 URL="https://api.github.com/repos/dunhamlab/CYP2C9/git/blobs/"+SHA
@@ -106,7 +106,7 @@ def replay_from_csv(data,*,strict=True):
     aggregate={}
     causal=0
     for vid,prot,activity in variants:
-        r=reconcile_variant_omic_evidence({
+        r=reconcile_variant_with_original_specimens({
             "gene":"CYP2C9",
             "genome_assay_status":"engineered_protein_variant_construct",
             "source_variant_id":vid,
@@ -122,10 +122,26 @@ def replay_from_csv(data,*,strict=True):
                              source_call=activity,assay="Clickseq_activity_based_probe",
                              host="source_engineered_yeast",landmark="source_independent_activity_screen"),
             ],
-        })
+        },[
+            {"assay_id":"protein_total","omic":"proteomics",
+             "collected_fraction":"engineered_human_cells",
+             "anatomical_origin":"laboratory_culture",
+             "assay_method":"VAMPseq_abundance",
+             "collection_landmark":"ex_vivo_baseline",
+             "biological_provenance":"engineered_variant_construct",
+             "original_source_sample_key_scope":"same_engineered_variant_different_screens"},
+            {"assay_id":"measured_substrate_activity","omic":"functional_activity",
+             "collected_fraction":"engineered_yeast",
+             "anatomical_origin":"laboratory_culture",
+             "assay_method":"Clickseq_activity",
+             "collection_landmark":"ex_vivo_drug_incubation",
+             "biological_provenance":"engineered_variant_construct",
+             "original_source_sample_key_scope":"same_engineered_variant_different_screens"},
+        ])
         if (r["source_pairing_scope"]!="same_construct_variant_independent_assays"
                 or r["assays_share_source_biological_unit_tissue_and_time"]
                 or r["original_person_germline_genotype_measured"]
+                or not r["specimen_provenance_qualified_without_inferring_function"]
                 or not r["source_variant_is_engineered_construct_not_human_genotype"]
                 or r["protein_decay_observed_directly"]
                 or r["in_vivo_drug_PK_or_PD_improvement_estimated"]
