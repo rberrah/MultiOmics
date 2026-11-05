@@ -174,6 +174,69 @@ feasibility validation, not a new finding that protein abundance
 can diverge from function (already published) and not an
 Omics2PK proof of added clinical pharmacogenomic value.
 
+## Where were the omics actually collected? Mandatory companion evidence
+
+The **sampled organ, specimen fraction, method and collection time**
+must accompany any original omics before a
+variant→RNA/protein/metabolite/activity claim is made.
+
+`scripts/specimen_context_sidecar.py` introduces an **optional,
+separately versioned** `omics_specimen_context_v1` and
+`reconcile_variant_with_original_specimens(...)` function. It
+requires explicit matched original assay IDs with physical
+collection matrix, anatomical origin, cell-line/native/engineered
+biological provenance, assay technology and dose-relative
+landmark, then runs the existing evidence interpretation.
+The frozen `DOWNSTREAM_EXCHANGE_V1` and main Research v1
+statistical implementation remain unchanged.
+
+| Public source | Collected specimen (not target inferred from gene) | Interpretable observation |
+|---|---|---|
+| CYP2C9 variant DMS (original n4,421) | Engineered cultured **human cells** for VAMP-seq protein abundance; separate engineered **yeast** for Click-seq functional activity | Same **amino acid construct** across assays; neither assay represents the genotype or metabolic protein activity measured in one human patient |
+| NUDT15 variant DMS (original n2,844) | Independently assayed engineered **HEK293T cell systems**, one for VAMP-seq abundance, another for **post-thioguanine cellular tolerance** | Variant-matched protein quantity vs cell response; **postdrug** cellular PD is not predose metabolomics |
+| HLC (historically owner-authorized) | Original **human liver tissue** for bulk RNA gene probes and **liver microsomes** for substrate activity | Different preparations, same original liver donor only when ID/biological source actually qualified |
+| Latham PHH (public) | Original **primary human hepatocytes** for SNP genotyping, targeted CYP peptides and probe activities; drug incubation for imatinib depletion | Hepatocyte ex-vivo metabolism, not plasma drug PK; neither plasma proteomics nor blood RNA |
+| Rotroff metformin (public) | **Heparin plasma** GC-TOF time A pretreatment, B and C **after dosing** | A as potential baseline systemic PK predictor; B/C later on-treatment only. Plasma metabolite ≠ unique kidney transporter signal |
+| EATRIS-Plus v4 (public processed) | **White blood cells** for bulk mRNA/miRNA, separate **plasma** for proteins and metabolites | Same individual can contribute distinct physical fractions; plasma protein is NOT liver intracellular CYP |
+| GTEx V8 source medians | Bulk **liver**, **whole blood** and **terminal ileum** RNA averaged per tissue | Explains site differences; medians are not donor RNA/protein function and whole blood is not PBMC |
+| NCI-60 cross-study | Cancer **cell-line culture** RNA, SWATH proteins, metabolites across different laboratories/culture batches | Same cell line name does not prove one simultaneously measured biological aliquot, not clinical PK |
+
+The source guard refuses:
+- `PBMC RNA` relabelled as `liver RNA`, or plasma
+  cfRNA mislabeled as bulk-cell RNA without an independently
+  qualified cfRNA/EV method;
+- circulating plasma protein interpreted as **measured
+  hepatocyte intracellular CYP**;
+- a **systemic plasma metabolite** assigned a unique tissue
+  enzyme or kidney transporter only from its abundance;
+- pre/postdose assays, distinct donors or experimental
+  constructs accidentally joined as a simultaneous patient
+  specimen;
+- unmatched assay identity or unknown original sample
+  preparation methods.
+
+CYP3A5 *3 and *6/*7 status may be assigned on an
+**authentic genotyped source** with independently verified
+transcript/allele identity; a sequence perturbation in a
+DMS engineered construct is not a germline patient call.
+An authentic peripheral germline DNA allele does not convert
+a simultaneous **white blood cell transcript** into liver
+splicing. Following transplant, recipient versus organ donor
+versus hematopoietic donor origin needs separate qualification.
+
+**Original source provenance is distinct from mechanistic
+or predictive strength.** The sidecar may generate a
+falsifiable biological hypothesis when the original
+assays are interpretable; Omics2PK alone tests
+drug-/organ-specific measured PK incremental prediction
+against an authentic appropriate clinical+PGx reference.
+All newly developed tests require only public
+source evidence or synthetic anti-leakage controls; no
+unavailable patient data is assumed.
+
+See the [complementary complete public-only Omics2PK source
+and compartment catalogue](https://github.com/rberrah/Omics2PK/blob/feat/cyp3a5-functional-evidence-triage-20261103/docs/PUBLIC_ONLY_SPECIMEN_ORIGIN_PHYSIOPHARMACO_20261105.md).
+
 ## Original source replay on genuine variant-level assays — completed
 
 **Successful source-backed workflow:**
