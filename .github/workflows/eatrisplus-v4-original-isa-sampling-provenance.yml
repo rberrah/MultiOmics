@@ -1,0 +1,38 @@
+name: EATRIS v4 primary original ISA material/method sample provenance source audit
+on:
+  pull_request:
+    paths:
+      - "scripts/audit_eatrisplus_v4_original_isa_material.py"
+      - "scripts/test_eatrisplus_v4_isa_material.py"
+      - ".github/workflows/eatrisplus-v4-original-isa-sampling-provenance.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  official-public-ISA:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Original collection-fraction terminology offline negative controls
+        run: python -m unittest discover -s scripts -p 'test_eatrisplus_v4_isa_material.py' -v
+      - name: Zenodo original MD5-pinned ISA metadata, aggregate plasma/WBC mentions only
+        run: |
+          python -m scripts.audit_eatrisplus_v4_original_isa_material > /tmp/eatris_primary_ISA_aggregate.json || {
+            cat /tmp/eatris_primary_ISA_aggregate.json
+            exit 2
+          }
+          python - <<'PY'
+          import json
+          x=json.load(open("/tmp/eatris_primary_ISA_aggregate.json"))
+          assert x["status"]=="ORIGINAL_EATRIS_V4_ISA_MATERIAL_TERM_AUDIT_NOT_PER_SUBJECT_PROVENANCE"
+          assert x["original_ISA_MD5_verified"]
+          assert x["individual_source_person_IDs_or_RDF_triples_never_printed"]
+          assert x["literal_keyword_occurrence_not_original_assay_sample_link_proof"]
+          print(json.dumps(x,indent=2,sort_keys=True))
+          PY
+      - if: always()
+        run: rm -f /tmp/eatris_primary_ISA_aggregate.json
