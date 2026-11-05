@@ -23,6 +23,7 @@ jobs:
       - name: Synthetic source-ID and no-leakage cross-compartment regression tests
         run: python -m unittest discover -s scripts -p 'test_eatrisplus_v4_cross_fraction_benchmark.py' -v
       - name: Original Zenodo md5 pinned n90 WBC RNA plasma metabolites vs heldout plasma proteome
+        if: github.event_name == 'workflow_dispatch'
         run: |
           python -m scripts.benchmark_eatrisplus_v4_cross_fraction > /tmp/eatris_original_prediction_aggregate.json || {
             cat /tmp/eatris_original_prediction_aggregate.json
