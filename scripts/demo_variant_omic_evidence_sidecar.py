@@ -11,6 +11,7 @@ def readout(name,kind,omic,signal):
             "assay_method":"SYNTHETIC_REFERENCE_QUALIFIED",
             "original_feature_id":"SYNTH_"+name,
             "original_assay_source_url":SOURCE,
+            "source_variant_construct_id":"HYPOTHETICAL_VARIANT_NOT_GENOTYPED",
             "biological_unit_id":"SYNTHETIC_MUTATION_CONSTRUCT",
             "tissue":"synthetic_cell_context","collection_landmark":"before_drug"}
 
