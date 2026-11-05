@@ -268,7 +268,91 @@ Source-real CI analyses output aggregate values and
 original source hashes, **never participants' source
 assay rows**.
 
-## 5. EATRIS public vs inaccessible components
+## 5. Source-real orthogonal sensitivity: feature capacity versus regularization
+
+**New original public-source experiment:**
+[GitHub Actions #42068596760 SUCCESS](https://github.com/rberrah/MultiOmics/actions/runs/42068596760).
+The published **same immutable Zenodo v4 MuData** was downloaded and
+original MD5 independently checked. The **same 90 individual source
+donors**, original WBC mRNA (16,386 gene features), original plasma
+targeted metabolites (33 acylcarnitines + 46 amino acids),
+and original source plasma proteins (1,393 features) were used.
+
+Unlike the earlier fixed-vs-nested comparison, this fixed **2×2
+factorial** varies *only* two explicit settings:
+
+1. **Total molecular representation size:** exactly 3 vs 9
+   training-only PCs for **every** model arm. The joint allocation
+   is (WBC RNA1, plasma2) for 3 PCs or (RNA3, plasma6) for 9 PCs.
+   Independent PCA bases and RNA/metabolite source feature selections
+   use only original outer-training persons.
+2. **Fixed Ridge shrinkage:** alpha **10** vs **1,000,000** without
+   looking at any fold's test outcomes to choose alpha. Note:
+   the large alpha and factor design were selected **after examining
+   earlier original EATRIS source results**. They are **exploratory
+   sensitivity settings, not a new prospective confirmatory
+   preregistration**. Strong alpha effectively discards molecular
+   predictions.
+
+The target is exactly **80 plasma protein measurements per
+outer-training fold**, standardized using outer-training donors.
+All models within a fold use the identical original proteins and
+same source subjects; 3 repetitions × 5 person-disjoint folds,
+averaged to **90 independent per-person errors**. Target proteins
+can vary across folds; there is **no drug AUC/CL/clinical PK or
+germline genotype** in these calculations.
+
+**Observed original-source heldout plasma-profile standardized MAE:**
+
+| Omic predictors | Exactly 3 PCs, alpha 10 | Exactly 9 PCs, alpha 10 | Exactly 3 PCs, alpha 1e6 | Exactly 9 PCs, alpha 1e6 |
+|---|---:|---:|---:|---:|
+| Original donor-training plasma protein mean, no omic | 0.760615 | 0.760615 | 0.760615 | 0.760615 |
+| WBC mRNA only | **0.783413** | 0.807777 | 0.760637 | 0.760636 |
+| Plasma targeted acylcarnitines+amino acids | **0.773407** | 0.794645 | 0.760611 | 0.760611 |
+| WBC mRNA + plasma targeted metabolites | **0.777599** | 0.808840 | 0.760627 | 0.760633 |
+
+**Within-model orthogonal original person-paired exploratory
+contrasts**, 999 subject residual bootstrap draws without model
+refit/multiplicity correction (negative delta is better):
+
+| Fixed other factor | Change tested | ΔMAE | Descriptive 95% interval |
+|---|---|---:|---|
+| alpha=10, WBC RNA | 9 PCs minus 3 PCs | **+0.024364** | [+0.017122,+0.030851] |
+| alpha=10, plasma metabolites | 9 PCs minus 3 PCs | **+0.021238** | [+0.015492,+0.027006] |
+| alpha=10, WBC + plasma | 9 PCs minus 3 PCs | **+0.031241** | [+0.022673,+0.039824] |
+| WBC + plasma, 3 PCs | alpha 1e6 minus alpha 10 | **−0.016972** | [−0.024710,−0.010311] |
+| WBC + plasma, 9 PCs | alpha 1e6 minus alpha 10 | **−0.048207** | [−0.060455,−0.036572] |
+| alpha=1e6, joint WBC+plasma | 9 PCs minus 3 PCs | +0.000006 | [−0.000004,+0.000017] |
+
+**Interpretation:** within this original n90 healthy-donor source
+and fixed model family, both **too many dimensions** and **too
+little shrinkage** contribute to finite-sample protein profile
+prediction error. Increasing PC count increases MAE when alpha
+is held at 10. Holding PC count fixed and using very high
+shrinkage reduces the excess error, but nearly returns the
+constant target-protein mean: **a lack of incremental use of
+the omics, not a successful mechanistic discovery**.
+
+The factor experiment is a mathematically controlled
+**descriptive perturbation** of fitting choices, but it
+does not identify a causal tissue mechanism, the universally
+optimal omic representation, protein network mediation,
+or improved pharmacogenetic drug dosing. The subject
+bootstrap intervals are **not external validation,
+post-selection adjusted intervals or independent replication**.
+The original analyses informed the large alpha choice,
+so the numerical contrasts must remain explicitly exploratory.
+
+The source-original script is
+`scripts/benchmark_eatrisplus_v4_orthogonal_capacity_shrinkage.py`,
+with anti-leakage/row-order tests at
+`scripts/test_eatrisplus_v4_orthogonal_capacity_shrinkage.py`
+and source CI
+`.github/workflows/eatrisplus-v4-orthogonal-capacity-shrinkage.yml`.
+No original donor features, IDs, protein targets or numeric
+individual source measurements were committed.
+
+## 6. EATRIS public vs inaccessible components
 
 The current open v4 original source is substantial and
 allows true transcriptome/proteome/metabolome integration
