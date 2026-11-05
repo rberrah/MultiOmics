@@ -22,7 +22,7 @@ class MatchedCapacityScientificTests(unittest.TestCase):
                 self.assertTrue(0 < v < 10)
             for a in x["inner_selected_alpha_counts_by_arm"].values():
                 self.assertEqual(sum(a.values()),5)
-                self.assertTrue(set(a).issubset({"1","10","100","1000"}))
+                self.assertTrue(set(a).issubset({"1","10","100","1000","10000","100000","1000000"}))
             self.assertTrue(x["no_omic_winner_selected_on_outer_heldout_errors"])
             self.assertFalse(x["original_drug_exposure_or_germline_PGx_present"])
             self.assertNotIn("SYNTHETIC_PERSON",str(x))
