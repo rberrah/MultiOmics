@@ -4,6 +4,7 @@ on:
     paths:
       - "scripts/variant_omic_evidence_sidecar.py"
       - "scripts/test_variant_omic_evidence_sidecar.py"
+      - "scripts/demo_variant_omic_evidence_sidecar.py"
       - ".github/workflows/variant-omic-evidence-sidecar.yml"
   workflow_dispatch:
 permissions:
@@ -19,3 +20,25 @@ jobs:
           python-version: "3.11"
       - name: Synthetic original assay biological-consistency contracts
         run: python -m unittest discover -s scripts -p 'test_variant_omic_evidence_sidecar.py' -v
+      - name: Qualify four distinct synthetic molecule-function hypotheses
+        run: |
+          python -m scripts.demo_variant_omic_evidence_sidecar > /tmp/variant_omic_synthetic_demo.json
+          python - <<'PY'
+          import json
+          r=json.load(open("/tmp/variant_omic_synthetic_demo.json"))
+          assert r["source_status"]=="SYNTHETIC_QUALITATIVE_EXAMPLES_NOT_ORIGINAL_SAMPLES"
+          a=r["rna_normal_protein_low_no_decay_proof"]
+          b=r["rna_and_protein_normal_function_low"]
+          c=r["gene_total_RNA_normal_canonical_splice_low"]
+          d=r["nudt15_variant_matched_construct_stability_vs_cell_PD"]
+          assert a["protein_decay_observed_directly"] is False
+          assert "HYPOTHESIS_POSTTRANSCRIPTIONAL_TRANSLATION_OR_PROTEIN_INSTABILITY" in a["hypotheses_to_test"]
+          assert "HYPOTHESIS_CATALYTIC_OR_LOCALIZATION_OR_SUBSTRATE_BINDING_DEFECT" in b["hypotheses_to_test"]
+          assert "HYPOTHESIS_ABERRANT_SPLICING_DESPITE_TOTAL_RNA" in c["hypotheses_to_test"]
+          assert d["source_pairing_scope"]=="same_construct_variant_independent_assays"
+          assert d["assays_share_source_biological_unit_tissue_and_time"] is False
+          assert d["in_vivo_drug_PK_or_PD_improvement_estimated"] is False
+          print("PASS: separation of observed omic signals, hypothetical mechanisms, in-vitro PD and real patient PK")
+          PY
+      - if: always()
+        run: rm -f /tmp/variant_omic_synthetic_demo.json
