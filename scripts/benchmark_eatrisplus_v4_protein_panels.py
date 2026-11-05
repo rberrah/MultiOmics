@@ -66,6 +66,18 @@ def benchmark_proteome_panels(path, *, verify_source=True, repeats=3):
         if len(matched) < 30 or len(matched) > 90:
             raise EATRISBenchmarkAbstention("Unqualified five-assay same-person overlap")
         arrays = {m: _read_original_dense_view(h, m, matched) for m in SOURCE_MODS}
+        # Exact source feature names are diagnostic only: do not assume
+        # equivalent protein identity, isoform, physical assay or aliquot.
+        original_feature_keys = {p: _index(h["mod"][p], "var")
+                                 for p in TARGET_PANELS}
+        exact_key_overlap = len(set(original_feature_keys["proteins"])
+                                & set(original_feature_keys["proteomics-ipp"]))
+        p_normalized = [k.casefold().strip() for k in original_feature_keys["proteins"]]
+        i_normalized = [k.casefold().strip() for k in original_feature_keys["proteomics-ipp"]]
+        norm_collision = (len(set(p_normalized)) != len(p_normalized)
+                          or len(set(i_normalized)) != len(i_normalized))
+        casefold_overlap = (None if norm_collision else
+                            len(set(p_normalized) & set(i_normalized)))
 
     rna = arrays["mRNA"]
     metabolites = np.hstack([arrays["acylcarnitines"], arrays["aminoacids"]])
@@ -175,6 +187,15 @@ def benchmark_proteome_panels(path, *, verify_source=True, repeats=3):
             "proteomics-ipp": "plasma_related_distinct_method_not_fully_qualified",
         },
         "source_ISA_assay_level_platform_and_same_aliquot_qualification": "PENDING",
+        "source_feature_identity_diagnostic": {
+            "exact_identical_original_feature_keys_both_protein_panels":
+                exact_key_overlap,
+            "casefold_identical_feature_keys_both_panels_if_no_collisions":
+                casefold_overlap,
+            "casefold_identifier_collisions_present": norm_collision,
+            "source_identical_key_is_not_verified_same_protein_analyte": True,
+            "cross_platform_analyte_and_proteoform_mapping_proven": False,
+        },
         "identical_donor_split_and_input_representation_all_panels": True,
         "outer_folds": f"{repeats}x5_person_disjoint",
         "target_and_predictor_preprocessing": "outer_training_only",
