@@ -38,6 +38,7 @@ it as posttranslational degradation would be an error.
 | No mutation detected in qualified limited panel | No variant on *assayed sites* | More comprehensive genotype if needed; activity can still vary |
 | Genotype untyped | No mechanism claim from an asserted variant | Original VCF / panel and independent functional evidence |
 | An endogenous metabolite changes | Network/pathway proxy | Chemical confirmation, multiple enzymes, isotope flux as applicable |
+| Protein abundance reference-like but thiopurine *cell* tolerance decreased | Variant may alter drug response independently of abundance | Orthogonal enzyme substrate assay, drug uptake and cell-viability controls; **never call cell PD an enzyme activity measurement** |
 
 All proposed mechanisms are **noncausal hypotheses**.
 These are not automated “pathogenic/benign” variant scores.
@@ -61,7 +62,11 @@ RNA abundance or protein-level SHAP.
   and protein abundance are **not cross-assay comparable scales**.
 - Matching original biological unit, tissue and collection landmark.
   Different donors/organs or predose-vs-postdose assays **abstain**,
-  not join on matching gene name.
+  not join on matching gene name. Explicit `original_pairing_scope` is
+  mandatory: `same_original_specimen` or
+  `same_construct_variant_independent_assays`. The latter allows only
+  **construct-level** reconciliation; it cannot be upgraded to same-donor
+  clinical biology.
 - Optional independent literature reference for a known functional
   variant. **Merely listing an evidence URL is no substitute for
   external source audit.**
