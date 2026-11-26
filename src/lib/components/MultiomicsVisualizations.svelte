@@ -4,7 +4,7 @@
   export let result = null;
   export let language = 'fr';
 
-  const tr = (fr, en) => language === 'en' ? en : fr;
+  $: tr = language === 'en' ? (/** @type {string} */ fr, /** @type {string} */ en) => en : (/** @type {string} */ fr, /** @type {string} */ en) => fr;
   let heatmapLayer = 'transcriptomics';
   let activeFigure = 'heatmap';
   let selectedPathway = 'all';
