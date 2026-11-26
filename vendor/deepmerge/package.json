@@ -1,0 +1,7 @@
+{
+  "name": "deepmerge",
+  "version": "4.3.1-pmx.1",
+  "description": "Vendored deepmerge 4.3.1 with the unreleased CVE-2026-93753 fix",
+  "main": "index.cjs",
+  "license": "MIT"
+}
