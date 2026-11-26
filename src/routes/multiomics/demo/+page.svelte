@@ -15,7 +15,7 @@
   } from '#lib/multiomics/demo-case.js';
 
   /** @param {string} fr @param {string} en */
-  const t=(fr,en)=>$language==='en'?en:fr;
+  $: t = $language === 'en' ? (/** @type {string} */ fr, /** @type {string} */ en) => en : (/** @type {string} */ fr, /** @type {string} */ en) => fr;
   const launchHref = resolve('multiomics/tool/') + '?demo=multi';
   /** @type {Record<string,string>} */
   const demoAssets = {
