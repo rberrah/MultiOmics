@@ -3,6 +3,9 @@ name: MultiOmics survival native-R qualification
 on:
   pull_request:
     paths:
+      - 'package.json'
+      - 'package-lock.json'
+      - 'vendor/deepmerge/**'
       - 'src/lib/multiomics/**'
       - 'scripts/test_multiomics_cox_reference.mjs'
       - 'multiomics-engine/tests/independent_cox_reference.R'
@@ -18,6 +21,9 @@ on:
   push:
     branches: [main]
     paths:
+      - 'package.json'
+      - 'package-lock.json'
+      - 'vendor/deepmerge/**'
       - 'src/lib/multiomics/**'
       - 'scripts/test_multiomics_cox_reference.mjs'
       - 'multiomics-engine/tests/independent_cox_reference.R'
