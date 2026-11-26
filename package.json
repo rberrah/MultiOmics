@@ -24,6 +24,7 @@
     "@sveltejs/kit": "^3.1.0",
     "@sveltejs/vite-plugin-svelte": "^7.3.1",
     "@types/node": "^24.19.2",
+    "deepmerge": "file:vendor/deepmerge",
     "svelte": "^5.57.2",
     "svelte-check": "^4.7.5",
     "typescript": "^6.0.3",
@@ -40,8 +41,7 @@
     "d3-shape": "^3.2.0",
     "js-yaml": "^4.1.0",
     "jsep": "^1.6.0",
-    "markdown-it": "^14.1.0",
-    "zod": "^3.23.8"
+    "markdown-it": "^15.0.2"
   },
   "description": "Reproducible single- and multi-omics research environment",
   "imports": {
@@ -50,5 +50,8 @@
   },
   "engines": {
     "node": ">=22.17.0"
+  },
+  "overrides": {
+    "deepmerge": "$deepmerge"
   }
 }
