@@ -106,19 +106,19 @@
   let omics2pkReadinessError = '';
 
   /** @param {any} result */
-  function evidenceTierLabel(result) {
+  $: evidenceTierLabel = (/** @type {any} */ result) => {
     const tier=primaryEvidenceTier(result);
     if(tier==='native_r_all_layers') return t('R natif complet','Complete native R');
     if(tier==='mixed_native_browser') return t('Mixte R / navigateur','Mixed R / browser');
     return t('Exploratoire navigateur','Browser exploratory');
-  }
+  };
   /** @param {any} result */
-  function assuranceLabel(result) {
+  $: assuranceLabel = (/** @type {any} */ result) => {
     const status=result?.scientificAssurance?.status;
     if(status==='descriptive') return t('Descriptif','Descriptive');
     if(status==='needs_reference_confirmation') return t('Revue scientifique requise','Scientific review required');
     return t('Interprétation prudente','Interpret with caution');
-  }
+  };
   // Optional user-supplied scores, computed *outside* the default browser
   // workflow using frozen/out-of-fold models. No automatic signature fitting.
   /** @type {Array<Record<string,any>>} */
@@ -269,12 +269,12 @@
 
   const omicLayers = /** @type {const} */ (['transcriptomics', 'proteomics', 'metabolomics']);
   /** @param {string} layer */
-  function omicLabel(layer) {
+  $: omicLabel = (/** @type {string} */ layer) => {
     if (layer === 'transcriptomics') return t('Transcriptomique', 'Transcriptomics');
     if (layer === 'proteomics') return t('Protéomique', 'Proteomics');
     if (layer === 'metabolomics') return t('Métabolomique', 'Metabolomics');
     return layer;
-  }
+  };
 
   /** @type {Record<string, [string,string]>} */
   const fieldLabels = {
@@ -2216,7 +2216,7 @@
         matrixAssays:matrixInfo.transcriptomics.sampleIds,
         valueType:transcriptomicsValues}) : null;
   /** @param {string} code */
-  function pairedProblemMessage(code) {
+  $: pairedProblemMessage = (/** @type {string} */ code) => {
     const problems = /** @type {Record<string,string[]>} */ ({
       raw_counts_only:['Le modèle RNA-seq exige de vrais comptages bruts, pas des TPM/FPKM.', 'The RNA-seq model requires genuine raw counts, not TPM/FPKM.'],
       missing_columns:['Associez sujet, prélèvement, mesure, omique, groupe et type de prélèvement aux colonnes.', 'Map subject, sample, assay, omic, condition and sample type to the correct columns.'],
@@ -2229,7 +2229,7 @@
     });
     const text = problems[code] || ['Paires manquantes, identifiants doublonnés ou incohérents : vérifiez chaque sujet et chaque mesure.', 'Missing pairs or duplicate/inconsistent identifiers: check every subject and assay.'];
     return t(text[0],text[1]);
-  }
+  };
   function downloadPairedExampleSheet(){
     const blob = new Blob(['\uFEFF'+pairedExampleSampleSheetCsv()], {type:'text/csv;charset=utf-8'});
     const url = URL.createObjectURL(blob);
