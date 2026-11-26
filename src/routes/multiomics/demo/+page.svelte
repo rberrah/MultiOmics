@@ -36,11 +36,11 @@
   let inputSummary={};
 
   /** @param {string} layer */
-  function layerLabel(layer){
+  $: layerLabel = (/** @type {string} */ layer) => {
     if(layer==='transcriptomics') return t('Transcriptomique','Transcriptomics');
     if(layer==='proteomics') return t('Protéomique','Proteomics');
     return t('Métabolomique','Metabolomics');
-  }
+  };
   /** @param {unknown} value */
   function sig(value){
     if(value == null || value === '') return '—';
@@ -48,14 +48,14 @@
     return Number.isFinite(x) ? x.toPrecision(3) : '—';
   }
   /** @param {unknown} value */
-  function probability(value){
+  $: probability = (/** @type {unknown} */ value) => {
     if(value == null || value === '') return t('non calculé','not computed');
     const x=Number(value);
     if(!Number.isFinite(x)) return t('non calculé','not computed');
     if(x===0) return '<1e−15';
     if(Math.abs(x)<0.001) return x.toExponential(2).replace('e-','e−');
     return x.toPrecision(3);
-  }
+  };
   /** @param {unknown} value */
   function effect(value){
     return Number.isFinite(Number(value)) ? Number(value).toPrecision(4) : '—';
@@ -77,13 +77,13 @@
     return analysisResult?.layers?.[layer]?.rows?.find((/** @type {any} */ row)=>row.feature===feature) || null;
   }
   /** @param {string} layer @param {string} feature */
-  function featureName(layer,feature){
+  $: featureName = (/** @type {string} */ layer, /** @type {string} */ feature) => {
     if(layer==='metabolomics' && demoMetabolites[feature]){
       const item=demoMetabolites[feature];
       return t(item.fr,item.en);
     }
     return demoNames[layer]?.[feature] || feature;
-  }
+  };
   /** @param {string} layer @param {string} feature */
   function featureValue(layer,feature){
     const row=featureRow(layer,feature);
