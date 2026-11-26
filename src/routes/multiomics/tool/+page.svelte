@@ -33,7 +33,7 @@
   });
 
   /** @param {string} fr @param {string} en */
-  const t = (fr, en) => $language === 'en' ? en : fr;
+  $: t = $language === 'en' ? (/** @type {string} */ fr, /** @type {string} */ en) => en : (/** @type {string} */ fr, /** @type {string} */ en) => fr;
 
   /** @type {'explore' | 'groups' | 'outcome' | 'time'} */
   let objective = 'explore';
