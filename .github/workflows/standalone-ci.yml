@@ -24,6 +24,8 @@ jobs:
         run: npm ci
       - name: Fail CI on any npm advisory including low severity (Kit3 zero advisory gate)
         run: npm audit --audit-level=low
+      - name: Verify hardened deepmerge behavior
+        run: node scripts/test_deepmerge_security.mjs
       - name: Check standalone imports and Svelte interfaces
         run: npm run check
       - name: Exercise real deterministic JS and method guardrails
