@@ -40,7 +40,7 @@ jobs:
       QUALIFIED_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
       MULTIOMICS_RAW_MS_OUTPUT: tmp/sacurine-v3-native-r
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Verify scripts syntax and reject incomplete or changed original source
         run: |
           python3 -m py_compile scripts/verify_sacurine_zenodo_12raw.py scripts/test_sacurine_zenodo_12raw.py
@@ -94,7 +94,7 @@ jobs:
             tmp/sacurine-v3-native-r/prespecified-peak-picking-sensitivity
       - name: Preserve compact provenance and biological limitations, not original raw human spectra
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: MultiOmics-real-Sacurine-v3-12raw-blank-QC-native-${{ github.sha }}
           path: |

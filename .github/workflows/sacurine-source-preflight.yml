@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Falsify unsafe ZIP and source role claims without network
         run: |
           python3 -m py_compile scripts/sacurine_source_preflight.py scripts/test_sacurine_source_preflight.py
@@ -36,12 +36,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Download and audit the official 188 MB raw mzXML source
         run: python3 scripts/sacurine_source_preflight.py --output tmp/sacurine-preflight
       - name: Preserve source hashes, scientific limitations and failure evidence only
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: sacurine-36-mzxml-source-integrity-evidence
           path: |

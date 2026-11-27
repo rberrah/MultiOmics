@@ -27,7 +27,7 @@ jobs:
     container:
       image: bioconductor/bioconductor_docker:RELEASE_3_22-r-4.5.2@sha256:e34177896c1579f66d48b756e4229b58237499183a089da084af72d7aba1d40a
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Validate synthetic source and reject incomplete screen pairings before native package install
         run: |
           Rscript -e 'for(f in c(
@@ -59,7 +59,7 @@ jobs:
             tmp/native-DESeq2-Cook-independent-filter
       - name: Preserve all original per-study results and scientific limitations
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: MultiOmics-DESeq2-Cook-and-BH-filter-native-${{ github.sha }}
           path: |

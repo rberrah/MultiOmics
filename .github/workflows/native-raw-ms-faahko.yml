@@ -43,14 +43,14 @@ jobs:
     env:
       MULTIOMICS_MS_QC_OUTPUT: tmp/multiomics/synthetic-ms-qc
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Run existing quantitative MS negative controls
         run: Rscript multiomics-engine/tests/test_ms_quantitative_assurance.R
       - name: Falsify known planted blanks, monotone drift, QC batch shifts and confounding
         run: Rscript multiomics-engine/tests/test_ms_qc_multiscenario_stress.R
       - name: Preserve synthetic tests as explicitly NON-REAL study evidence
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: synthetic-known-truth-MS-QC-regression
           path: tmp/multiomics/synthetic-ms-qc/
@@ -66,7 +66,7 @@ jobs:
     env:
       MULTIOMICS_RAW_MS_OUTPUT: tmp/multiomics/faahko-xcms-evidence
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Verify immutable R 4.5.2 and Bioconductor 3.22
         run: Rscript -e 'stopifnot(identical(as.character(getRversion()),"4.5.2"),requireNamespace("BiocManager",quietly=TRUE),identical(as.character(BiocManager::version()),"3.22"))'
       - name: Install genuine native xcms and official faahKO CDF study data
@@ -95,7 +95,7 @@ jobs:
         run: Rscript multiomics-engine/capture_environment.R tmp/multiomics/faahko-xcms-evidence/r_environment.json
       - name: Preserve failures and complete real-data scientific outputs
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: genuine-faahKO-xcms-native-reference-evidence
           path: tmp/multiomics/faahko-xcms-evidence/

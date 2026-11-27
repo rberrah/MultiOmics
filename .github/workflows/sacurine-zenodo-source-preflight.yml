@@ -23,8 +23,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
       - name: Reject synthetic or altered source roles and files (offline)
@@ -47,7 +47,7 @@ jobs:
             --out tmp/sacurine-zenodo-v3/source-audit
       - name: Preserve source hashes and limited scientific findings even on failure
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: MultiOmics-Sacurine-Zenodo-v3-source-integrity-${{ github.sha }}
           path: |
