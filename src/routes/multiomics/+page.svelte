@@ -2,7 +2,7 @@
   import { resolve, asset } from '$app/paths';
   import { language } from '#lib/stores/language.js';
   /** @param {string} fr @param {string} en */
-  const t = (fr, en) => $language === 'en' ? en : fr;
+  $: t = $language === 'en' ? (/** @type {string} */ fr, /** @type {string} */ en) => en : (/** @type {string} */ fr, /** @type {string} */ en) => fr;
 
   const branches = [
     {
@@ -110,10 +110,10 @@
       <span>{t('assay_id indique quelle colonne de matrice correspond à chaque mesure.', 'assay_id indicates which matrix column corresponds to each assay.')}</span>
     </div>
     <div class="example-table" role="table" aria-label={t('Exemple de tableau des échantillons', 'Example sample sheet')}>
-      <div class="example-head"><b>subject_id</b><b>sample_id</b><b>assay_id</b><b>omic</b><b>condition</b><b>timepoint</b></div>
-      <div><code>P001</code><code>P001_T0</code><code>RNA001</code><span>transcriptomics</span><span>control</span><span>T0</span></div>
-      <div><code>P001</code><code>P001_T0</code><code>PROT001</code><span>proteomics</span><span>control</span><span>T0</span></div>
-      <div><code>P001</code><code>P001_T0</code><code>MET001</code><span>metabolomics</span><span>control</span><span>T0</span></div>
+      <div class="example-head" role="row"><b role="columnheader">subject_id</b><b role="columnheader">sample_id</b><b role="columnheader">assay_id</b><b role="columnheader">omic</b><b role="columnheader">condition</b><b role="columnheader">timepoint</b></div>
+      <div role="row"><code role="cell">P001</code><code role="cell">P001_T0</code><code role="cell">RNA001</code><span role="cell">transcriptomics</span><span role="cell">control</span><span role="cell">T0</span></div>
+      <div role="row"><code role="cell">P001</code><code role="cell">P001_T0</code><code role="cell">PROT001</code><span role="cell">proteomics</span><span role="cell">control</span><span role="cell">T0</span></div>
+      <div role="row"><code role="cell">P001</code><code role="cell">P001_T0</code><code role="cell">MET001</code><span role="cell">metabolomics</span><span role="cell">control</span><span role="cell">T0</span></div>
     </div>
     <p class="note">{t('Lecture : P001 est la même personne ; P001_T0 est le même prélèvement ; RNA001, PROT001 et MET001 sont trois mesures différentes de ce prélèvement. Chaque assay_id doit correspondre exactement à une colonne de la matrice concernée.', 'Read it as follows: P001 is the same person; P001_T0 is the same specimen; RNA001, PROT001 and MET001 are three different assays of that specimen. Each assay_id must match exactly one column in the relevant matrix.')}</p>
   </div>
