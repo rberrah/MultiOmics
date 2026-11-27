@@ -131,6 +131,50 @@ assumptions, multiplicity, missingness and biological conclusions still
 require independent scientific review. See the
 [release acceptance and deployment handoff](docs/multiomics/RESEARCH_V1_CONFIRMATORY_RELEASE_GATE.md).
 
+## Design audit
+
+Before a model is chosen, `src/lib/multiomics/design-audit.js` answers a
+different question from the confirmatory gate: not *how was this computed*,
+but *can this design answer the question at all*. Every check exists because
+it caught a real error in a real exposure study.
+
+- **Arm to control mapping.** `buildContrastPlan()` requires every treatment
+  arm to name its own control, then emits the treatment contrasts, the
+  control-versus-control contrasts and, for arms that do not share a control,
+  a matrix-corrected head-to-head `(A - ctrlA) - (B - ctrlB)` instead of a raw
+  difference. An arm with no declared control is an error, not a default.
+- **Baseline mismatch.** `assessBaselineMismatch()` raises an error when a
+  control-versus-control contrast is larger than the treatment effects it is
+  supposed to anchor, i.e. when the arms do not start from the same biological
+  state and a direct comparison between them is not interpretable.
+- **Replication.** `assessReplication()` counts independent units per design
+  cell; technical replicates of one subject do not count. With a single unit
+  per cell, p-values reflect an assumed rather than an observed dispersion.
+- **Reproducibility instead of inference.** When replication is absent but the
+  design repeats across blocks, `reproducibilityAcrossBlocks()` reports the
+  between-block correlation of effect sizes and the features consistent in
+  every block. This converts an otherwise unusable upload into a defensible
+  analysis.
+- **Variance partition and p-value calibration.** `variancePartition()` flags a
+  batch or replicate factor carrying variance comparable to the treatment;
+  `assessPValueCalibration()` flags a conservative fixed-dispersion null whose
+  FDR is not calibrated, and an inflated null with no flat tail.
+- **Feature-table hygiene.** `auditFeatureTable()` detects reverse-database
+  decoys and contaminant entries still present in a supplied matrix, and zeros
+  that encode "not quantified" - including analytes present in every living
+  cell reported as zero in every sample.
+- **Non-biological signals.** `detectNonBiologicalSignals()` flags features
+  with an implausible fold change or a presence/absence pattern between two
+  arms, and groups them into formulation families (cofactors and their
+  degradation products, preparation buffers, solvents, medium supplements), so
+  that a difference in composition is not read as biology.
+
+These are complementary to, and distinct from, the metabolomics MS blank
+filter, which targets analytical solvent and process blanks annotated through
+`sample_type`. A preparation control that is itself an exposure arm must stay
+`sample_type = biological`. See the
+[design audit reference](docs/multiomics/DESIGN_AUDIT.md).
+
 ## Optional native R reference engine
 
 Install R and the required packages on your own machine:
