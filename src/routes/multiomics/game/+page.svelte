@@ -62,7 +62,7 @@
     <p>{t('Vous avez validé les quatre décisions. Poursuivez avec les méthodes et les exemples du logiciel.','You completed all four decisions. Continue with the methods and software examples.')}</p>
     <p>{t('Pour appliquer vos décisions, ouvrez le véritable outil. La démo intégrée utilise des données pédagogiques distinctes des études Airway et Nutrimouse.','Apply your decisions in the actual tool. The built-in demo uses educational data distinct from Airway and Nutrimouse.')}</p>
     <a href={resolve('multiomics/tool/')}>{t('Tester une omique (bouton Transcriptomique)','Try one omics layer (Transcriptomics button)')}</a> · <a href={resolve('multiomics/tool/')+'?demo=multi'}>{t('Tester les trois omiques','Try all three omics layers')}</a> · <a href={resolve('multiomics/demo/')}>{t('Voir la démonstration','View the demo')}</a>
-    <p><a href={'https://rberrah.github.io/Omics2PK/?lang='+$language} data-sveltekit-reload>{t('Étape suivante : relier les omiques à la PK','Next step: link omics to PK')}</a></p>
+    <p><a href={'https://rberrah.github.io/Omics2PK/?lang='+$language} data-sveltekit-reload>{t('Application : relier les omiques à la PK','Application: link omics to PK')}</a></p>
     <button onclick={restart}>{t('Recommencer ce parcours','Restart this journey')}</button>
   {:else}
     <h3>{t(question.q[0],question.q[1])}</h3>
