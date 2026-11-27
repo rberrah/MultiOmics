@@ -81,3 +81,36 @@ test('FR/EN and shared light/dark theme conventions survive navigation', async (
   await page.getByTestId('theme-toggle').click();
   expect(await page.evaluate(()=>localStorage.getItem('pk-theme'))).toBe('system');
 });
+
+test('tool and glossary switch both languages in place without losing the design', async ({page}) => {
+  await page.goto('/multiomics/tool/?lang=fr');
+  await expect(page.locator('html')).toHaveAttribute('data-pmx-multiomics-hydrated','true');
+  const toggle=page.getByTestId('language-toggle');
+  const heading=page.getByRole('heading',{level:1});
+  await expect(heading).toContainText('Analyser une ou plusieurs omiques');
+  const design=page.getByTestId('multiomics-simple-design');
+  await design.selectOption('paired');
+  await toggle.getByRole('button',{name:'EN',exact:true}).click();
+  await expect(heading).toContainText('Analyze one or several omics layers');
+  await expect(design).toHaveValue('paired');
+  await expect(design).toHaveAttribute('aria-label','Sample organization');
+  await expect(page.getByTestId('multiomics-quick-demo-rna')).toHaveText('Transcriptomics');
+  await expect(page.locator('body')).not.toContainText('Confidentialité des données');
+  await toggle.getByRole('button',{name:'FR',exact:true}).click();
+  await expect(heading).toContainText('Analyser une ou plusieurs omiques');
+  await expect(design).toHaveValue('paired');
+  await expect(design).toHaveAttribute('aria-label','Organisation des échantillons');
+  await page.goto('/multiomics/glossary/?lang=en');
+  await expect(page.locator('dt').filter({hasText:'PK / Pharmacokinetics'})).toHaveCount(1);
+  await expect(page.locator('dt').filter({hasText:'Pharmacocinétique'})).toHaveCount(0);
+  await toggle.getByRole('button',{name:'FR',exact:true}).click();
+  await expect(page.locator('dt').filter({hasText:'PK / Pharmacocinétique'})).toHaveCount(1);
+});
+
+test('direct and switched English tool entry render the same primary labels', async ({page}) => {
+  await page.goto('/multiomics/tool/?lang=en');
+  await expect(page.locator('html')).toHaveAttribute('data-pmx-multiomics-hydrated','true');
+  await expect(page.getByRole('heading',{level:1})).toContainText('Analyze one or several omics layers');
+  await expect(page.getByTestId('multiomics-quick-demo-rna')).toHaveText('Transcriptomics');
+  await expect(page.locator('body')).not.toContainText('Confidentialité des données');
+});

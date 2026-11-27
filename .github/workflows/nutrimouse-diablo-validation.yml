@@ -3,6 +3,9 @@ name: Multi-omics real public Nutrimouse DIABLO biological validation
 on:
   pull_request:
     paths:
+      - 'package.json'
+      - 'package-lock.json'
+      - 'vendor/deepmerge/**'
       - '.github/workflows/nutrimouse-diablo-validation.yml'
       - 'multiomics-engine/tests/test_diablo_real_nutrimouse.R'
       - 'multiomics-engine/tests/test_diablo_real_nutrimouse_ablation.R'

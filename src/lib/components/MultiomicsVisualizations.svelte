@@ -4,7 +4,7 @@
   export let result = null;
   export let language = 'fr';
 
-  const tr = (fr, en) => language === 'en' ? en : fr;
+  $: tr = language === 'en' ? (/** @type {string} */ fr, /** @type {string} */ en) => en : (/** @type {string} */ fr, /** @type {string} */ en) => fr;
   let heatmapLayer = 'transcriptomics';
   let activeFigure = 'heatmap';
   let selectedPathway = 'all';
@@ -26,12 +26,12 @@
   $: mapMetLimit = effectLimit(central?.metabolites?.map((node) => node.measurement).filter(Boolean));
   $: mapRnaLimit = effectLimit(central?.enzymes?.map((node) => node.measurement).filter(Boolean));
 
-  function layerLabel(layer) {
+  $: layerLabel = (/** @type {string} */ layer) => {
     if (layer === 'transcriptomics') return tr('Transcriptomique', 'Transcriptomics');
     if (layer === 'proteomics') return tr('Protéomique', 'Proteomics');
     if (layer === 'metabolomics') return tr('Métabolomique', 'Metabolomics');
     return layer;
-  }
+  };
 
   function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
@@ -44,7 +44,7 @@
     return Math.max(1e-9, ...source.map((item) => Math.abs(item.effect)));
   }
 
-  function scaleLabel(rows) {
+  $: scaleLabel = (/** @type {any[]} */ rows) => {
     const scales = [...new Set((rows || []).map((item) => item.effectScale).filter(Boolean))];
     if (!scales.length) return '—';
     if (scales.length > 1) return tr('échelles mixtes', 'mixed scales');
@@ -52,7 +52,7 @@
       : scales[0] === 'transformed_unknown'
         ? tr('différence sur échelle transformée inconnue', 'difference on unknown transformed scale')
         : tr('différence sur échelle fournie', 'difference on supplied scale');
-  }
+  };
 
   function diverging(value, limit = 3) {
     if (!Number.isFinite(value)) return 'rgb(224,224,224)';
@@ -75,13 +75,13 @@
     return Number.isFinite(value) ? Number(value).toFixed(digits) : '—';
   }
 
-  function qLabel(value) {
+  $: qLabel = (/** @type {any} */ value) => {
     return Number.isFinite(value) ? fmt(value, 3) : tr('non calculé', 'not computed');
-  }
+  };
 
-  function itemLabel(item) {
+  $: itemLabel = (/** @type {any} */ item) => {
     return language === 'en' ? (item.labelEn || item.feature) : (item.labelFr || item.feature);
-  }
+  };
 
   function shortFeature(value, max = 16) {
     const x = String(value || '');
@@ -133,11 +133,11 @@
     return measurement?.status === 'measured' ? diverging(measurement.effect, limit) : 'rgb(220,220,220)';
   }
 
-  function measurementTitle(label, measurement) {
+  $: measurementTitle = (/** @type {string} */ label, /** @type {any} */ measurement) => {
     if (!measurement) return label + ' · ' + tr('non mesuré / non reconnu', 'not measured / not matched');
     if (measurement.status !== 'measured') return label + ' · ' + measurement.feature + ' · ' + measurement.status;
     return label + ' · ' + measurement.feature + ' · ' + scaleLabel([measurement]) + '=' + fmt(measurement.effect) + ' · q=' + qLabel(measurement.qValue);
-  }
+  };
 
   function downloadSvg(id, filename) {
     const source = document.getElementById(id);

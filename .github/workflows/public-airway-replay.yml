@@ -3,6 +3,9 @@ name: Public Airway native-R replay and R Markdown
 on:
   pull_request:
     paths:
+      - 'package.json'
+      - 'package-lock.json'
+      - 'vendor/deepmerge/**'
       - 'multiomics-engine/**'
       - 'src/lib/multiomics/**'
       - 'scripts/test_public_airway_website_r_numeric_figures.mjs'
