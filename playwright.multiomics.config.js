@@ -3,7 +3,7 @@ const port=4173;
 const url=process.env.LABS_E2E_URL||'http://127.0.0.1:'+port;
 export default defineConfig({
  testDir:'./tests/e2e',
- testMatch:['multiomics*.spec.js'],
+ testMatch:['multiomics*.spec.js','mo-game.spec.js','mo-practice.spec.js'],
  timeout:45000,
  fullyParallel:false,
  retries:0,

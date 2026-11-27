@@ -50,18 +50,19 @@
 </script>
 
 <svelte:head>
-  <title>{t('MultiOmics — Omiques et pharmacométrie PK/PD', 'MultiOmics — Omics for PK/PD research')}</title>
-  <meta name="description" content={t('MultiOmics : analyses traçables des données transcriptomiques, protéomiques et métabolomiques, pour explorer des hypothèses en PK/PD.', 'MultiOmics: reproducible transcriptomics, proteomics and metabolomics analyses to explore PK/PD hypotheses.')} />
+  <title>{t('MultiOmics — Apprendre et analyser les omiques', 'MultiOmics — Learn and analyze omics')}</title>
+  <meta name="description" content={t('MultiOmics : apprentissage et analyses traçables des données transcriptomiques, protéomiques et métabolomiques.', 'MultiOmics: learning and reproducible analysis of transcriptomics, proteomics and metabolomics.')} />
 </svelte:head>
 
 <section class="hero">
-  <p class="eyebrow">{t('Omiques → hypothèses PK/PD · outil de recherche', 'Omics → PK/PD hypotheses · research tool')}</p>
-  <h1>{t('Analyser une ou plusieurs omiques avec des règles explicites.', 'Analyze one or multiple omics with explicit rules.')}</h1>
+  <p class="eyebrow">{t('Omics Explain · apprendre, explorer, analyser', 'Omics Explain · learn, explore, analyze')}</p>
+  <h1>{t('Comprendre les omiques, des données aux hypothèses biologiques.', 'Understand omics, from data to biological hypotheses.')}</h1>
   <p class="lede">{t(
     'Choisissez RNA, protéines, métabolites ou leur combinaison. Le moteur confronte vos données à votre plan d’étude et à des bases scientifiques publiques, selon des règles auditables, sans LLM. Une seule omique suffit pour explorer, comparer ou prédire lorsque le plan le permet.',
     'Choose RNA, proteins, metabolites, or a combination. The engine follows auditable rules informed by your study design and public scientific databases, without an LLM. One omics layer is enough to explore, compare or predict when the design supports it.'
   )}</p>
   <div class="actions">
+    <a class="btn btn-primary" data-testid="mo-game-cta" href={resolve('multiomics/game/')}>{t('Jouer à Mo Game', 'Play Mo Game')}</a>
     <a
       class="btn btn-primary"
       href={resolve('multiomics/tool/')}
@@ -80,6 +81,20 @@
   </div>
 </section>
 
+<section class="panel" aria-labelledby="learning-title">
+  <div class="section-head"><div><p class="eyebrow">{t('Choisir son parcours','Choose your path')}</p><h2 id="learning-title">{t('Apprendre, explorer ou analyser','Learn, explore or analyze')}</h2></div></div>
+  <div class="branch-grid">
+    <article><span>01 · Mo Game</span><h3>{t('Apprendre en jouant','Learn by playing')}</h3><p>{t('Deux parcours guidés : transcriptomique Airway et intégration Nutrimouse. Testez vos décisions et comprenez les erreurs.','Two guided paths: Airway transcriptomics and Nutrimouse integration. Test your decisions and understand mistakes.')}</p><a href={resolve('multiomics/game/')}>{t('Commencer un parcours','Start a journey')}</a></article>
+    <article><span>02 · {t('Cours','Course')}</span><h3>{t('Comprendre les méthodes','Understand the methods')}</h3><p>{t('Plan d’étude, exploration, tests multiples et interprétation des résultats.','Study design, exploration, multiple testing and interpretation.')}</p><a href={resolve('multiomics/learn/')}>{t('Lire le cours','Read the course')}</a></article>
+    <article><span>03 · {t('Exercices','Practice')}</span><h3>{t('S’entraîner à son rythme','Practice at your own pace')}</h3><p>{t('Problèmes indépendants, niveaux progressifs et corrections expliquées.','Independent problems, progressive levels and worked answers.')}</p><a href={resolve('multiomics/practice/')}>{t('Faire les exercices','Practice')}</a></article>
+    <article><span>04 · {t('Outils','Tools')}</span><h3>{t('Analyser ses données','Analyze your data')}</h3><p>{t('Importer les matrices et le plan d’étude, puis examiner les résultats et exporter le rapport.','Import matrices and study design, inspect results and export the report.')}</p><a href={resolve('multiomics/tool/')}>{t('Ouvrir l’outil','Open the tool')}</a></article>
+    <article><span>05 · {t('Illustrations','Explore')}</span><h3>{t('Explorer un exemple','Explore an example')}</h3><p>{t('Suivre un exemple d’analyse reproductible et ses limites.','Follow a reproducible analysis example and its limitations.')}</p><a href={resolve('multiomics/demo/')}>{t('Ouvrir la démonstration','Open the demo')}</a></article>
+  </div>
+</section>
+<section class="panel" aria-labelledby="bridge-title">
+  <div class="section-head"><div><p class="eyebrow">{t('Parcours intégré','Integrated learning pathway')}</p><h2 id="bridge-title">{t('Des omiques à la pharmacologie quantitative','From omics to quantitative pharmacology')}</h2></div><p>{t('Omics Explain est le volet pédagogique de MultiOmics. Omics2PK est une application issue de MultiOmics, enrichie par les concepts de pharmacométrie. Explorez-la selon vos intérêts.','Omics Explain is the educational side of MultiOmics. Omics2PK is an application emerging from MultiOmics, enriched by pharmacometrics concepts. Explore it according to your interests.')}</p></div>
+  <div class="branch-grid"><article><h3>PMx Explain</h3><p>{t('Comprendre la PK/PD, les modèles et les paramètres.','Understand PK/PD, models and parameters.')}</p><a href={'https://rberrah.github.io/pharmacometrie/?lang='+$language} data-sveltekit-reload>{t('Étudier la pharmacométrie','Learn pharmacometrics')}</a></article><article><h3>Omics2PK</h3><p>{t('Tester la valeur ajoutée des données moléculaires pour une cible PK mesurée.','Test the added value of molecular data for a measured PK endpoint.')}</p><a href={'https://rberrah.github.io/Omics2PK/?lang='+$language} data-sveltekit-reload>{t('Poursuivre vers Omics2PK','Continue to Omics2PK')}</a></article></div>
+</section>
 <section class="panel sample-sheet-intro">
   <div class="section-head">
     <div>

@@ -34,7 +34,9 @@
   // Local routes remain under /multiomics/ in both BASE_PATH builds.
   let links = $derived([
     { key:'overview',href:'/multiomics/',label:t('Accueil','Home') },
-    { key:'demo',href:'/multiomics/demo/',label:t('Démo guidée','Guided demo') },
+    { key:'game',href:'/multiomics/game/',label:'Mo Game' },
+    { key:'practice',href:'/multiomics/practice/',label:t('Exercices','Practice') },
+    { key:'demo',href:'/multiomics/demo/',label:t('Illustrations','Explore') },
     { key:'learn',href:'/multiomics/learn/',label:t('Méthodologie générale','General methodology') },
     { key:'tool',href:'/multiomics/tool/',label:t('Outil','Tool') },
     { key:'disciplines',href:'/multiomics/ecosystem/',label:t('Vue d’ensemble de l’écosystème','Ecosystem overview') },
@@ -47,7 +49,7 @@
     { key:'main-site',href:mainSite,label:'Racym Berrah ↗',external:true }
   ]);
   let groups = $derived([
-    {key:'learn',label:t('Apprendre','Learn'),icon:BookOpen,keys:['demo','learn']},
+    {key:'learn',label:t('Apprendre','Learn'),icon:BookOpen,keys:['game','learn','practice','demo']},
     {key:'analyze',label:t('Analyser','Analyze'),icon:ChartNoAxesCombined,keys:['tool']},
     {key:'disciplines',label:t('Écosystème','Ecosystem'),icon:Library,keys:['disciplines','pmx','omics2pk']},
     {key:'resources',label:t('Ressources','Resources'),icon:Library,keys:['resources','glossary','references','source','main-site']}
