@@ -55,7 +55,7 @@
 </svelte:head>
 
 <section class="hero">
-  <p class="eyebrow">{t('Omiques · apprendre, explorer, analyser', 'Omics · learn, explore, analyze')}</p>
+  <p class="eyebrow">{t('Omics Explain · apprendre, explorer, analyser', 'Omics Explain · learn, explore, analyze')}</p>
   <h1>{t('Comprendre les omiques, des données aux hypothèses biologiques.', 'Understand omics, from data to biological hypotheses.')}</h1>
   <p class="lede">{t(
     'Choisissez RNA, protéines, métabolites ou leur combinaison. Le moteur confronte vos données à votre plan d’étude et à des bases scientifiques publiques, selon des règles auditables, sans LLM. Une seule omique suffit pour explorer, comparer ou prédire lorsque le plan le permet.',
@@ -89,6 +89,10 @@
     <article><span>03 · {t('Démonstration','Demo')}</span><h3>{t('Explorer un exemple','Explore an example')}</h3><p>{t('Suivre un exemple d’analyse reproductible et ses limites.','Follow a reproducible analysis example and its limitations.')}</p><a href={resolve('multiomics/demo/')}>{t('Ouvrir la démonstration','Open the demo')}</a></article>
     <article><span>04 · {t('Recherche','Research')}</span><h3>{t('Analyser ses données','Analyze your data')}</h3><p>{t('Importer les matrices et le plan d’étude, puis examiner les résultats et exporter le rapport.','Import matrices and study design, inspect results and export the report.')}</p><a href={resolve('multiomics/tool/')}>{t('Ouvrir l’outil','Open the tool')}</a></article>
   </div>
+</section>
+<section class="panel" aria-labelledby="bridge-title">
+  <div class="section-head"><div><p class="eyebrow">{t('Parcours intégré','Integrated learning pathway')}</p><h2 id="bridge-title">{t('Des omiques à la pharmacologie quantitative','From omics to quantitative pharmacology')}</h2></div><p>{t('Omics Explain est le volet pédagogique de MultiOmics. Après avoir appris la pharmacométrie et les omiques, reliez les deux disciplines avec Omics2PK.','Omics Explain is the educational side of MultiOmics. After learning pharmacometrics and omics, connect the disciplines with Omics2PK.')}</p></div>
+  <div class="branch-grid"><article><h3>PMx Explain</h3><p>{t('Comprendre la PK/PD, les modèles et les paramètres.','Understand PK/PD, models and parameters.')}</p><a href={'https://rberrah.github.io/pharmacometrie/?lang='+$language} data-sveltekit-reload>{t('Étudier la pharmacométrie','Learn pharmacometrics')}</a></article><article><h3>Omics2PK</h3><p>{t('Tester la valeur ajoutée des données moléculaires pour une cible PK mesurée.','Test the added value of molecular data for a measured PK endpoint.')}</p><a href={'https://rberrah.github.io/Omics2PK/?lang='+$language} data-sveltekit-reload>{t('Poursuivre vers Omics2PK','Continue to Omics2PK')}</a></article></div>
 </section>
 <section class="panel sample-sheet-intro">
   <div class="section-head">
