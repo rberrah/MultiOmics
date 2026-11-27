@@ -23,7 +23,7 @@
   }
   let canonical = $derived(canonicalForPath(page.url.pathname));
   /** @param {string} fr @param {string} en */
-  const t = (fr,en) => $language === 'en' ? en : fr;
+  let t = $derived($language === 'en' ? (/** @type {string} */ fr, /** @type {string} */ en) => en : (/** @type {string} */ fr, /** @type {string} */ en) => fr);
   const mainSite = 'https://rberrah.github.io/';
   const pmxExplain = 'https://rberrah.github.io/pharmacometrie/';
   /** @type {HTMLElement | undefined} */
@@ -106,7 +106,7 @@
     <a
       class="logo"
       href={resolve('multiomics/')}
-      aria-label="MultiOmics"
+      aria-label="mO MultiOmics"
       data-testid="logo-link"
     >
       <span class="mark" aria-hidden="true">mO</span>
