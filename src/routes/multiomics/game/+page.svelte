@@ -23,7 +23,8 @@
   $: question=journey.steps[step];
   $: finished=step===journey.steps.length;
   /** @param {number} index */
-  function start(index){ selected=index; step=0; answer=-1; completed=[...completed]; completed[index]=0; }
+  function start(index){ selected=index; step=completed[index]; answer=-1; }
+  function restart(){ completed=[...completed]; completed[selected]=0; step=0; answer=-1; }
   function next(){ if(answer!==question.correct)return; completed=[...completed]; completed[selected]=step+1; step+=1; answer=-1; }
 </script>
 <svelte:head><title>Mo Game — MultiOmics</title></svelte:head>
@@ -37,10 +38,32 @@
 {/each}
 </div>
 <section class="mission" aria-labelledby="mission-title">
+  <div class="study" data-testid="mo-game-study">
+    {#if selected===0}
+      <h2>Airway · GSE52778</h2>
+      <p>{t('Vrai plan expérimental : quatre lignées de cellules, chacune mesurée sans et avec dexaméthasone.','Real experimental design: four cell lines, each measured without and with dexamethasone.')}</p>
+      <div class="pair-grid">
+        {#each [1,2,3,4] as donor}
+          <div class="pair"><span>{t('Lignée','Cell line')} {donor}</span><span>{t('Sans traitement','Untreated')}</span><span aria-hidden="true">↔</span><span>{t('Dexaméthasone','Dexamethasone')}</span></div>
+        {/each}
+      </div>
+      <p>{t('8 mesures appariées, 17 199 gènes conservés après filtrage de référence. Le schéma représente le plan réel, pas les intensités mesurées.','8 paired assays, 17,199 genes retained after reference filtering. The diagram represents the real design, not measured intensities.')}</p>
+      <a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE52778" target="_blank" rel="noopener noreferrer">{t('Source publique GSE52778','Public GSE52778 source')}</a> · <a href="https://github.com/rberrah/MultiOmics/blob/adebb86ffd11bdd89582d18bb07fd56cf22dd1f3/docs/multiomics/PUBLIC_AIRWAY_SITE_R_REPLAY.md" target="_blank" rel="noopener noreferrer">{t('Qualification DESeq2','DESeq2 qualification')}</a>
+    {:else}
+      <h2>Nutrimouse · mixOmics</h2>
+      <p>{t('40 souris, 120 signaux d’expression hépatique et 21 pourcentages d’acides gras. Les deux couches sont appariées par animal.','40 mice, 120 liver expression signals and 21 fatty-acid percentages. The two layers are paired by animal.')}</p>
+      <div class="pair-grid"><div class="pair"><span>{t('40 souris','40 mice')}</span><span>{t('Expression · 120','Expression · 120')}</span><span aria-hidden="true">↔</span><span>{t('Lipides · 21','Lipids · 21')}</span></div></div>
+      <p>{t('Aucune concentration PK n’est mesurée : ces données ne valident pas une covariable PK.','No PK concentrations are measured: these data do not validate a PK covariate.')}</p>
+      <a href="https://github.com/mixOmicsTeam/mixOmics/blob/ef3e760526623d9e91e945e4b50be48d764efc40/data/nutrimouse.rda" target="_blank" rel="noopener noreferrer">{t('Données originales mixOmics','Original mixOmics data')}</a> · <a href="https://github.com/rberrah/MultiOmics/blob/adebb86ffd11bdd89582d18bb07fd56cf22dd1f3/docs/multiomics/REAL_NUTRIMOUSE_FROZEN_SCORE_PROTOCOL.md" target="_blank" rel="noopener noreferrer">{t('Protocole reproductible','Reproducible protocol')}</a>
+    {/if}
+  </div>
   <h2 id="mission-title">{journey.name} · {finished?t('Parcours terminé','Journey complete'):t('Étape','Step')+' '+(step+1)+' / '+journey.steps.length}</h2>
   {#if finished}
     <p>{t('Vous avez validé les quatre décisions. Poursuivez avec les méthodes et les exemples du logiciel.','You completed all four decisions. Continue with the methods and software examples.')}</p>
-    <a href={resolve('multiomics/learn/')}>{t('Comprendre les méthodes','Learn the methods')}</a> · <a href={resolve('multiomics/demo/')}>{t('Voir la démonstration','View the demo')}</a> · <a href={resolve('multiomics/tool/')}>{t('Ouvrir l’outil','Open the tool')}</a>
+    <p>{t('Pour appliquer vos décisions, ouvrez le véritable outil. La démo intégrée utilise des données pédagogiques distinctes des études Airway et Nutrimouse.','Apply your decisions in the actual tool. The built-in demo uses educational data distinct from Airway and Nutrimouse.')}</p>
+    <a href={resolve('multiomics/tool/')}>{t('Tester une omique (bouton Transcriptomique)','Try one omics layer (Transcriptomics button)')}</a> · <a href={resolve('multiomics/tool/')+'?demo=multi'}>{t('Tester les trois omiques','Try all three omics layers')}</a> · <a href={resolve('multiomics/demo/')}>{t('Voir la démonstration','View the demo')}</a>
+    <p><a href={'https://rberrah.github.io/Omics2PK/?lang='+$language} data-sveltekit-reload>{t('Étape suivante : relier les omiques à la PK','Next step: link omics to PK')}</a></p>
+    <button onclick={restart}>{t('Recommencer ce parcours','Restart this journey')}</button>
   {:else}
     <h3>{t(question.q[0],question.q[1])}</h3>
     <div class="answers">
@@ -60,5 +83,5 @@ button{font:inherit;color:var(--text-primary);background:var(--bg-secondary);bor
 button:focus-visible,a:focus-visible{outline:2px solid var(--accent-pk);outline-offset:3px}
 button[aria-pressed=true]{border:2px solid var(--accent-pk);box-shadow:inset 0 0 0 1px var(--accent-pk)}
 .journeys button{display:grid;gap:.5rem}.mission{border-top:1px solid var(--border-strong);padding:1.5rem 0 3rem;max-width:900px}
-.answers{display:grid;gap:.75rem}.next{margin-top:1rem}.next:disabled{opacity:.55;cursor:not-allowed}
+.study{padding:1rem;border:1px solid var(--border-strong);border-radius:8px;margin-bottom:1.5rem}.pair-grid{display:grid;gap:.5rem}.pair{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;padding:.5rem;border:1px solid var(--border-subtle);border-radius:6px}.pair span:first-child{font-weight:700;min-width:5rem}.pair span:nth-child(2),.pair span:last-child{padding:.35rem .5rem;background:var(--bg-secondary);border:1px solid var(--border-strong);border-radius:5px}.answers{display:grid;gap:.75rem}.next{margin-top:1rem}.next:disabled{opacity:.55;cursor:not-allowed}
 </style>
