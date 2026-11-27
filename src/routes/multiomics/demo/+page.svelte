@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { resolve, asset } from '$app/paths';
   import { language } from '#lib/stores/language.js';
+  import PublicStudyEvidence from '#lib/components/PublicStudyEvidence.svelte';
   import { runDeterministicAnalysis, parseDelimited } from '#lib/multiomics/deterministic.js';
   import { buildMultiomicsVisualizationData } from '#lib/multiomics/visualization-data.js';
   import { assessScientificAssurance } from '#lib/multiomics/scientific-assurance.js';
@@ -222,6 +223,12 @@
   </div>
 </section>
 
+<section aria-labelledby="public-evidence-title">
+  <h2 id="public-evidence-title">{t('Illustrations issues de données publiques','Illustrations from public data')}</h2>
+  <p>{t('Ces résultats sont distincts du cas pédagogique synthétique présenté ensuite.','These results are distinct from the synthetic educational case below.')}</p>
+  <PublicStudyEvidence study="airway" />
+  <PublicStudyEvidence study="nutrimouse" />
+</section>
 <section data-testid="guided-demo-design">
   <h2>{t('1 · Le jeu de données','1 · Dataset')}</h2>
   <p>{t(

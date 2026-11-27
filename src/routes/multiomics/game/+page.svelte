@@ -1,6 +1,7 @@
 <script>
   import { resolve } from '$app/paths';
   import { language } from '#lib/stores/language.js';
+  import PublicStudyEvidence from '#lib/components/PublicStudyEvidence.svelte';
   $: t = $language === 'en' ? (/** @type {string} */ fr, /** @type {string} */ en) => en : (/** @type {string} */ fr, /** @type {string} */ en) => fr;
   // Each pair is French / English. Cases teach design and interpretation; no numerical study results are fabricated.
   const paths = [
@@ -31,7 +32,7 @@
 <a class="back" href={resolve('multiomics/')}>{t('Retour à MultiOmics','Back to MultiOmics')}</a>
 <h1>Mo Game</h1>
 <p class="lede">{t('Deux parcours interactifs pour apprendre à choisir et interpréter une analyse omique.','Two interactive journeys to learn how to choose and interpret an omics analysis.')}</p>
-<p>{t('Cas pédagogiques inspirés de jeux publics. Les questions ne constituent pas une réanalyse des données et ne présentent aucun résultat numérique inventé.','Educational cases inspired by public datasets. The questions do not reanalyze those data or present invented numerical results.')}</p>
+<p>{t('Cas pédagogiques sur données publiques. Les figures présentent des mesures et résultats qualifiés ; aucune réestimation n’est faite dans le navigateur.','Educational cases on public data. Figures show qualified measurements and results; no model is refitted in the browser.')}</p>
 <div class="journeys">
 {#each paths as path,i}
   <button class:active={selected===i} aria-pressed={selected===i} onclick={()=>start(i)}><strong>{path.name}</strong><span>{t(path.title[0],path.title[1])}</span><small>{completed[i]}/{path.steps.length}</small></button>
@@ -54,9 +55,10 @@
       <p>{t('40 souris, 120 signaux d’expression hépatique et 21 pourcentages d’acides gras. Les deux couches sont appariées par animal.','40 mice, 120 liver expression signals and 21 fatty-acid percentages. The two layers are paired by animal.')}</p>
       <div class="pair-grid"><div class="pair"><span>{t('40 souris','40 mice')}</span><span>{t('Expression · 120','Expression · 120')}</span><span aria-hidden="true">↔</span><span>{t('Lipides · 21','Lipids · 21')}</span></div></div>
       <p>{t('Aucune concentration PK n’est mesurée : ces données ne valident pas une covariable PK.','No PK concentrations are measured: these data do not validate a PK covariate.')}</p>
-      <a href="https://github.com/mixOmicsTeam/mixOmics/blob/ef3e760526623d9e91e945e4b50be48d764efc40/data/nutrimouse.rda" target="_blank" rel="noopener noreferrer">{t('Données originales mixOmics','Original mixOmics data')}</a> · <a href="https://github.com/rberrah/MultiOmics/blob/adebb86ffd11bdd89582d18bb07fd56cf22dd1f3/docs/multiomics/REAL_NUTRIMOUSE_FROZEN_SCORE_PROTOCOL.md" target="_blank" rel="noopener noreferrer">{t('Protocole reproductible','Reproducible protocol')}</a>
+      <a href="https://github.com/mixOmics-org/mixOmics/blob/ef3e760526623d9e91e945e4b50be48d764efc40/data/nutrimouse.rda" target="_blank" rel="noopener noreferrer">{t('Données originales mixOmics','Original mixOmics data')}</a> · <a href="https://github.com/rberrah/MultiOmics/blob/adebb86ffd11bdd89582d18bb07fd56cf22dd1f3/docs/multiomics/REAL_NUTRIMOUSE_FROZEN_SCORE_PROTOCOL.md" target="_blank" rel="noopener noreferrer">{t('Protocole reproductible','Reproducible protocol')}</a>
     {/if}
   </div>
+  <PublicStudyEvidence study={selected===0?'airway':'nutrimouse'} />
   <h2 id="mission-title">{journey.name} · {finished?t('Parcours terminé','Journey complete'):t('Étape','Step')+' '+(step+1)+' / '+journey.steps.length}</h2>
   {#if finished}
     <p>{t('Vous avez validé les quatre décisions. Poursuivez avec les méthodes et les exemples du logiciel.','You completed all four decisions. Continue with the methods and software examples.')}</p>
