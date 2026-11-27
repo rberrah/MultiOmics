@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
-# Normalize the small dependency layer that Basilisk or unconstrained
-# transitive resolution can upgrade before running the already-pinned
-# MOFA2/mofapy2 scientific stack.
+# Normalize the complete recorded dependency closure before fitting.
+# Basilisk's unconstrained transitive resolution can drift even when MOFA2
+# and its direct scientific dependencies remain pinned. Never change the lock.
 for(p in c("MOFA2","basilisk","reticulate","jsonlite"))
   if(!requireNamespace(p,quietly=TRUE)) stop("Missing authentic method dependency: ",p)
 
@@ -12,9 +12,9 @@ config <- jsonlite::read_json(
 if(!identical(config$schema,"multiomics.mofa-basilisk-python.v1"))
   stop("Unknown Basilisk environment lock schema")
 
-bootstrap <- c("pip","wheel","setuptools","packaging","python-dateutil")
-expected <- unlist(config$pinnedPackages[bootstrap],use.names=TRUE)
-if(length(expected)!=length(bootstrap) || anyNA(expected))
+expected <- unlist(config$pinnedPackages,use.names=TRUE)
+if(!isTRUE(config$strictPythonLockReady) || length(expected)!=config$packageCount ||
+   is.null(names(expected)) || anyDuplicated(names(expected)) || anyNA(expected))
   stop("MOFA Python lock must declare exact normalized package versions")
 
 env <- tryCatch(
