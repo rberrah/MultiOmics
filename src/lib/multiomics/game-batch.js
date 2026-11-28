@@ -6,7 +6,7 @@ export function batchExample(crossed=true,batchEffect=2,biologicalEffect=0){
     if(!crossed&&batch!==group)continue;
     for(const e of noise)points.push({batch,group,value:batch*batchEffect+group*biologicalEffect+e});
   }
-  const mean=rows=>rows.reduce((s,p)=>s+p.value,0)/rows.length;
+  const mean=(/** @type {{value:number}[]} */ rows)=>rows.reduce((s,p)=>s+p.value,0)/rows.length;
   const difference=mean(points.filter(p=>p.group===1))-mean(points.filter(p=>p.group===0));
   const within=crossed?[0,1].map(batch=>mean(points.filter(p=>p.batch===batch&&p.group===1))-mean(points.filter(p=>p.batch===batch&&p.group===0))):null;
   return {points,difference,within};

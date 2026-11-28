@@ -45,6 +45,13 @@ test('real-data illustrations, thresholds and split selection', async ({page})=>
   await page.goto('/multiomics/demo/?lang=en');
   await expect(page.getByTestId('public-study-airway')).toBeVisible();
   await expect(page.getByTestId('public-study-nutrimouse')).toBeVisible();
+  await page.getByRole('button',{name:'Pour maintenir une transformation gelée avant le test'}).click();
+  await page.getByRole('button',{name:'Continuer',exact:true}).click();
+  await page.getByRole('button',{name:'Non : il manque une mesure PK et un plan pour tester le mécanisme'}).click();
+  await page.getByRole('button',{name:'Continuer',exact:true}).click();
+  await expect(page.getByRole('heading',{name:'Interprétation · Parcours terminé'})).toBeVisible();
+  await page.getByRole('button',{name:'Recommencer ce parcours'}).click();
+  await expect(page.getByRole('heading',{name:'Interprétation · Étape 1 / 5'})).toBeVisible();
 });
 
 test('interpretation mission uses real results and a separate interactive batch simulation',async({page})=>{
