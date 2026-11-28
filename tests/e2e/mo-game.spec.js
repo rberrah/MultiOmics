@@ -56,6 +56,12 @@ test('interpretation mission uses real results and a separate interactive batch 
   await page.getByRole('button',{name:'A hint',exact:true}).click();
   await expect(page.locator('.hint-box')).toContainText('Adjusted p-values stay fixed');
   await page.getByRole('button',{name:'Continue',exact:true}).click();
+  await expect(page.getByTestId('airway-volcano')).toBeVisible();
+  await expect(page.getByTestId('volcano-selected')).toHaveText('4,100');
+  await page.getByTestId('volcano-effect').selectOption({label:'1'});
+  await expect(page.getByTestId('volcano-selected')).toHaveText('1,028');
+  await page.getByTestId('volcano-q').selectOption({label:'0.01'});
+  await expect(page.getByTestId('volcano-selected')).toHaveText('884');
   await page.getByRole('button',{name:'In this contrast, estimated expression is higher under dexamethasone'}).click();
   await page.getByRole('button',{name:'Continue',exact:true}).click();
   await expect(page.getByTestId('game-batch-lab')).toBeVisible();
