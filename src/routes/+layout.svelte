@@ -10,6 +10,7 @@
   import { language } from '#lib/stores/language.js';
   import ThemeToggle from '#lib/components/ThemeToggle.svelte';
   import LanguageToggle from '#lib/components/LanguageToggle.svelte';
+  import ecosystem from '#lib/content/ecosystem.json';
 
   let { children } = $props();
   // All standalone and legacy-mounted routes should point to a single
@@ -39,9 +40,7 @@
     { key:'demo',href:'/multiomics/demo/',label:t('Illustrations','Explore') },
     { key:'learn',href:'/multiomics/learn/',label:t('Méthodologie générale','General methodology') },
     { key:'tool',href:'/multiomics/tool/',label:t('Outil','Tool') },
-    { key:'disciplines',href:'/multiomics/ecosystem/',label:t('Vue d’ensemble de l’écosystème','Ecosystem overview') },
-    { key:'pmx',href:pmxExplain,label:'PMx Explain ↗',external:true },
-    { key:'omics2pk',href:'https://rberrah.github.io/Omics2PK/',label:'Omics2PK ↗',external:true },
+    ...ecosystem.map(item=>({key:item.key==='overview'?'disciplines':item.key,href:item.url+(item.localized?'?lang='+$language:''),label:t(item.fr,item.en),external:true})),
     { key:'resources',href:'/multiomics/resources/',label:t('Documentation','Documentation') },
     { key:'glossary',href:'/multiomics/glossary/',label:t('Glossaire','Glossary') },
     { key:'references',href:'/multiomics/references/',label:t('Références scientifiques','Scientific references') },
@@ -51,7 +50,7 @@
   let groups = $derived([
     {key:'learn',label:t('Apprendre','Learn'),icon:BookOpen,keys:['game','learn','practice','demo']},
     {key:'analyze',label:t('Analyser','Analyze'),icon:ChartNoAxesCombined,keys:['tool']},
-    {key:'disciplines',label:t('Écosystème','Ecosystem'),icon:Library,keys:['disciplines','pmx','omics2pk']},
+    {key:'disciplines',label:t('Écosystème','Ecosystem'),icon:Library,keys:['disciplines','pmx','omics','stats','omics2pk']},
     {key:'resources',label:t('Ressources','Resources'),icon:Library,keys:['resources','glossary','references','source','main-site']}
   ]);
   // SvelteKit 3 only types concrete route IDs; menu hrefs are dynamic.

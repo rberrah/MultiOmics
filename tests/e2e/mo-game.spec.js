@@ -46,3 +46,26 @@ test('real-data illustrations, thresholds and split selection', async ({page})=>
   await expect(page.getByTestId('public-study-airway')).toBeVisible();
   await expect(page.getByTestId('public-study-nutrimouse')).toBeVisible();
 });
+
+test('interpretation mission uses real results and a separate interactive batch simulation',async({page})=>{
+  await page.goto('/multiomics/game/?lang=en');
+  await page.getByRole('button',{name:/^Interpretation/}).click();
+  await expect(page.getByTestId('mission-brief')).toContainText('Read a threshold');
+  await page.getByTestId('public-q-threshold').selectOption({label:'0.01'});
+  await page.getByRole('button',{name:'Fewer discoveries, without refitting'}).click();
+  await page.getByRole('button',{name:'A hint',exact:true}).click();
+  await expect(page.locator('.hint-box')).toContainText('Adjusted p-values stay fixed');
+  await page.getByRole('button',{name:'Continue',exact:true}).click();
+  await page.getByRole('button',{name:'In this contrast, estimated expression is higher under dexamethasone'}).click();
+  await page.getByRole('button',{name:'Continue',exact:true}).click();
+  await expect(page.getByTestId('game-batch-lab')).toBeVisible();
+  await expect(page.getByTestId('batch-difference')).toHaveText('2');
+  await page.getByTestId('cross-batches').check();
+  await expect(page.getByTestId('batch-difference')).toHaveText('0');
+  await page.getByTestId('language-toggle').getByRole('button',{name:'FR',exact:true}).click();
+  await expect(page.getByTestId('cross-batches')).toBeChecked();
+  await expect(page.getByTestId('batch-identifiability')).toContainText('Comparaisons intra-lot possibles');
+  await page.getByRole('button',{name:'Le plan ne permet pas de séparer les deux effets'}).click();
+  await page.getByRole('button',{name:'Continuer',exact:true}).click();
+  await expect(page.getByTestId('public-study-nutrimouse')).toBeVisible();
+});
