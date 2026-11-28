@@ -34,16 +34,16 @@
   // The actual PMx Explain nav pattern: goal-based native <details> dropdowns.
   // Local routes remain under /multiomics/ in both BASE_PATH builds.
   let links = $derived([
-    { key:'overview',href:'/multiomics/',label:t('Accueil','Home') },
-    { key:'game',href:'/multiomics/game/',label:'Mo Game' },
-    { key:'practice',href:'/multiomics/practice/',label:t('Exercices','Practice') },
-    { key:'demo',href:'/multiomics/demo/',label:t('Illustrations','Explore') },
-    { key:'learn',href:'/multiomics/learn/',label:t('Méthodologie générale','General methodology') },
-    { key:'tool',href:'/multiomics/tool/',label:t('Outil','Tool') },
+    { key:'overview',href:'/multiomics/',label:t('Accueil','Home'),external:false },
+    { key:'game',href:'/multiomics/game/',label:'Mo Game',external:false },
+    { key:'practice',href:'/multiomics/practice/',label:t('Exercices','Practice'),external:false },
+    { key:'demo',href:'/multiomics/demo/',label:t('Illustrations','Explore'),external:false },
+    { key:'learn',href:'/multiomics/learn/',label:t('Méthodologie générale','General methodology'),external:false },
+    { key:'tool',href:'/multiomics/tool/',label:t('Outil','Tool'),external:false },
     ...ecosystem.map(item=>({key:item.key==='overview'?'disciplines':item.key,href:item.url+(item.localized?'?lang='+$language:''),label:t(item.fr,item.en),external:true})),
-    { key:'resources',href:'/multiomics/resources/',label:t('Documentation','Documentation') },
-    { key:'glossary',href:'/multiomics/glossary/',label:t('Glossaire','Glossary') },
-    { key:'references',href:'/multiomics/references/',label:t('Références scientifiques','Scientific references') },
+    { key:'resources',href:'/multiomics/resources/',label:t('Documentation','Documentation'),external:false },
+    { key:'glossary',href:'/multiomics/glossary/',label:t('Glossaire','Glossary'),external:false },
+    { key:'references',href:'/multiomics/references/',label:t('Références scientifiques','Scientific references'),external:false },
     { key:'source',href:'https://github.com/rberrah/MultiOmics',label:t('Code source et versions ↗','Source code and versions ↗'),external:true },
     { key:'main-site',href:mainSite,label:'Racym Berrah ↗',external:true }
   ]);

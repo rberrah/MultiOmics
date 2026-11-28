@@ -1,7 +1,9 @@
 // Synthetic batch-design teaching model. No real dataset or clinical claim.
 export function batchExample(crossed=true,batchEffect=2,biologicalEffect=0){
   if(typeof crossed!=='boolean'||![batchEffect,biologicalEffect].every(Number.isFinite)||batchEffect<0||batchEffect>4||biologicalEffect<0||biologicalEffect>2)throw new RangeError('Teaching domain');
-  const noise=[-.3,-.1,.1,.3],points=[];
+  const noise=[-.3,-.1,.1,.3];
+  /** @type {{batch:number,group:number,value:number}[]} */
+  const points=[];
   for(const batch of [0,1])for(const group of [0,1]){
     if(!crossed&&batch!==group)continue;
     for(const e of noise)points.push({batch,group,value:batch*batchEffect+group*biologicalEffect+e});
