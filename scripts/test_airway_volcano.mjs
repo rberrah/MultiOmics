@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+const raw=readFileSync(new URL('../src/lib/multiomics/public-game-evidence/airway-volcano.json',import.meta.url));
+assert.equal(createHash('sha256').update(raw).digest('hex'),'ea222d488aa26d2a842a7d1f4fa24fddb51b023ebb51aa6882804e2a20fc2049');
+const d=JSON.parse(raw);
+assert.equal(d.bins.flat().reduce((s,n)=>s+n,0),17199);
+assert.deepEqual(d.counts,[[2940,2094,884,233],[4100,2490,1028,258],[4947,2719,1117,271]]);
+assert.ok(d.counts.every(row=>row.every((v,i)=>i===0||row[i-1]>=v)));
+assert.ok(d.counts.every((row,i)=>i===0||row.every((v,j)=>v>=d.counts[i-1][j])));
+console.log('Airway exact source-derived density and filter counts PASS');

@@ -10,6 +10,7 @@
   import { language } from '#lib/stores/language.js';
   import ThemeToggle from '#lib/components/ThemeToggle.svelte';
   import LanguageToggle from '#lib/components/LanguageToggle.svelte';
+  import ecosystem from '#lib/content/ecosystem.json';
 
   let { children } = $props();
   // All standalone and legacy-mounted routes should point to a single
@@ -33,25 +34,23 @@
   // The actual PMx Explain nav pattern: goal-based native <details> dropdowns.
   // Local routes remain under /multiomics/ in both BASE_PATH builds.
   let links = $derived([
-    { key:'overview',href:'/multiomics/',label:t('Accueil','Home') },
-    { key:'game',href:'/multiomics/game/',label:'Mo Game' },
-    { key:'practice',href:'/multiomics/practice/',label:t('Exercices','Practice') },
-    { key:'demo',href:'/multiomics/demo/',label:t('Illustrations','Explore') },
-    { key:'learn',href:'/multiomics/learn/',label:t('Méthodologie générale','General methodology') },
-    { key:'tool',href:'/multiomics/tool/',label:t('Outil','Tool') },
-    { key:'disciplines',href:'/multiomics/ecosystem/',label:t('Vue d’ensemble de l’écosystème','Ecosystem overview') },
-    { key:'pmx',href:pmxExplain,label:'PMx Explain ↗',external:true },
-    { key:'omics2pk',href:'https://rberrah.github.io/Omics2PK/',label:'Omics2PK ↗',external:true },
-    { key:'resources',href:'/multiomics/resources/',label:t('Documentation','Documentation') },
-    { key:'glossary',href:'/multiomics/glossary/',label:t('Glossaire','Glossary') },
-    { key:'references',href:'/multiomics/references/',label:t('Références scientifiques','Scientific references') },
+    { key:'overview',href:'/multiomics/',label:t('Accueil','Home'),external:false },
+    { key:'game',href:'/multiomics/game/',label:'Mo Game',external:false },
+    { key:'practice',href:'/multiomics/practice/',label:t('Exercices','Practice'),external:false },
+    { key:'demo',href:'/multiomics/demo/',label:t('Illustrations','Explore'),external:false },
+    { key:'learn',href:'/multiomics/learn/',label:t('Méthodologie générale','General methodology'),external:false },
+    { key:'tool',href:'/multiomics/tool/',label:t('Outil','Tool'),external:false },
+    ...ecosystem.map(item=>({key:item.key==='overview'?'disciplines':item.key,href:item.url+(item.localized?'?lang='+$language:''),label:t(item.fr,item.en),external:true})),
+    { key:'resources',href:'/multiomics/resources/',label:t('Documentation','Documentation'),external:false },
+    { key:'glossary',href:'/multiomics/glossary/',label:t('Glossaire','Glossary'),external:false },
+    { key:'references',href:'/multiomics/references/',label:t('Références scientifiques','Scientific references'),external:false },
     { key:'source',href:'https://github.com/rberrah/MultiOmics',label:t('Code source et versions ↗','Source code and versions ↗'),external:true },
     { key:'main-site',href:mainSite,label:'Racym Berrah ↗',external:true }
   ]);
   let groups = $derived([
     {key:'learn',label:t('Apprendre','Learn'),icon:BookOpen,keys:['game','learn','practice','demo']},
     {key:'analyze',label:t('Analyser','Analyze'),icon:ChartNoAxesCombined,keys:['tool']},
-    {key:'disciplines',label:t('Écosystème','Ecosystem'),icon:Library,keys:['disciplines','pmx','omics2pk']},
+    {key:'disciplines',label:t('Écosystème','Ecosystem'),icon:Library,keys:['disciplines','pmx','omics','stats','omics2pk']},
     {key:'resources',label:t('Ressources','Resources'),icon:Library,keys:['resources','glossary','references','source','main-site']}
   ]);
   // SvelteKit 3 only types concrete route IDs; menu hrefs are dynamic.
