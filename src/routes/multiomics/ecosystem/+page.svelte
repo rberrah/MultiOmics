@@ -15,7 +15,7 @@
   <section class="handoff">
     <h2>{t('Une application des omiques : Omics2PK','One application of omics: Omics2PK')}</h2>
     <p>{t('MultiOmics fournit un échange moléculaire traçable. Une question PK exige aussi des observations PK, des doses, des chronologies et des covariables adaptées chez les mêmes sujets. La compatibilité technique ne démontre pas une valeur ajoutée PK.','MultiOmics provides traceable molecular exchange. A PK question also requires appropriate PK observations, doses, timing and covariates in the same subjects. Technical compatibility does not demonstrate added PK value.')}</p>
-    <p><a href={'https://rberrah.github.io/pharmacometrie/ecosystem/?lang='+$language} data-sveltekit-reload>{t('Voir l’écosystème','Open ecosystem')}</a> · <a href={'https://rberrah.github.io/pharmacometrie/domaines/?lang='+$language} data-sveltekit-reload>{t('Cours Omics → PK/PD','Omics → PK/PD lessons')}</a></p>
+    <p><a href={'https://rberrah.github.io/ecosystem/?lang='+$language} data-sveltekit-reload>{t('Voir l’écosystème','Open ecosystem')}</a> · <a href={'https://rberrah.github.io/pharmacometrie/domaines/?lang='+$language} data-sveltekit-reload>{t('Cours Omics → PK/PD','Omics → PK/PD lessons')}</a></p>
   </section>
   <p role="note">{t('Usage recherche et pédagogie : aucune page ne certifie la causalité, la validité clinique ou une recommandation de dose.','Research and education: no page certifies causality, clinical validity or a dosing recommendation.')}</p>
 </section>

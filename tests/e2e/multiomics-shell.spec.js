@@ -37,7 +37,7 @@ test('Ecosystem dropdown connects PMx Explain, MultiOmics and Omics2PK', async (
   const group=page.getByTestId('goal-disciplines');
   await expect(group.locator('summary')).toContainText(/Ecosystem|Écosystème/);
   await group.locator('summary').click();
-  const urls=['https://rberrah.github.io/pharmacometrie/ecosystem/?lang=en','https://rberrah.github.io/pharmacometrie/?lang=en','https://rberrah.github.io/multiomics/?lang=en','https://rberrah.github.io/stats/','https://rberrah.github.io/Omics2PK/?lang=en'];
+  const urls=['https://rberrah.github.io/ecosystem/?lang=en','https://rberrah.github.io/pharmacometrie/?lang=en','https://rberrah.github.io/multiomics/?lang=en','https://rberrah.github.io/stats/','https://rberrah.github.io/Omics2PK/?lang=en'];
   expect(await group.locator('.goal-links a').evaluateAll(nodes=>nodes.map(a=>a.getAttribute('href')))).toEqual(urls);
   await page.goto('/multiomics/ecosystem/?lang=fr');
   expect(await page.getByTestId('ecosystem-links').locator('a').evaluateAll(nodes=>nodes.map(a=>a.getAttribute('href')))).toEqual(urls.map(url=>url.replace('lang=en','lang=fr')));
